@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<config>
+	<params>
+		<local-type>modem</local-type>
+		<discovery-enable>1</discovery-enable>
+		<discovery-iface>eth0</discovery-iface>
+		<discovery-port>30002</discovery-port>
+		<discovery-mcast-address>225.0.0.44</discovery-mcast-address>
+		<discovery-interval>5</discovery-interval>
+		<session-port>30003</session-port>
+		<heartbeat-interval>5</heartbeat-interval>
+		<heartbeat-threshold>2</heartbeat-threshold>
+		<peer-type>emulated-modem</peer-type>
+                <log-file>dlep-modem.log</log-file>
+	</params>
+</config>

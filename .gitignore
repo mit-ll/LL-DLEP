@@ -1,0 +1,14 @@
+*.o
+build-defs.h
+Dlep
+Dlep-static
+cppcheck*xml
+*.pb.cc
+*.pb.h
+lib*.a
+lib*so.*
+tests/*xml
+tests/*.log
+tests/lib_tests
+tests/deps
+deps

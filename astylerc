@@ -1,0 +1,11 @@
+# astyle options
+# astyle (Artistic Style) is a code formatter.  Run like this:
+# astyle --options=astylerc *.cpp *.h
+--style=bsd
+--indent=spaces
+--indent-switches
+--max-instatement-indent=70
+--max-code-length=80
+--pad-header --pad-oper --unpad-paren
+--add-brackets --lineend=linux
+--align-pointer=middle

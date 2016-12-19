@@ -1,0 +1,172 @@
+comments {
+This scenario is intended to help test/demonstrate the Destination
+Advertisement feature of the LL DLEP implementation.  It works in
+conjunction with the Dlep config files in this directory.  See the
+Design Notes documentation for more information about this feature.
+
+To use this scenario, first build and install Dlep.  Then load the
+scenario into CORE.  Open a terminal on each of the four nodes.  In
+each terminal, issue these commands:
+
+$ cd <top of your dlep source tree>/config/4nodes_dest_advert
+$ Dlep config-file `hostname`.xml
+
+Router1 and modem1 should become Dlep peers, likewise router2 and
+modem2.  After a few seconds, the modems should exchange Destination
+Advertisements, though this is only evident by examining the log files
+dlep-modemX.log.  Subsequently, MAC addresses appearing in "dest up"
+commands at the modem CLI will be translated using the information
+in the received Destination Advertisements.  The net effect is that
+the routers will see the MAC addresses of other routers in the DLEP
+Destination Up signals instead of the addresses of modems.
+}
+
+node n1 {
+    type router
+    model router
+    network-config {
+	hostname router1
+	!
+	interface eth0
+	 ip address 10.0.0.1/24
+	 ipv6 address 2001:0::1/64
+	!
+    }
+    iconcoords {67.0 131.0}
+    labelcoords {67.0 159.0}
+    canvas c1
+    interface-peer {eth0 n2}
+    services {IPForward}
+}
+
+node n2 {
+    type router
+    model router
+    network-config {
+	hostname modem1
+	!
+	interface eth1
+	 ip address 10.0.1.1/24
+	 ipv6 address 2001:1::1/64
+	!
+	interface eth0
+	 ip address 10.0.0.2/24
+	 ipv6 address 2001:0::2/64
+	!
+    }
+    iconcoords {353.0 131.5}
+    labelcoords {353.0 159.5}
+    canvas c1
+    interface-peer {eth0 n1}
+    interface-peer {eth1 n3}
+    services {IPForward}
+}
+
+node n3 {
+    type router
+    model router
+    network-config {
+	hostname modem2
+	!
+	interface eth1
+	 ip address 10.0.2.1/24
+	 ipv6 address 2001:2::1/64
+	!
+	interface eth0
+	 ip address 10.0.1.2/24
+	 ipv6 address 2001:1::2/64
+	!
+    }
+    iconcoords {627.0 132.0}
+    labelcoords {627.0 160.0}
+    canvas c1
+    interface-peer {eth0 n2}
+    interface-peer {eth1 n4}
+    services {IPForward}
+}
+
+node n4 {
+    type router
+    model router
+    network-config {
+	hostname router2
+	!
+	interface eth0
+	 ip address 10.0.2.2/24
+	 ipv6 address 2001:2::2/64
+	!
+    }
+    iconcoords {870.3333333333334 133.33333333333337}
+    labelcoords {870.3333333333334 161.33333333333331}
+    canvas c1
+    interface-peer {eth0 n3}
+}
+
+link l1 {
+    nodes {n1 n2}
+    bandwidth 0
+}
+
+link l2 {
+    nodes {n2 n3}
+    bandwidth 0
+}
+
+link l3 {
+    nodes {n3 n4}
+    bandwidth 0
+}
+
+annotation a1 {
+    iconcoords {473.0 173.0}
+    type text
+    label {OTA}
+    labelcolor black
+    fontfamily {Arial}
+    fontsize {12}
+    canvas c1
+}
+
+annotation a2 {
+    iconcoords {144.0 173.0}
+    type text
+    label {DLEP session}
+    labelcolor black
+    fontfamily {Arial}
+    fontsize {12}
+    canvas c1
+}
+
+annotation a3 {
+    iconcoords {703.0 173.0}
+    type text
+    label {DLEP session}
+    labelcolor black
+    fontfamily {Arial}
+    fontsize {12}
+    canvas c1
+}
+
+canvas c1 {
+    name {Canvas1}
+    refpt {0 0 47.5791667 -122.132322 2.0}
+    scale {150.0}
+    size {1000 300}
+}
+
+option global {
+    interface_names yes
+    ip_addresses yes
+    ipv6_addresses no
+    node_labels yes
+    link_labels yes
+    show_api no
+    background_images no
+    annotations yes
+    grid yes
+    traffic_start 0
+}
+
+option session {
+}
+

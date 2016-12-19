@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+<!--
+ * Dynamic Link Exchange Protocol (DLEP)
+ *
+ * Copyright (C) 2015, 2016 Massachusetts Institute of Technology
+-->
+
+
+<!-- DataItemValueType enumeration values must match those defined for
+     the C++ DataItemValueType enumeration in DataItem.h .
+-->
+
+  <xs:simpleType name="DataItemValueType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="blank"/>       <!-- no value (like void) -->
+      <xs:enumeration value="u8"/>          <!-- unsigned 8 bit integer -->
+      <xs:enumeration value="u16"/>         <!-- unsigned 16 bit integer -->
+      <xs:enumeration value="u32"/>         <!-- unsigned 32 bit integer -->
+      <xs:enumeration value="u64"/>         <!-- unsigned 64 bit integer -->
+      <xs:enumeration value="v_u8"/>        <!-- variable length list of unsigned 8 bit integer -->
+      <xs:enumeration value="a2_u16"/>      <!-- array of 2 unsigned 16 bit integers -->
+      <xs:enumeration value="a2_u64"/>      <!-- array of 2 unsigned 64 bit integers -->
+      <xs:enumeration value="string"/>      <!-- string -->
+      <xs:enumeration value="dlepmac"/>     <!-- MAC address -->
+      <xs:enumeration value="u8_string"/>   <!-- unsigned 8 bit integer followed by string -->
+      <xs:enumeration value="u8_ipv4"/>     <!-- unsigned 8 bit integer followed by IPv4 address -->
+      <xs:enumeration value="ipv4_u8"/>     <!-- IPv4 address followed by unsigned 8 bit integer -->
+      <xs:enumeration value="u8_ipv6"/>     <!-- unsigned 8 bit integer followed by IPv6 address -->
+      <xs:enumeration value="ipv6_u8"/>     <!-- IPv4 address followed by unsigned 8 bit integer -->
+      <xs:enumeration value="u64_u8"/>      <!-- unsigned 8 bit integer followed by IPv6 address -->
+      <xs:enumeration value="u16_vu8"/>     <!-- unsigned 16 bit integer followed by variable length
+                                                 list of unsigned 8 bit integer -->
+      <xs:enumeration value="v_extid"/>     <!-- variable length list of extension IDs -->
+      <xs:enumeration value="u8_ipv4_u16"/> <!-- unsigned 8 bit integer, followed by IPv4 address,
+                                                 followed by unsigned 16 bit integer -->
+      <xs:enumeration value="u8_ipv6_u16"/> <!-- unsigned 8 bit integer, followed by IPv6 address,
+                                                 followed by unsigned 16 bit integer -->
+      <xs:enumeration value="u8_ipv4_u8"/>  <!-- unsigned 8 bit integer, followed by IPv4 address,
+                                                 followed by unsigned 8 bit integer -->
+      <xs:enumeration value="u8_ipv6_u8"/>  <!-- unsigned 8 bit integer, followed by IPv6 address,
+                                                 followed by unsigned 8 bit integer -->
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- possible units for data items -->
+
+  <xs:simpleType name="DataItemUnits">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="seconds"/>
+      <xs:enumeration value="milliseconds"/>
+      <xs:enumeration value="microseconds"/>
+      <xs:enumeration value="bits/second"/>
+      <xs:enumeration value="percentage"/>
+      <xs:enumeration value="octets"/>  <!-- bytes -->
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- all information about a particular data item -->
+
+  <xs:complexType name="DataItemType">
+    <xs:sequence>
+      <xs:element name="name"   type="xs:string"/>
+      <xs:element name="type"   type="DataItemValueType"/>
+      <xs:element name="id"     type="xs:nonNegativeInteger"/>
+
+      <!-- is this data item considered a metric? -->
+      <xs:element name="metric" type="xs:boolean"/>
+
+      <!-- optional units -->
+      <xs:element name="units"  type="DataItemUnits"
+                  minOccurs="0" maxOccurs="1"/>
+
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- How many times can a data item occur in a signal? -->
+
+  <xs:simpleType name="DataItemOccurenceType">
+    <xs:restriction base="xs:string">
+
+      <!-- exactly once (required) -->
+      <xs:enumeration value="1"/>
+
+      <!-- at most once (optional) -->
+      <xs:enumeration value="0-1"/>
+
+      <!-- one or more times (required, repeatable) -->
+      <xs:enumeration value="1+"/>
+
+      <!-- zero or more times (optional, repeatable) -->
+      <xs:enumeration value="0+"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- Which peer can send a signal? -->
+
+  <xs:simpleType name="SignalSenderType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="modem"/>  <!-- modem can send this signal/message -->
+      <xs:enumeration value="router"/> <!-- router can send this signal/message -->
+      <xs:enumeration value="both"/>   <!-- bot modem and router can send this signal/message -->
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- all information about a particular signal -->
+
+  <xs:complexType name="SignalType">
+    <xs:sequence>
+      <xs:element name="name"   type="xs:string"/>
+      <xs:element name="id"     type="xs:nonNegativeInteger"
+                  minOccurs="0" maxOccurs="1"/>
+      <xs:element name="message" type="xs:boolean"
+                  minOccurs="0" maxOccurs="1"/>
+      <xs:element name="sender" type="SignalSenderType"
+                  minOccurs="0" maxOccurs="1"/>
+      <xs:element name="response"   type="xs:string"
+                  minOccurs="0" maxOccurs="1"/>
+
+      <!-- list of allowed data items for this signal -->
+      <xs:element name="data_item"
+                  minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="name"   type="xs:string"/>
+            <xs:element name="occurs" type="DataItemOccurenceType"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- all information about a particular status code -->
+
+  <xs:simpleType name="FailureModeType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="continue"/>  <!-- do not terminate the peer -->
+      <xs:enumeration value="terminate"/> <!-- terminate the peer -->
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="StatusCodeType">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="id"   type="xs:nonNegativeInteger"/>
+      <xs:element name="failure_mode"  type="FailureModeType"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="VersionType">
+    <xs:sequence>
+      <xs:element name="major" type="xs:nonNegativeInteger"/>
+      <xs:element name="minor" type="xs:nonNegativeInteger"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:simpleType name="FieldSizeInBytes">
+    <xs:restriction base="xs:positiveInteger">
+      <xs:minInclusive value="1"/>
+      <xs:maxInclusive value="8"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="FieldSizesType">
+    <xs:sequence>
+      <xs:element name="signal_length"    type="FieldSizeInBytes"/>
+      <xs:element name="signal_id"        type="FieldSizeInBytes"/>
+      <xs:element name="data_item_length" type="FieldSizeInBytes"/>
+      <xs:element name="data_item_id"     type="FieldSizeInBytes"/>
+      <xs:element name="extension_id"     type="FieldSizeInBytes"/>
+      <xs:element name="status_code"      type="FieldSizeInBytes"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- all information about a particular module -->
+
+  <xs:complexType name="ModuleType">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="draft" type="xs:string"
+                  minOccurs="0" maxOccurs="1"/>
+      <xs:element name="experiment_name" type="xs:string"
+                  minOccurs="0" maxOccurs="1"/>
+      <xs:element name="extension_id" type="xs:nonNegativeInteger"
+                  minOccurs="0" maxOccurs="1"/>
+      <xs:element name="data_item" type="DataItemType"
+                  minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="signal" type="SignalType"
+                  minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="status_code" type="StatusCodeType"
+                  minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:element name="dlep">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="version" type="VersionType"
+                    minOccurs="0" maxOccurs="1" />
+        <!-- prefix to put at the start of all signals -->
+        <xs:element name="signal_prefix" type="xs:string"
+                    minOccurs="0" maxOccurs="1" />
+        <xs:element name="field_sizes" type="FieldSizesType" />
+        <xs:element name="module" type="ModuleType"
+                    minOccurs="0" maxOccurs="unbounded" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema> 

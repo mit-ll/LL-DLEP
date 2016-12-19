@@ -1,0 +1,22 @@
+# helgrind (valgrind) suppressions file.
+# Using these suppressions, the tests run with no helgrind errors
+# with valgrind-3.10.0.SVN on Ubuntun 14.04.2.  Run like this:
+# valgrind --tool=helgrind --verbose --read-var-info=yes --suppressions=helgrind.supp ./lib_tests --report_level=detailed --log_level=all
+
+{
+   std::locale::locale()
+   Helgrind:Race
+   fun:_ZNSt6localeC1EPNS_5_ImplE
+}
+
+{
+   std::locale::locale()
+   Helgrind:Race
+   fun:_ZNSt6localeaSERKS_
+}
+
+{
+   std::has_facet()
+   Helgrind:Race
+   fun:_ZSt9has_facetISt5ctypeIcEEbRKSt6locale
+}

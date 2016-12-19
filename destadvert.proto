@@ -1,0 +1,8 @@
+message DestinationAdvertisement {
+    required uint32 reportinterval  = 1;    // report interval in seconds
+    required uint32 sequencenumber  = 2;    // sequence number
+    required uint64 uptimeinseconds = 3;    // application up time in seconds
+    required bytes  localid         = 4;    // our local modem/radio id
+    repeated bytes  destinations    = 5;    // destinations to advertise
+  }
+

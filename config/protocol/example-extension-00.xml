@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ * Dynamic Link Exchange Protocol (DLEP)
+ *
+ * Copyright (C) 2015, 2016 Massachusetts Institute of Technology
+-->
+
+<!--
+  This file defines an example extension module that may be useful
+  if you are defining your own DLEP extension.  Extensions can define
+  any combination of new data items, signals, messages, and status
+  codes.  Examples of each are given below.
+
+  All of the numeric ids in this file are drawn from the DLEP draft
+  "Private Use" space for the particular protocol element.
+  For your own extension, it is your responsibility to choose ids that
+  do not conflict with the core protocol or with any other extensions
+  you plan to use.
+
+  To run Dlep with this do-nothing extension turned on, uncomment the
+  line that includes this file in dlep-draft-24.xml.
+-->
+
+<module>
+
+  <!--
+      Name and draft are informational only, though in earlier drafts the
+      name was used as the Experiment Name (since removed).
+  -->
+    <name>Example Extension</name>
+    <draft>0</draft>
+
+    <!--
+        The next id will be placed in the Extensions Supported
+        data item to indicate support for this extension.
+    -->
+    <extension_id>65520</extension_id>
+
+    <!-- New data items defined by this extension. -->
+
+    <data_item>
+        <name>Example_u64_Nonmetric_Data_Item</name>
+        <type>u64</type>
+        <id>65408</id>
+        <metric>false</metric>
+    </data_item>
+
+    <data_item>
+        <name>Example_u32_Metric_Data_Item</name>
+        <type>u32</type>
+        <id>65409</id>
+        <metric>true</metric>
+    </data_item>
+
+    <data_item>
+        <name>Example_u8_Metric_Data_Item_With_Units</name>
+        <type>u8</type>
+        <id>65410</id>
+        <metric>true</metric>
+        <units>octets</units>
+    </data_item>
+
+    <!--
+        New signals defined by this extension.
+        You will have to add C++ code to Dlep to actually send
+        and receive new signals.
+    -->
+
+    <signal>
+        <name>Example_Signal_No_Data_Items</name>
+        <id>65520</id>
+        <message>false</message>
+        <sender>router</sender>
+    </signal>
+
+    <signal>
+        <name>Example_Signal_One_Required_Data_Item</name>
+        <id>65521</id>
+        <message>false</message>
+        <sender>modem</sender>
+
+        <data_item>
+            <name>Example_u64_Nonmetric_Data_Item</name>
+            <occurs>1</occurs>
+        </data_item>
+    </signal>
+
+    <signal>
+        <name>Example_Signal_Two_Optional_Data_Items</name>
+        <id>65522</id>
+        <message>false</message>
+        <sender>modem</sender>
+
+        <data_item>
+            <name>Example_u32_Metric_Data_Item</name>
+            <occurs>0-1</occurs>
+        </data_item>
+
+        <!--
+            You can use data items defined by the core module or by
+            any extension defined prior to this (as defined by XML
+            include processing).
+        -->
+        <data_item>
+            <name>IPv4_Address</name>
+            <occurs>0-1</occurs>
+        </data_item>
+    </signal>
+
+    <!--
+        New messages defined by this extension. 
+        There is almost no difference between messages and signals,
+        so both are introduced by <signal> and distinguished by
+        the boolean <message> field.
+
+        As with signals, you will have to add C++ code to Dlep to
+        actually send and receive new messages.
+    -->
+
+    <!--
+        If there is a response to a message, it must be defined first
+        (we don't handle forward references).
+    -->
+    <signal>
+        <name>Example_Message_Response</name>
+        <id>65520</id>
+        <message>true</message>
+        <sender>both</sender>
+    </signal>
+
+    <signal>
+        <name>Example_Message_Optional_Repeatable_Data_Item</name>
+        <id>65521</id>
+        <message>true</message>
+        <sender>both</sender>
+        <response>Example_Message_Response</response>
+
+        <data_item>
+            <name>Example_u64_Nonmetric_Data_Item</name>
+            <occurs>0+</occurs>
+        </data_item>
+    </signal>
+
+    <!-- Signals/messages to which this extension adds new data items. -->
+
+    <signal>
+        <name>Destination_Update</name>
+        <data_item>
+            <name>Example_u8_Metric_Data_Item_With_Units</name>
+            <occurs>0-1</occurs>
+        </data_item>
+    </signal>
+
+    <!-- New Status Codes defined by this extension. -->
+
+    <status_code>
+        <name>Example_Status_Code</name>
+        <id>240</id>
+        <failure_mode>continue</failure_mode>
+    </status_code>
+
+</module>
