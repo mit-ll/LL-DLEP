@@ -7,6 +7,8 @@
 		<discovery-port>854</discovery-port>
 		<discovery-mcast-address>225.0.0.44</discovery-mcast-address>
 		<discovery-interval>5</discovery-interval>
+		<discovery-ttl>255</discovery-ttl>
+		<session-ttl>255</session-ttl>
 		<session-port>854</session-port>
 		<heartbeat-interval>5</heartbeat-interval>
 		<heartbeat-threshold>2</heartbeat-threshold>
