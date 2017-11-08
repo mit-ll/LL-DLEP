@@ -17,6 +17,8 @@ as a modem.
                 <!-- override default privileged address 224.0.0.117 -->
 		<discovery-mcast-address>225.0.0.117</discovery-mcast-address>
 		<discovery-interval>60</discovery-interval>
+		<discovery-ttl>255</discovery-ttl>
+		<session-ttl>255</session-ttl>
 
                 <!-- override default privileged port 854 -->
 		<session-port>4854</session-port>
