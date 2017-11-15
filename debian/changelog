@@ -1,5 +1,0 @@
-dlep (1.10) UNRELEASED; urgency=medium
-
-  * Initial release with Debian package build.
-
- -- David P. Wiggins <David.Wiggins@ll.mit.edu>  Tue, 04 Oct 2016 10:15:50 -0400

@@ -1,12 +1,12 @@
-prefix=@prefix@
+prefix=@CMAKE_INSTALL_PREFIX@
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${exec_prefix}/include
-sysconfdir=@sysconfdir@
+sysconfdir=@ETCDIR@/dlep
 
-Name: @PACKAGE_NAME@
+Name: @PROJECT_NAME@
 Description: MIT Lincoln Laboratory Dynamic Link Exchange Protocol
-Version: @PACKAGE_VERSION@
+Version: @DLEP_VERSION@
 Libs: -L${libdir} -ldlep
 Cflags: -I${includedir} \
 -DBOOST_MPL_CFG_NO_PREPROCESSED_HEADERS \

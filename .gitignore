@@ -11,3 +11,4 @@ tests/*.log
 tests/lib_tests
 tests/deps
 deps
+build*/*
