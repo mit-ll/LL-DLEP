@@ -1,11 +1,14 @@
 # Dynamic Link Exchange Protocol (DLEP)
 #
-# Copyright (C) 2015, 2016 Massachusetts Institute of Technology
+# Copyright (C) 2015, 2016, 2017 Massachusetts Institute of Technology
 
 include ../defs.mk
 
 # files that can be validated against protocol-config.xsd
-DRAFTS_XML = protocol/dlep-draft-24.xml
+DRAFTS_XML = protocol/dlep-draft-24.xml \
+             protocol/dlep-draft-29.xml \
+             protocol/dlep-rfc-8175.xml \
+
 
 # all files to be installed
 INSTALL_FILES = modem.xml router.xml \

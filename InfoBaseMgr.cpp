@@ -67,6 +67,8 @@ update_ip_data_items(const std::string & owner_name,
     }
 }
 
+//-----------------------------------------------------------------------------
+
 DestinationData::DestinationData(const DlepMac & mac,
                                  const DataItems & initial_data_items,
                                  DlepPtr dlep) :
@@ -172,6 +174,13 @@ DestinationData::get_all_data_items(DataItems & data_items_out) const
     }
 }
 
+DataItems
+DestinationData::get_ip_data_items() const
+{
+    return ip_data_items;
+}
+
+
 void
 DestinationData::log(const std::string & prefix, int log_level) const
 {
@@ -203,8 +212,18 @@ DestinationData::needs_response(const std::string & response_name)
 
 std::string
 DestinationData::needs_response() const
-{
+{ 
     return needs_response_;
+}
+
+std::string
+DestinationData::find_ip_data_item(const DataItem & ip_data_item) const
+{
+    if (ip_data_item.find_ip_data_item(ip_data_items) != ip_data_items.end())
+    {
+        return "destination=" + mac_address.to_string();
+    }
+    return "";
 }
 
 //-----------------------------------------------------------------------------
@@ -486,6 +505,13 @@ PeerData::get_data_items()
     return return_data_items;
 }
 
+DataItems
+PeerData::get_ip_data_items() const
+{
+    return ip_data_items;
+}
+
+
 void
 PeerData::log_data_items()
 {
@@ -529,6 +555,29 @@ PeerData::needs_response(const DlepMac & mac)
     {
         return it->second->needs_response();
     }
+}
+
+std::string
+PeerData::find_ip_data_item(const DataItem & ip_data_item) const
+{
+    if (ip_data_item.find_ip_data_item(ip_data_items) != ip_data_items.end() )
+    {
+        return "peer=" + peer_id;
+    }
+    else
+    {
+        for (auto const & destpair : destination_data)
+        {
+            DlepMac mac = destpair.first;
+            DestinationDataPtr ddp = destpair.second;
+            std::string ip_owner = ddp->find_ip_data_item(ip_data_item);
+            if (ip_owner != "")
+            {
+                return ip_owner;
+            }
+        }
+    }
+    return "";
 }
 
 //-----------------------------------------------------------------------------
@@ -654,5 +703,4 @@ InfoBaseMgr::validDestination(const std::string & peer_id, const DlepMac & mac)
         rnc = false;
     }
     return rnc;
-
 }

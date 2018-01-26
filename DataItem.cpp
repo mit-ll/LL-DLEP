@@ -1642,6 +1642,18 @@ DataItem::ip_flags() const
     return boost::apply_visitor(DataItemIpFlagsVisitor(), value);
 }
 
+DataItems::const_iterator
+DataItem::find_ip_data_item(const DataItems & search_data_items) const
+{
+    auto it = search_data_items.begin();
+    for ( ; it != search_data_items.end(); it++)
+    {
+        if (ip_equal(*it))
+            break;
+    }
+    return it;
+}
+
 //-----------------------------------------------------------------------------
 //
 // Convert between strings and DataItemValueType

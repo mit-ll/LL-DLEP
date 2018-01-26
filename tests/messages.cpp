@@ -26,6 +26,8 @@ static std::vector<std::string> proto_config_files =
     "../config/protocol/dlep-draft-19.xml",
     "../config/protocol/dlep-draft-21.xml",
     "../config/protocol/dlep-draft-24.xml",
+    "../config/protocol/dlep-draft-29.xml",
+    "../config/protocol/dlep-rfc-8175.xml",
 };
 
 ProtocolConfig * get_protocfg(const std::string & pcf)

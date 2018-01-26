@@ -404,37 +404,7 @@ destination_update_ip_list(DlepModemRouterFixture & mrf,
     BOOST_REQUIRE(r == DlepService::ReturnStatus::ok);
     BOOST_CHECK(compare_data_item_lists(add_data_items, dest_info.data_items));
 
-    // update the destination with the same IP data items
-    mrf.router_client.destination_update_waiter.prepare_to_wait();
-    r = mrf.modem_service->destination_update(mac, add_data_items);
-    BOOST_REQUIRE(r == DlepService::ReturnStatus::ok);
-
-    // check that the router sees the destination update
-    BOOST_REQUIRE(mrf.router_client.destination_update_waiter.wait_for_client_call());
-    BOOST_CHECK(mrf.router_client.destination_update_waiter.check_result(mac));
-
-    // check that the router still has the same IP data items on the destination
-    dest_info.data_items.clear();
-    r = mrf.router_service->get_destination_info(peers[0], mac, dest_info);
-    BOOST_REQUIRE(r == DlepService::ReturnStatus::ok);
-    BOOST_CHECK(compare_data_item_lists(add_data_items, dest_info.data_items));
-
     // update the destination with a removal of the IP data items
-    mrf.router_client.destination_update_waiter.prepare_to_wait();
-    r = mrf.modem_service->destination_update(mac, drop_data_items);
-    BOOST_REQUIRE(r == DlepService::ReturnStatus::ok);
-
-    // check that the router sees the destination update
-    BOOST_REQUIRE(mrf.router_client.destination_update_waiter.wait_for_client_call());
-    BOOST_CHECK(mrf.router_client.destination_update_waiter.check_result(mac));
-
-    // check that the destination has no data items now
-    dest_info.data_items.clear();
-    r = mrf.router_service->get_destination_info(peers[0], mac, dest_info);
-    BOOST_REQUIRE(r == DlepService::ReturnStatus::ok);
-    BOOST_REQUIRE(dest_info.data_items.size() == 0);
-
-    // remove the same IP data items from the destination again
     mrf.router_client.destination_update_waiter.prepare_to_wait();
     r = mrf.modem_service->destination_update(mac, drop_data_items);
     BOOST_REQUIRE(r == DlepService::ReturnStatus::ok);
@@ -582,6 +552,80 @@ BOOST_AUTO_TEST_CASE(destination_update_ip)
             }
             destination_update_ip_list(mrf, mac, add_di, drop_di);
         }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(destination_update_ip_redundant_add)
+{
+    DataItems data_items;
+    DlepMac mac = {{0x20, 0x22, 0x33, 0x44, 0x55, 0x66}};
+
+    for (const auto & cf : config_files)
+    {
+        DlepModemRouterFixture mrf(cf.modem_config_file,
+                                   cf.router_config_file);
+
+        // IPv4 Address
+        Div_u8_ipv4_t div_ipv4 {DataItem::IPFlags::add, vipv4[0]};
+        DataItem di_ipv4 (ProtocolStrings::IPv4_Address, div_ipv4,
+                          mrf.modem_service->get_protocol_config());
+        data_items.push_back(di_ipv4);
+
+        // send destination_up to the router
+        mrf.router_client.destination_up_waiter.prepare_to_wait();
+        DlepService::ReturnStatus r = mrf.modem_service->destination_up(mac,
+                                                                        data_items);
+        BOOST_REQUIRE(r == DlepService::ReturnStatus::ok);
+
+        // check that the router sees the destination up
+        BOOST_REQUIRE(mrf.router_client.destination_up_waiter.wait_for_client_call());
+        BOOST_CHECK(mrf.router_client.destination_up_waiter.check_result(mac));
+
+        // Now update the destination with the same data_items
+        // this is an error that should tear down the DLEP session
+        mrf.router_client.peer_down_waiter.prepare_to_wait();
+        r = mrf.modem_service->destination_update(mac, data_items);
+        BOOST_REQUIRE(r == DlepService::ReturnStatus::ok);
+
+        // check that the router sees the peer down
+        BOOST_REQUIRE(mrf.router_client.peer_down_waiter.wait_for_client_call());
+    }
+}
+
+BOOST_AUTO_TEST_CASE(destination_update_ip_nonexistent_remove)
+{
+    DataItems data_items;
+    DlepMac mac = {{0x30, 0x22, 0x33, 0x44, 0x55, 0x66}};
+
+    for (const auto & cf : config_files)
+    {
+        DlepModemRouterFixture mrf(cf.modem_config_file,
+                                   cf.router_config_file);
+
+        // send destination_up to the router with no data items
+        mrf.router_client.destination_up_waiter.prepare_to_wait();
+        DlepService::ReturnStatus r = mrf.modem_service->destination_up(mac,
+                                                                        data_items);
+        BOOST_REQUIRE(r == DlepService::ReturnStatus::ok);
+
+        // check that the router sees the destination up
+        BOOST_REQUIRE(mrf.router_client.destination_up_waiter.wait_for_client_call());
+        BOOST_CHECK(mrf.router_client.destination_up_waiter.check_result(mac));
+
+        // create an IPv4 Address for removal
+        Div_u8_ipv4_t div_ipv4 {DataItem::IPFlags::none, vipv4[0]};
+        DataItem di_ipv4 (ProtocolStrings::IPv4_Address, div_ipv4,
+                          mrf.modem_service->get_protocol_config());
+        data_items.push_back(di_ipv4);
+
+        // update the destination, removing a nonexistent IPv4 address
+        // this is an error that should tear down the DLEP session
+        mrf.router_client.peer_down_waiter.prepare_to_wait();
+        r = mrf.modem_service->destination_update(mac, data_items);
+        BOOST_REQUIRE(r == DlepService::ReturnStatus::ok);
+
+        // check that the router sees the peer down
+        BOOST_REQUIRE(mrf.router_client.peer_down_waiter.wait_for_client_call());
     }
 }
 

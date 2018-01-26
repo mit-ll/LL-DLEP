@@ -91,6 +91,7 @@ const std::string Timed_Out = "Timed_Out";
 const std::string Invalid_Data = "Invalid_Data";
 const std::string Invalid_Destination = "Invalid_Destination";
 const std::string Not_Interested = "Not_Interested";
+const std::string Inconsistent_Data = "Inconsistent_Data";
 
 } // namespace ProtocolStrings
 } // namespace LLDLEP

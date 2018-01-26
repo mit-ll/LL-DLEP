@@ -433,6 +433,7 @@ extern const std::string Timed_Out;
 extern const std::string Invalid_Data;
 extern const std::string Invalid_Destination;
 extern const std::string Not_Interested;
+extern const std::string Inconsistent_Data;
 
 } // namespace ProtocolStrings
 

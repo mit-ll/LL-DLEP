@@ -306,6 +306,10 @@ DataItemValueType from_string(const std::string &);
 /// internal representation of a data item id
 typedef std::uint32_t DataItemIdType;
 
+/// shorthand for a vector of DataItem
+class DataItem;
+typedef std::vector<DataItem> DataItems;
+
 /// Holds one DLEP Data Item (TLV that goes in a signal/message)
 class DataItem
 {
@@ -441,6 +445,15 @@ public:
     ///         item does not hold an IP address, returns IPFlags::none.
     IPFlags ip_flags() const;
 
+    /// Search for the IP address in this data item.
+    /// @param[in] search_data_items
+    ///            vector of data items to search
+    /// @return an iterator into search_data_items indicating where this
+    ///         IP address data item was found.  If not found, returns
+    ///         std::end(search_data_items)
+    DataItems::const_iterator
+    find_ip_data_item(const DataItems & search_data_items) const;
+
 private:
 
     boost::asio::ip::address_v4
@@ -460,8 +473,7 @@ private:
     const ProtocolConfig * protocfg;
 };
 
-/// shorthand for a vector of DataItem
-typedef std::vector<DataItem> DataItems;
+
 
 } // namespace LLDLEP
 

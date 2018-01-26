@@ -11,8 +11,8 @@
 \page proto_config_schema Protocol configuration schema
 \include protocol-config.xsd
 
-\page draft24 DLEP Draft 24 protocol configuration
-\include dlep-draft-24.xml
+\page rfc8175 DLEP RFC 8175 protocol configuration
+\include dlep-rfc-8175.xml
 
 \page credit_windowing_config Credit Windowing protocol configuration module
 \include credit-windowing-03.xml
