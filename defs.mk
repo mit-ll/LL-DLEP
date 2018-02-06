@@ -102,6 +102,7 @@ endif
 
 # Installation directories
 
+ifeq ($(INSTALL_ROOT),"")
 # set INSTALL_ROOT and INSTALL_LIB
 ifeq ($(OS),Darwin)
     INSTALL_ROOT=/opt/local
@@ -114,6 +115,9 @@ else
     else
         INSTALL_ROOT=/usr/local
     endif
+    INSTALL_LIB=$(DESTDIR)$(INSTALL_ROOT)/lib
+endif
+else
     INSTALL_LIB=$(DESTDIR)$(INSTALL_ROOT)/lib
 endif
 

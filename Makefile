@@ -130,7 +130,7 @@ install: all $(INSTALLDIRS)
 	install -d $(INSTALL_DOC)
 	rsync --exclude='*.md5' -av doc/doxygen/* $(INSTALL_DOC)
 	if test -z "$(DESTDIR)" ; then \
-	    $(LDCONFIG) $(INSTALL_LIB) ; \
+	    sudo $(LDCONFIG) $(INSTALL_LIB) ; \
 	fi
 
 # recursive install
