@@ -109,6 +109,7 @@ clean: $(CLEANDIRS)
 	$(RM) -r doc/doxygen/html
 	$(RM) -rf debian/dlep
 	$(RM) $(PBOBJS) $(PBGENS)
+	$(RM) -rf $(DLEP_LIBNAME).so
 
 # recursive clean
 .PHONY: $(CLEANDIRS)
