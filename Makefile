@@ -92,6 +92,7 @@ $(BUILDDIRS):
 # Build the dlep shared library.
 $(DLEP_SO): $(DLEP_OBJ)
 	$(CC) $(CDEBUGFLAGS) $(SHLIB_FLAGS) -o $(DLEP_SO) $(DLEP_OBJ) $(LIB)
+	ln -s -f $(DLEP_SO)  $(DLEP_LIBNAME).so
 
 $(DLEP_LIBNAME).a: $(DLEP_OBJ)
 	$(AR) -crv $@ $(DLEP_OBJ)
