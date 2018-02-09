@@ -92,7 +92,10 @@ $(BUILDDIRS):
 # Build the dlep shared library.
 $(DLEP_SO): $(DLEP_OBJ)
 	$(CC) $(CDEBUGFLAGS) $(SHLIB_FLAGS) -o $(DLEP_SO) $(DLEP_OBJ) $(LIB)
+	ln -s -f $(DLEP_SO)  $(DLEP_SONAME)
 	ln -s -f $(DLEP_SO)  $(DLEP_LIBNAME).so
+	mkdir -p include/dlep
+	cp -f $(DLEP_PUBLIC_HEADERS) include/dlep/
 
 $(DLEP_LIBNAME).a: $(DLEP_OBJ)
 	$(AR) -crv $@ $(DLEP_OBJ)
@@ -109,7 +112,9 @@ clean: $(CLEANDIRS)
 	$(RM) -r doc/doxygen/html
 	$(RM) -rf debian/dlep
 	$(RM) $(PBOBJS) $(PBGENS)
+	$(RM) -rf $(DLEP_SONAME)
 	$(RM) -rf $(DLEP_LIBNAME).so
+	$(RM) -rf include
 
 # recursive clean
 .PHONY: $(CLEANDIRS)
