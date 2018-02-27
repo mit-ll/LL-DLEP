@@ -60,6 +60,7 @@ private:
     std::string file_name;
     int run_level;
     std::ofstream logfile;
+    std::ostream * pstream;
     std::string time_string_get();
     std::map <int, std::string> level_name;
     boost::mutex mutex;
