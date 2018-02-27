@@ -6,13 +6,11 @@
 #include "DlepLogger.h"
 #include <time.h>
 #include <ctype.h>
-#include <iostream>
 
 using namespace std;
 using namespace LLDLEP::internal;
 
-DlepLogger::DlepLogger():
-    pstream(&std::cout)
+DlepLogger::DlepLogger()
 {
     this->run_level = DLEP_LOG_INFO;
     //this->run_level = DEBUG;
@@ -21,10 +19,13 @@ DlepLogger::DlepLogger():
     level_name[3] = string("NOTICE: ");
     level_name[4] = string("ERROR: ");
     level_name[5] = string("FATAL: ");
+
+    file_name = "/tmp/dlep_log.txt";
+
+    logfile.open("/tmp/dlep_log.txt");
 }
 
-DlepLogger::DlepLogger(int run_level):
-    pstream(&std::cout)
+DlepLogger::DlepLogger(int run_level)
 {
     if (run_level < DLEP_LOG_DEBUG)
     {
@@ -38,14 +39,12 @@ DlepLogger::DlepLogger(int run_level):
     {
         this->run_level = run_level;
     }
+    logfile.open("dlep_log.txt");
 }
 
 DlepLogger::~DlepLogger()
 {
-    if (logfile.is_open())
-    {
-       logfile.close();
-    }
+    logfile.close();
 }
 
 void
@@ -54,7 +53,7 @@ DlepLogger::log(int level, std::string str)
     boost::mutex::scoped_lock lock(mutex);
     if (level >= run_level)
     {
-        *pstream << level_name[level] << str << endl;
+        logfile << level_name[level] << str << endl;
     }
 }
 
@@ -71,7 +70,7 @@ DlepLogger::log_time(int level, std::string str)
     boost::mutex::scoped_lock lock(mutex);
     if (level >= run_level)
     {
-        *pstream << time_string_get() << level_name[level] << str << endl;
+        logfile << time_string_get() << level_name[level] << str << endl;
     }
 }
 
@@ -102,26 +101,9 @@ DlepLogger::set_run_level(int run_level)
 void
 DlepLogger::set_log_file(const char * name)
 {
-    if (logfile.is_open())
-    {
-       logfile.close();
-    }
+    file_name = name;
+    logfile.close();
     logfile.open(name);
-
-    if (!logfile.fail())
-    {
-        file_name = name;
-        pstream = &logfile;
-    }
-    else
-    {
-      file_name.clear();
-      pstream = &std::cout;
-      ostringstream msg;
-      msg <<  "Unable to open log file: " << name;
-      DlepLogger * logger(this);
-      LOG(DLEP_LOG_ERROR, msg);
-    }
 }
 
 string
