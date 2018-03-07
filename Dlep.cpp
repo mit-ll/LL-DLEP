@@ -164,8 +164,10 @@ Dlep::initialize()
                 dlep_client.get_config_parameter("discovery-ttl",
                                                  &discovery_ttl);
             }
-            catch (LLDLEP::DlepClient::BadParameterName)
+            //catch (LLDLEP::DlepClient::BadParameterName)
+            catch (const std::exception &e)
             {
+                std::cout<<e.what();
             }
         } //  discovery enabled
 

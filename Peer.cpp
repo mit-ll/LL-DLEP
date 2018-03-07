@@ -1122,7 +1122,11 @@ Peer::handle_peer_initialization(ProtocolMessage & pm)
 
     if (status_message != "")
     {
-        terminate(ProtocolStrings::Inconsistent_Data, status_message);
+        // following the RFC 8175 protocol (13.8.1),
+        // the receiver of inconsistent inforamtion MUST issue a Session
+        // Termination Message containing a Status Data Item with status set
+        // to 'Invalid Data' and transition to the Session Termination state.
+        terminate(ProtocolStrings::Invalid_Data, status_message);
         return;
     }
 
@@ -1315,7 +1319,11 @@ Peer::handle_peer_update(ProtocolMessage & pm)
 
     if (status_message != "")
     {
-        terminate(ProtocolStrings::Inconsistent_Data, status_message);
+        // following the RFC 8175 protocol (13.8.1),
+        // the receiver of inconsistent inforamtion MUST issue a Session
+        // Termination Message containing a Status Data Item with status set
+        // to 'Invalid Data' and transition to the Session Termination state.
+        terminate(ProtocolStrings::Invalid_Data, status_message);
         return;
     }
 
@@ -1324,6 +1332,13 @@ Peer::handle_peer_update(ProtocolMessage & pm)
     // We always send the update to the client, even if there was an error.
     // Is that OK?
     dlep->dlep_client.peer_update(peer_id, data_items);
+    if(dlep->dest_advert_enabled)
+    {
+        for (auto di : data_items)
+        {
+            dlep->dest_advert->add_dataitem(di);
+        }
+    }
 
     send_simple_response(ProtocolStrings::Session_Update_Response,
                          update_status, "");
@@ -1389,8 +1404,15 @@ Peer::handle_destination_up(ProtocolMessage & pm)
 
         if (status_message != "")
         {
-            terminate(ProtocolStrings::Inconsistent_Data, status_message);
-            return;
+            // following the RFC 8175 protocol (13.8.1),
+            // MAY issue the appropriate response meesage containing Status Data Item
+            ostringstream msg;
+            msg << "peer=" << peer_id << " status=" << ProtocolStrings::Destination_Up_Response
+                << " reason=" << status_message;
+            LOG(DLEP_LOG_INFO, msg);
+            // following the RFC 8175 protocol,
+            // the receiver of inconsistent meesage MUST continue with session processing,
+            // therefore there is no place for 'return'
         }
 
         // If the peer had previously expressed Not Interested in
@@ -1519,6 +1541,10 @@ Peer::handle_destination_announce(ProtocolMessage & pm)
 
     std::string response_name =
         dlep->protocfg->get_message_response_name(pm.get_signal_name());
+    
+    msg << response_name;
+    LOG(DLEP_LOG_INFO, msg);
+
     assert(response_name != "");
 
     // already_have_this_dest will be true if we've already gotten a
@@ -1527,6 +1553,12 @@ Peer::handle_destination_announce(ProtocolMessage & pm)
     // protocol error.
 
     bool already_have_this_dest = peer_pdp->validDestination(destination_mac);
+
+    msg << response_name << " response name";
+    LOG(DLEP_LOG_INFO, msg);
+
+    msg << already_have_this_dest << " already have this dest";
+    LOG(DLEP_LOG_INFO, msg);
 
     std::string statusname;
     if (! already_have_this_dest)
@@ -1559,8 +1591,15 @@ Peer::handle_destination_announce(ProtocolMessage & pm)
         // interacting with the client, and we're done.
 
         DestinationDataPtr ddp;
+
+        msg << "gettting destination data";
+        LOG(DLEP_LOG_INFO, msg);
+
         if (dlep->local_pdp->getDestinationData(destination_mac, &ddp))
         {
+            msg << " getting destination data YES";
+            LOG(DLEP_LOG_INFO, msg);
+
             DataItems response_data_items;
             ddp->get_all_data_items(response_data_items);
 
@@ -1578,6 +1617,8 @@ Peer::handle_destination_announce(ProtocolMessage & pm)
         
         statusname = dlep->dlep_client.destination_up(peer_id, destination_mac,
                                                       data_items);
+        msg << statusname << " status name";
+        LOG(DLEP_LOG_INFO, msg);
 
         // convert empty status name to Success
         if (statusname == "")
@@ -1587,6 +1628,10 @@ Peer::handle_destination_announce(ProtocolMessage & pm)
     } // destination did not already exist from this peer
     else
     {
+        msg << " What's the right status for a redudant Destination Announce?";
+        msg << " destination already exists from this peer";
+        LOG(DLEP_LOG_INFO, msg);
+
         // What's the right status for a redundant Destination Announce?
         statusname = ProtocolStrings::Invalid_Message;
     } // destination already exists from this peer
@@ -1632,8 +1677,15 @@ Peer::handle_destination_update(ProtocolMessage & pm)
             validate_ip_data_items(update_data_items, ddp->get_ip_data_items());
         if (status_message != "")
         {
-            terminate(ProtocolStrings::Inconsistent_Data, status_message);
-            return;
+            // following the RFC 8175 protocol (13.8.1),
+            // MAY issue the appropriate response meesage containing Status Data Item
+            ostringstream msg;
+            msg << "peer=" << peer_id << " status=" << ProtocolStrings::Session_Update_Response
+                << " reason=" << status_message;
+            LOG(DLEP_LOG_INFO, msg);
+            // following the RFC 8175 protocol,
+            // the receiver of inconsistent meesage MUST continue with session processing,
+            // therefore there is no place for 'return'
         }
 
         ddp->update(update_data_items, false);

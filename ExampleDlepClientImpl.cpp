@@ -251,7 +251,7 @@ DlepClientImpl::ConfigParameterMapType DlepClientImpl::param_info =
     {
         "session-port",             {
             ConfigParameterInfo::ParameterType::UnsignedInteger,
-            "854",
+            "4854",
             "TCP port number that the modem listens on for session connections"
         }
     },

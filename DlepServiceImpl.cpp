@@ -138,7 +138,7 @@ DlepServiceImpl::destination_update(const DlepMac & mac_address,
             {
                 for (const DlepMac & dest : entry.info.destinations)
                 {
-                    dlep->local_pdp->updateDestination(dest, data_items, true);
+                    dlep->local_pdp->updateDestination(dest, entry.data_items, true);
                 }
             }
         }
