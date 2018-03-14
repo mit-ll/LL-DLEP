@@ -130,6 +130,8 @@ inline  std::pair<bool, std::string> build_destination_advert(
 
 
 // un-build/de-serialize for reading
+// need to transfer DlepPtr parameter for getting the protocfg,
+// for construct the dataitem. 
 inline  std::pair<bool, DestAdvertInfo> unbuild_destination_advert(
     const uint8_t * buff, size_t len, DlepPtr dlep)
 {

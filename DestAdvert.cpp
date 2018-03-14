@@ -161,7 +161,6 @@ void DestAdvert::handle_message(DlepMessageBuffer msg_buffer,
 
         // update timestamp
         entry.timestamp = time(NULL);
-        //entry.data_items.clear();
         if (entry.estate == DestAdvertDBEntry::EntryState::up)
         {
             DlepMacAddrs added, deleted;
@@ -429,31 +428,6 @@ DestAdvert::update_advert_entry_data_items(const DlepMac & rfId,
 
         //add ip data items that we saved aside
         entry.data_items.insert(entry.data_items.end(), ip_data_items.begin(), ip_data_items.end());
-    }
-    else
-    {
-        msg << "rfid " << rfId.to_string() << " not found in table";
-        LOG(DLEP_LOG_ERROR, msg);
-    }
-}
-
-void
-DestAdvert::clear_advert_entry_data_items(const DlepMac & rfId)
-{
-    boost::recursive_mutex::scoped_lock lock(dest_advert_mutex);
-    std::ostringstream msg;
-
-    msg << "clearing dataitems of rfid=" << rfId.to_string();
-    LOG(DLEP_LOG_INFO, msg);
-
-    const auto iter = dest_advert_db.find(rfId);
-
-    if (iter != dest_advert_db.end())
-    {
-        DestAdvertDBEntry & entry = iter->second;
-
-        entry.data_items.clear();
-        entry.data_items.erase(entry.data_items.begin(), entry.data_items.end());
     }
     else
     {

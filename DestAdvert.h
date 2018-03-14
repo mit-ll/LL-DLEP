@@ -105,12 +105,6 @@ public:
     void update_advert_entry_data_items(const LLDLEP::DlepMac & rfId,
                                         const LLDLEP::DataItems & data_items);
 
-    /// Clear the metrics on an entry in the destination advertisement
-    /// database.
-    /// @param[in] rfId       the RF_ID whose entry will be updated
-    /// @param[in] data_items the data items associated with rfId
-    void clear_advert_entry_data_items(const LLDLEP::DlepMac & rfId);
-
     /// Update the state of an entry in the destination advertisement
     /// database.
     /// @param[in] rfId     the RF_ID whose entry will be updated
