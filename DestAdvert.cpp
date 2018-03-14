@@ -161,7 +161,7 @@ void DestAdvert::handle_message(DlepMessageBuffer msg_buffer,
 
         // update timestamp
         entry.timestamp = time(NULL);
-
+        //entry.data_items.clear();
         if (entry.estate == DestAdvertDBEntry::EntryState::up)
         {
             DlepMacAddrs added, deleted;
@@ -171,6 +171,17 @@ void DestAdvert::handle_message(DlepMessageBuffer msg_buffer,
             // new - old = added
             getDifference(dainfo.destinations, entry.info.destinations,
                           added);
+
+            msg << "added size " << added.size();
+            for (auto it = dainfo.destinations.begin(); it != dainfo.destinations.end(); ++it)
+            {
+                msg <<  " dainfo.destinations" << *it;
+            }
+            for (auto it = entry.info.destinations.begin(); it != entry.info.destinations.end(); ++it)
+            {
+                msg <<  " entry.info.destinations" << *it;
+            }
+            LOG(DLEP_LOG_DEBUG, msg);
 
             for (const DlepMac & mac : added)
             {
@@ -182,14 +193,62 @@ void DestAdvert::handle_message(DlepMessageBuffer msg_buffer,
                 }
             }
 
+            //update the entry info dataitems with ip dataitems that were just received
+            std::vector<DataItems> ipParameters = {dainfo.ipv4DataItems, dainfo.ipv4SnDataItems, dainfo.ipv6DataItems, dainfo.ipv6SnDataItems};
+            for (auto dataItems : ipParameters)
+            {
+                DataItems ipdisAdd, ipdisRemove;
+                for (auto ipdi : dataItems)
+                {
+                    DataItem::IPFlags ipAdded = ipdi.ip_flags();
+                    //if ip add, then we need to add all new and unique id data items
+                    if (ipAdded == DataItem::IPFlags::add)
+                    {
+                        bool isNewIpDi = true;
+                        for (auto di : entry.data_items)
+                        {
+                            if (di == ipdi)
+                            {
+                                isNewIpDi = false;
+                            }
+                        }
+                        if (isNewIpDi)
+                        {
+                            //add only new ip dataitems
+                            ipdisAdd.push_back(ipdi);
+                        }
+                    }
+                    else //if ip drop remove this ip data item
+                    {
+                        for (auto di : entry.data_items)
+                        {
+                            if (ipdi.ip_equal(di))
+                            {
+                                ipdisRemove.push_back(di);
+                            }
+                        }
+                    }
+                }
+                entry.data_items.insert(entry.data_items.end(), ipdisAdd.begin(), ipdisAdd.end());
+                for (auto ipdir : ipdisRemove)
+                {
+                    entry.data_items.erase(std::remove(entry.data_items.begin(), entry.data_items.end(), ipdir), entry.data_items.end());
+                }
+            }
+
             // handle destinations that were deleted by this advertisement
 
             // old - new = deleted
             getDifference(entry.info.destinations, dainfo.destinations,
                           deleted);
 
+            msg << "deleted size " << deleted.size();
+            LOG(DLEP_LOG_DEBUG, msg);
+
+
             for (const DlepMac & mac : deleted)
             {
+                entry.data_items.clear();
                 if (! dlep->local_pdp->removeDestination(mac, true))
                 {
                     msg << "destination " << mac << " does not exist";
@@ -197,52 +256,8 @@ void DestAdvert::handle_message(DlepMessageBuffer msg_buffer,
                 }
             }
         }
-
         // update the entry info to what was just received
         entry.info = dainfo;
-
-        //update the entry info dataitems with ip dataitems that were just received
-        std::vector<DataItems> ipParameters = {dainfo.ipv4DataItems, dainfo.ipv4SnDataItems, dainfo.ipv6DataItems, dainfo.ipv6SnDataItems};
-        for (auto dataItems : ipParameters)
-        {
-            DataItems ipdisAdd, ipdisRemove;
-            for (auto ipdi : dataItems)
-            {
-                DataItem::IPFlags ipAdded = ipdi.ip_flags();
-                //if ip add, then we need to add all new and unique id data items
-                if (ipAdded == DataItem::IPFlags::add)
-                {
-                    bool isNewIpDi = true;
-                    for (auto di : entry.data_items)
-                    {
-                        if (di == ipdi)
-                        {
-                            isNewIpDi = false;
-                        }
-                    }
-                    if (isNewIpDi)
-                    {
-                        //add only new ip dataitems
-                        ipdisAdd.push_back(ipdi);
-                    }
-                }
-                else //if ip drop remove this ip data item
-                {
-                    for (auto di : entry.data_items)
-                    {
-                        if (ipdi.ip_equal(di))
-                        {
-                            ipdisRemove.push_back(di);
-                        }
-                    }
-                }
-            }
-            entry.data_items.insert(entry.data_items.end(), ipdisAdd.begin(), ipdisAdd.end());
-            for (auto ipdir : ipdisRemove)
-            {
-                entry.data_items.erase(std::remove(entry.data_items.begin(), entry.data_items.end(), ipdir), entry.data_items.end());
-            }
-        }
     }
 }
 
@@ -291,6 +306,14 @@ void DestAdvert::add_dataitem(const LLDLEP::DataItem & di)
         selfDataItems->erase(std::remove(selfDataItems->begin(), selfDataItems->end(), diRemove), selfDataItems->end());
     }
     selfDataItems->push_back(di);
+}
+
+void DestAdvert::clear_ipdataitems()
+{   
+    localPeerIpv4DataItems.erase(localPeerIpv4DataItems.begin(), localPeerIpv4DataItems.end());
+    localPeerIpv4SnDataItems.erase(localPeerIpv4SnDataItems.begin(), localPeerIpv4SnDataItems.end());
+    localPeerIpv6DataItems.erase(localPeerIpv6DataItems.begin(), localPeerIpv6DataItems.end());
+    localPeerIpv6SnDataItems.erase(localPeerIpv6SnDataItems.begin(), localPeerIpv6SnDataItems.end());
 }
 
 void DestAdvert::del_destination(const LLDLEP::DlepMac & mac)
@@ -406,6 +429,31 @@ DestAdvert::update_advert_entry_data_items(const DlepMac & rfId,
 
         //add ip data items that we saved aside
         entry.data_items.insert(entry.data_items.end(), ip_data_items.begin(), ip_data_items.end());
+    }
+    else
+    {
+        msg << "rfid " << rfId.to_string() << " not found in table";
+        LOG(DLEP_LOG_ERROR, msg);
+    }
+}
+
+void
+DestAdvert::clear_advert_entry_data_items(const DlepMac & rfId)
+{
+    boost::recursive_mutex::scoped_lock lock(dest_advert_mutex);
+    std::ostringstream msg;
+
+    msg << "clearing dataitems of rfid=" << rfId.to_string();
+    LOG(DLEP_LOG_INFO, msg);
+
+    const auto iter = dest_advert_db.find(rfId);
+
+    if (iter != dest_advert_db.end())
+    {
+        DestAdvertDBEntry & entry = iter->second;
+
+        entry.data_items.clear();
+        entry.data_items.erase(entry.data_items.begin(), entry.data_items.end());
     }
     else
     {

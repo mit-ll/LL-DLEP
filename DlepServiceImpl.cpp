@@ -136,6 +136,8 @@ DlepServiceImpl::destination_update(const DlepMac & mac_address,
                                                               data_items);
             if (entry.estate == DestAdvertDBEntry::EntryState::up)
             {
+                // entry dataitemsd include not only dataitems that we got as a parametar,
+                // but somw additional data items. (e.g ip data item).
                 for (const DlepMac & dest : entry.info.destinations)
                 {
                     dlep->local_pdp->updateDestination(dest, entry.data_items, true);
@@ -200,6 +202,8 @@ DlepServiceImpl::destination_down(const DlepMac & mac_address)
         auto lock = dlep->dest_advert->advert_db_lock();
 
         auto result = dlep->dest_advert->find_advert_entry(mac_address);
+
+        //dlep->dest_advert->clear_advert_entry_data_items(mac_address);
 
         if (result.first)
         {

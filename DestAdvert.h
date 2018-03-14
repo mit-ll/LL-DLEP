@@ -64,6 +64,10 @@ public:
     /// @param[in] di   the dataitem to add
     void add_dataitem(const LLDLEP::DataItem & di);
 
+    /// Remove all ipdataitems from future destination advertisements
+    /// sent by this process.
+    void clear_ipdataitems();
+
     /// Remove a destination from future destination advertisements
     /// sent by this process.
     ///
@@ -100,6 +104,12 @@ public:
     /// @param[in] data_items the data items associated with rfId
     void update_advert_entry_data_items(const LLDLEP::DlepMac & rfId,
                                         const LLDLEP::DataItems & data_items);
+
+    /// Clear the metrics on an entry in the destination advertisement
+    /// database.
+    /// @param[in] rfId       the RF_ID whose entry will be updated
+    /// @param[in] data_items the data items associated with rfId
+    void clear_advert_entry_data_items(const LLDLEP::DlepMac & rfId);
 
     /// Update the state of an entry in the destination advertisement
     /// database.

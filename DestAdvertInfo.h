@@ -45,20 +45,20 @@ struct DestAdvertInfo
                    time_t uptm,
                    std::uint32_t seq,
                    const LLDLEP::DlepMac & id,
-                   const LLDLEP::DlepMacAddrs & dest,
-                   const LLDLEP::DataItems & ipv4Dis,
-                   const LLDLEP::DataItems & ipv4SnDis,
-                   const LLDLEP::DataItems & ipv6Dis,
-                   const LLDLEP::DataItems & ipv6SnDis) :
+                   const LLDLEP::DlepMacAddrs & dests,
+                   const LLDLEP::DataItems & ipv4Dest,
+                   const LLDLEP::DataItems & ipv4SnDest,
+                   const LLDLEP::DataItems & ipv6Dest,
+                   const LLDLEP::DataItems & ipv6SnDest) :
         reportInterval {interval},
                    uptime {uptm},
                    sequenceNumber {seq},
                    rfId(id),
-                   destinations(dest),
-                   ipv4DataItems(ipv4Dis),
-                   ipv4SnDataItems(ipv4SnDis),
-                   ipv6DataItems(ipv6Dis),
-                   ipv6SnDataItems(ipv6SnDis)
+                   destinations(dests),
+                   ipv4DataItems(ipv4Dest),
+                   ipv4SnDataItems(ipv4SnDest),
+                   ipv6DataItems(ipv6Dest),
+                   ipv6SnDataItems(ipv6SnDest)
     { }
 
     std::string to_string() const

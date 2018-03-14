@@ -595,7 +595,7 @@ Peer::destination_down(const DlepMac & destination_mac)
 
     msg << "to peer=" << peer_id << " destination mac=" << destination_mac;
     LOG(DLEP_LOG_INFO, msg);
-
+    //dlep->dest_advert->clear_advert_entry_data_items(destination_mac);
     ProtocolMessage pm {dlep->protocfg, dlep->logger};
 
     pm.add_header(ProtocolStrings::Destination_Down);
@@ -826,6 +826,7 @@ Peer::terminate(const std::string & status_name, const std::string & reason)
         return;
     }
 
+    dlep->dest_advert->clear_ipdataitems();
     stop_peer();
 
     // Create and serialize a Termination message
@@ -1334,6 +1335,7 @@ Peer::handle_peer_update(ProtocolMessage & pm)
     dlep->dlep_client.peer_update(peer_id, data_items);
     if(dlep->dest_advert_enabled)
     {
+        //when there is peer update, publish the dataitems to the others modems 
         for (auto di : data_items)
         {
             dlep->dest_advert->add_dataitem(di);
@@ -1410,6 +1412,19 @@ Peer::handle_destination_up(ProtocolMessage & pm)
             msg << "peer=" << peer_id << " status=" << ProtocolStrings::Destination_Up_Response
                 << " reason=" << status_message;
             LOG(DLEP_LOG_INFO, msg);
+
+            //ProtocolMessage pm {dlep->protocfg, dlep->logger};
+
+            //pm.add_header(ProtocolStrings::Destination_Up_Response);
+            //pm.add_status(ProtocolStrings::Inconsistent_Data, status_message);
+
+            // A freshly built message should be parsable.
+
+            //std::string err = pm.parse_and_validate(dlep->is_modem(), __func__);
+
+            //ResponsePendingPtr rp(new ResponsePending(dlep->protocfg, pm));
+            //send_message_expecting_response(rp);
+
             // following the RFC 8175 protocol,
             // the receiver of inconsistent meesage MUST continue with session processing,
             // therefore there is no place for 'return'
@@ -2067,6 +2082,7 @@ Peer::set_state_terminating()
         {
             // clear all destinations associated with this peer
             dlep->dest_advert->clear_destinations();
+            dlep->dest_advert->clear_ipdataitems();
         }
     }
 }
