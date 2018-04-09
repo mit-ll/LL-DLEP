@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<config>
+	<params>
+		<config-file>modem1_dest_advert.xml</config-file>
+                <destination-advert-enable>0</destination-advert-enable>
+		<local-type>router</local-type>
+		<peer-type>test-router1</peer-type>
+                <log-file>test-router1.log</log-file>
+	</params>
+</config>

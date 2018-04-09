@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<config>
+	<params>
+		<config-file>test_modem_config.xml</config-file>
+		<local-type>router</local-type>
+		<peer-type>test-router</peer-type>
+                <log-file>test-router.log</log-file>
+	</params>
+</config>

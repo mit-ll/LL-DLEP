@@ -1,0 +1,23 @@
+<?xml version="1.0" ?>
+<config>
+	<params>
+		<ack-timeout>3</ack-timeout>
+		<ack-probability>100</ack-probability>
+                <destination-advert-enable>0</destination-advert-enable>
+		<discovery-iface>eth0</discovery-iface>
+		<discovery-port>4854</discovery-port>
+		<discovery-mcast-address>224.0.0.117</discovery-mcast-address>
+		<discovery-interval>5</discovery-interval>
+		<discovery-enable>1</discovery-enable>
+		<heartbeat-interval>60</heartbeat-interval>
+		<heartbeat-threshold>2</heartbeat-threshold>
+		<local-type>modem</local-type>
+                <log-file>test-modem.log</log-file>
+                <log-level>1</log-level>
+                <protocol-config-file>../config/protocol/dlep-rfc-8175.xml</protocol-config-file>
+                <protocol-config-schema>../config/protocol/protocol-config.xsd</protocol-config-schema>
+		<peer-type>test-modem</peer-type>
+		<send-tries>3</send-tries>
+		<session-port>4854</session-port>
+	</params>
+</config>
