@@ -112,6 +112,9 @@ DataItem::DataItem(const std::string & di_type,
         case DataItemValueType::div_u8_ipv6_u8:
             value = Div_u8_ipv6_u8_t {0, boost::asio::ip::address_v6(), 0};
             break;
+        case DataItemValueType::div_u64_u64:
+            value = Div_u64_u64_t {0, 0};
+            break;
     }
 }
 
@@ -379,6 +382,17 @@ public:
         buf.insert(buf.end(), ipv6_bytes.begin(), ipv6_bytes.end());
 
         buf.push_back(operand.field3);
+
+        return buf;
+    }
+
+    // serialize Div_u64_u64_t
+    std::vector<std::uint8_t> operator()(const Div_u64_u64_t & operand) const
+    {
+        std::vector<std::uint8_t> buf;
+
+        LLDLEP::serialize(operand.field1, buf);
+        LLDLEP::serialize(operand.field2, buf);
 
         return buf;
     }
@@ -694,6 +708,14 @@ DataItem::deserialize(std::vector<std::uint8_t>::const_iterator & it,
             value = val;
             break;
         }
+        case DataItemValueType::div_u64_u64:
+        {
+            Div_u64_u64_t val;
+            LLDLEP::deserialize(val.field1, it, di_end);
+            LLDLEP::deserialize(val.field2, it, di_end);
+            value = val;
+            break;
+        }
 
         // Do not add a default: case to this switch!  We need every
         // enum value to have a corresponding case so that values of
@@ -918,6 +940,15 @@ public:
         ss << std::uint64_t(operand.field1) << ";"
            << operand.field2.to_string()  << ";"
            << std::uint64_t(operand.field3);
+        return ss.str();
+    }
+
+    // to_string Div_u64_u64_t
+    std::string operator()(const Div_u64_u64_t & operand) const
+    {
+        std::ostringstream ss;
+
+        ss << operand.field1 << ";" << operand.field2;
         return ss.str();
     }
 
@@ -1322,6 +1353,25 @@ public:
         return u8ipv6u8;
     }
 
+    // from_string to Div_u64_u64_t
+    DataItemValue operator()(const Div_u64_u64_t & operand) const
+    {
+        std::istringstream ss(val_str);
+        Div_u64_u64_t u64u64;
+
+        ss >> u64u64.field1;
+        if (! ss)
+        {
+            throw std::invalid_argument(val_str);
+        }
+
+        check_field_separator(ss);
+
+        ss >> u64u64.field2;
+
+        return u64u64;
+    }
+
 private:
     // string to parse
     const std::string & val_str;
@@ -1690,7 +1740,8 @@ static std::vector<DataItemValueMap::value_type> mapvals
     { DataItemValueType::div_u8_ipv4_u16, "u8_ipv4_u16" },
     { DataItemValueType::div_u8_ipv6_u16, "u8_ipv6_u16" },
     { DataItemValueType::div_u8_ipv4_u8, "u8_ipv4_u8" },
-    { DataItemValueType::div_u8_ipv6_u8, "u8_ipv6_u8" }
+    { DataItemValueType::div_u8_ipv6_u8, "u8_ipv6_u8" },
+    { DataItemValueType::div_u64_u64, "u64_u64" }
 };
 
 static DataItemValueMap data_item_value_type_map(mapvals.begin(),

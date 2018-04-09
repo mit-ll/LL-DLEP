@@ -18,6 +18,7 @@
 #include <vector>
 #include "DataItem.h"
 #include "CreditWindow.h"
+#include "LatencyRange.h"
 
 namespace LLDLEP
 {

@@ -931,6 +931,6 @@ This protocol configuration file conforms to DLEP RFC 8175.
         file to contain one module, enclosed in <module> ... </module>.
     -->
 
-    <xi:include href="credit-windowing-03.xml"/>
+    <xi:include href="latency-range-03.xml"/>
 
 </dlep>

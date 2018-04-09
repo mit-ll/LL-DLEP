@@ -14,6 +14,7 @@ DRAFTS_XML = protocol/dlep-draft-24.xml \
 INSTALL_FILES = modem.xml router.xml \
                 protocol/protocol-config.xsd \
                 protocol/credit-windowing-03.xml \
+                protocol/latency-range-03.xml \
                 $(DRAFTS_XML)
 
 all: wellformedxml validxml

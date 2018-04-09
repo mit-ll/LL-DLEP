@@ -175,30 +175,28 @@ the protocol configuration file:
 
     modem> show dataitems
     Configured data items:
-    ID Name                           Type        Units        Module           Flags  
-    1  Status                         u8_string                core                    
-    2  IPv4_Connection_Point          u8_ipv4_u16              core                    
-    3  IPv6_Connection_Point          u8_ipv6_u16              core                    
-    4  Peer_Type                      string                   core                    
-    5  Heartbeat_Interval             u32         milliseconds core                    
-    6  Extensions_Supported           v_extid                  core                    
-    7  MAC_Address                    dlepmac                  core                    
-    8  IPv4_Address                   u8_ipv4                  core                    
-    9  IPv6_Address                   u8_ipv6                  core                    
-    10 IPv4_Attached_Subnet           u8_ipv4_u8               core                    
-    11 IPv6_Attached_Subnet           u8_ipv6_u8               core                    
-    12 Maximum_Data_Rate_Receive      u64         bits/second  core             metric 
-    13 Maximum_Data_Rate_Transmit     u64         bits/second  core             metric 
-    14 Current_Data_Rate_Receive      u64         bits/second  core             metric 
-    15 Current_Data_Rate_Transmit     u64         bits/second  core             metric 
-    16 Latency                        u64         microseconds core             metric 
-    17 Resources                      u8          percentage   core             metric 
-    18 Relative_Link_Quality_Receive  u8          percentage   core             metric 
-    19 Relative_Link_Quality_Transmit u8          percentage   core             metric 
-    20 Maximum_Transmission_Unit      u16         octets       core             metric 
-    50 Credit_Grant                   u64         octets       Credit Windowing        
-    51 Credit_Window_Status           a2_u64      octets       Credit Windowing        
-    52 Credit_Request                 blank                    Credit Windowing        
+    ID Name                              Type        Units        Module           Flags  
+    1     Status                         u8_string                core                 
+    2     IPv4_Connection_Point          u8_ipv4_u16              core                 
+    3     IPv6_Connection_Point          u8_ipv6_u16              core                 
+    4     Peer_Type                      u8_string                core                 
+    5     Heartbeat_Interval             u32         milliseconds core                 
+    6     Extensions_Supported           v_extid                  core                 
+    7     MAC_Address                    dlepmac                  core                 
+    8     IPv4_Address                   u8_ipv4                  core                 
+    9     IPv6_Address                   u8_ipv6                  core                 
+    10    IPv4_Attached_Subnet           u8_ipv4_u8               core                 
+    11    IPv6_Attached_Subnet           u8_ipv6_u8               core                 
+    12    Maximum_Data_Rate_Receive      u64         bits/second  core          metric 
+    13    Maximum_Data_Rate_Transmit     u64         bits/second  core          metric 
+    14    Current_Data_Rate_Receive      u64         bits/second  core          metric 
+    15    Current_Data_Rate_Transmit     u64         bits/second  core          metric 
+    16    Latency                        u64         microseconds core          metric 
+    17    Resources                      u8          percentage   core          metric 
+    18    Relative_Link_Quality_Receive  u8          percentage   core          metric 
+    19    Relative_Link_Quality_Transmit u8          percentage   core          metric 
+    20    Maximum_Transmission_Unit      u16         octets       core          metric 
+    65411 Latency_Range                  u64_u64     microseconds Latency Range metric 
 
 To specify one of these data items on a destination command,
 give the data item name from the list above (copy/paste recommended),
@@ -428,7 +426,7 @@ The parameters are:
   Time to wait between sending successive Heartbeat signals to the peer.
   If 0, do not send heartbeats.
 
-- heartbeat-threshold <integer\> default: 2
+- heartbeat-threshold <integer\> default: 4
 
   Number of Heartbeat intervals to wait, during which no signals (Heartbeat
   or otherwise) were received from the peer, before declaring the peer to be

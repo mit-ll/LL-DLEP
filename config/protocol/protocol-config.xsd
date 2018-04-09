@@ -41,6 +41,7 @@
                                                  followed by unsigned 8 bit integer -->
       <xs:enumeration value="u8_ipv6_u8"/>  <!-- unsigned 8 bit integer, followed by IPv6 address,
                                                  followed by unsigned 8 bit integer -->
+      <xs:enumeration value="u64_u64"/>     <!-- two unsigned 64 bit integers -->
     </xs:restriction>
   </xs:simpleType>
 
