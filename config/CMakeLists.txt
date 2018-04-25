@@ -1,18 +1,8 @@
 # files that can be validated against protocol-config.xsd
-SET(DRAFTS_XML protocol/dlep-draft-08.xml 
-             protocol/dlep-draft-17.xml 
-             protocol/dlep-draft-19.xml 
-             protocol/dlep-draft-21.xml 
-             protocol/dlep-draft-24.xml
-             protocol/dlep-draft-29.xml
-             protocol/dlep-rfc-8175.xml)
+file(GLOB DRAFTS_XML RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/protocol/dlep*.xml)
 
-SET(XML_INSTALL_FILES modem.xml router.xml
-                protocol/protocol-config.xsd
-                protocol/credit-windowing-00.xml
-                protocol/credit-windowing-03.xml
-                protocol/latency-range-03.xml
-                ${DRAFTS_XML})
+# gather all xml/xsd files
+file(GLOB XML_INSTALL_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/protocol/*.x[ms][ld])
 
 foreach ( file ${XML_INSTALL_FILES} )
   add_test(wellformedxml_${file} ${LIBXML2_XMLLINT_EXECUTABLE} --noout ${CMAKE_CURRENT_SOURCE_DIR}/${file})
