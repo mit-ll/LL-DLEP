@@ -136,9 +136,11 @@ DlepServiceImpl::destination_update(const DlepMac & mac_address,
                                                               data_items);
             if (entry.estate == DestAdvertDBEntry::EntryState::up)
             {
+                // entry dataitems include not only dataitems that we got as a parametar,
+                // but some additional data items. (e.g ip data item).
                 for (const DlepMac & dest : entry.info.destinations)
                 {
-                    dlep->local_pdp->updateDestination(dest, data_items, true);
+                    dlep->local_pdp->updateDestination(dest, entry.data_items, true);
                 }
             }
         }

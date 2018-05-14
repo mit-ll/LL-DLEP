@@ -30,6 +30,10 @@ struct DestAdvertInfo
     std::uint32_t   sequenceNumber;
     LLDLEP::DlepMac         rfId;
     LLDLEP::DlepMacAddrs    destinations;
+    LLDLEP::DataItems       ipv4DataItems;
+    LLDLEP::DataItems       ipv4SnDataItems;
+    LLDLEP::DataItems       ipv6DataItems;
+    LLDLEP::DataItems       ipv6SnDataItems;
 
     DestAdvertInfo() :
         reportInterval {},
@@ -41,12 +45,20 @@ struct DestAdvertInfo
                    time_t uptm,
                    std::uint32_t seq,
                    const LLDLEP::DlepMac & id,
-                   const LLDLEP::DlepMacAddrs & dests) :
+                   const LLDLEP::DlepMacAddrs & dests,
+                   const LLDLEP::DataItems & ipv4Dest,
+                   const LLDLEP::DataItems & ipv4SnDest,
+                   const LLDLEP::DataItems & ipv6Dest,
+                   const LLDLEP::DataItems & ipv6SnDest) :
         reportInterval {interval},
                    uptime {uptm},
                    sequenceNumber {seq},
                    rfId(id),
-                   destinations(dests)
+                   destinations(dests),
+                   ipv4DataItems(ipv4Dest),
+                   ipv4SnDataItems(ipv4SnDest),
+                   ipv6DataItems(ipv6Dest),
+                   ipv6SnDataItems(ipv6SnDest)
     { }
 
     std::string to_string() const
@@ -62,6 +74,26 @@ struct DestAdvertInfo
         for (auto dest : destinations)
         {
             ss << dest.to_string() << ", ";
+        }
+
+        for (auto ipdi : ipv4DataItems)
+        {
+            ss << ipdi.to_string() << ", ";
+        }
+
+        for (auto ipdi : ipv4SnDataItems)
+        {
+            ss << ipdi.to_string() << ", ";
+        }
+
+        for (auto ipdi : ipv6DataItems)
+        {
+            ss << ipdi.to_string() << ", ";
+        }
+
+        for (auto ipdi : ipv6SnDataItems)
+        {
+            ss << ipdi.to_string() << ", ";
         }
 
         return ss.str();
