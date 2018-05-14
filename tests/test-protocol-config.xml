@@ -238,6 +238,13 @@
             <metric>false</metric>
         </data_item>
 
+        <data_item>
+            <name>Test_u64_u64</name>
+            <type>u64_u64</type>
+            <id>205</id>
+            <metric>true</metric>
+        </data_item>
+
         <!-- Signals -->
 
         <signal>
