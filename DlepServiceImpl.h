@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2015, 2016 Massachusetts Institute of Technology
+ * Copyright (C) 2015, 2016, 2018 Massachusetts Institute of Technology
  */
 
 /// @file
@@ -32,33 +32,33 @@ public:
     };
 
     ReturnStatus destination_up(const LLDLEP::DlepMac & mac_address,
-                                const LLDLEP::DataItems & data_items);
+                                const LLDLEP::DataItems & data_items) override;
 
     ReturnStatus destination_update(const LLDLEP::DlepMac & mac_address,
-                                    const LLDLEP::DataItems & data_items);
+                                    const LLDLEP::DataItems & data_items) override;
 
-    ReturnStatus destination_down(const LLDLEP::DlepMac & mac_address);
+    ReturnStatus destination_down(const LLDLEP::DlepMac & mac_address) override;
 
-    ReturnStatus peer_update(const LLDLEP::DataItems & data_items);
+    ReturnStatus peer_update(const LLDLEP::DataItems & data_items) override;
 
-    ReturnStatus get_peers(std::vector<std::string> & peers);
+    ReturnStatus get_peers(std::vector<std::string> & peers) override;
 
     ReturnStatus get_peer_info(const std::string & peer_id,
-                               LLDLEP::PeerInfo & peer_info);
+                               LLDLEP::PeerInfo & peer_info) override;
 
     ReturnStatus get_destination_info(const std::string & peer_id,
                                       const LLDLEP::DlepMac & mac_address,
-                                      LLDLEP::DestinationInfo & dest_info);
+                                      LLDLEP::DestinationInfo & dest_info) override;
 
-    LLDLEP::ProtocolConfig * get_protocol_config();
+    LLDLEP::ProtocolConfig * get_protocol_config() override;
 
     ReturnStatus linkchar_request(const DlepMac & mac_address,
-                                  const DataItems & data_items);
+                                  const DataItems & data_items) override;
     ReturnStatus linkchar_reply(const std::string & peer_id,
                                 const DlepMac & mac_address,
-                                const DataItems & data_items);
+                                const DataItems & data_items) override;
 
-    void terminate();
+    void terminate() override;
 
 private:
     // Pointer to the top-level dlep object so we can get to everything we

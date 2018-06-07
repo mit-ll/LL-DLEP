@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2015, 2016 Massachusetts Institute of Technology
+ * Copyright (C) 2015, 2016, 2018 Massachusetts Institute of Technology
  *
  * Contributor: Adjacent Link LLC, Bridgewater, NJ
  */
@@ -73,7 +73,7 @@ struct DestAdvertDBEntry
     {
         std::stringstream ss;
 
-        ss << " age="  << time(NULL) - timestamp;
+        ss << " age="  << time(nullptr) - timestamp;
         ss << " state=" << (int)estate;
         ss << " placeholder=" << placeholder << " ";
         ss << info.to_string();

@@ -36,7 +36,7 @@ public:
     /// @param[in] io_service     for handling network I/O and timers
     /// @param[in] interface_name name of the network interface to use
     /// @param[in] udp_port       UDP port number to put on multicast packets
-    /// @param[in] mcast_addr     multicast address to put on packets
+    /// @param[in] multicast_address  multicast address to put on packets
     /// @param[in] send_interval  number of seconds between sending packets
     /// @param[in] local_rfid     rfid of the local node
     /// @param[in] logger         logger, for LOG macro
@@ -45,7 +45,7 @@ public:
         boost::asio::io_service & io_service,
         std::string interface_name,
         uint16_t udp_port,
-        boost::asio::ip::address & mcast_addr,
+        boost::asio::ip::address & multicast_address,
         unsigned int send_interval,
         const LLDLEP::DlepMac & local_rfid,
         DlepLoggerPtr logger);
@@ -55,14 +55,14 @@ public:
     /// Add a destination to future destination advertisements
     /// sent by this process.
     ///
-    /// @param[in] dest  the destination to add
-    void add_destination(const LLDLEP::DlepMac & dest);
+    /// @param[in] mac  the destination to add
+    void add_destination(const LLDLEP::DlepMac & mac);
 
     /// Remove a destination from future destination advertisements
     /// sent by this process.
     ///
-    /// @param[in] dest  the destination to remove
-    void del_destination(const LLDLEP::DlepMac & dest);
+    /// @param[in] mac  the destination to remove
+    void del_destination(const LLDLEP::DlepMac & mac);
 
     /// Remove all destinations from future destination advertisements
     /// sent by this process.

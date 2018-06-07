@@ -57,7 +57,7 @@ public:
                                     std::size_t & msg_size);
     // retrieval methods
 
-    std::string parse(const uint8_t * msgbuf, size_t length, bool is_signal,
+    std::string parse(const uint8_t * buf, size_t buflen, bool is_signal,
                       const std::string & log_prefix);
 
     /// Parse the raw message bytes into a message/signal with data items.
@@ -81,7 +81,6 @@ public:
     std::string get_status() const;
     std::vector<std::string> get_experiment_names() const;
     unsigned int get_heartbeat_interval() const;
-    bool get_credit_request() const;
     std::vector<LLDLEP::ExtensionIdType> get_extensions() const;
     std::uint16_t get_port() const;
     LLDLEP::Div_u8_ipv4_t get_ipv4_address() const;

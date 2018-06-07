@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2015, 2016 Massachusetts Institute of Technology
+ * Copyright (C) 2015, 2016, 2018 Massachusetts Institute of Technology
  */
 
 #include <sstream>
@@ -22,29 +22,35 @@ DataItem::DataItem(const ProtocolConfig * protocfg) :
 {
 }
 
-DataItem::DataItem(const std::string & di_type,
+DataItem::DataItem(const std::string & di_name,
                    const DataItemValue & di_value,
-                   const ProtocolConfig * protocfg) :
+                   const ProtocolConfig * protocfg,
+                   const DataItemInfo * parent_di_info) :
     value(di_value),
     protocfg(protocfg)
 {
     assert(protocfg != nullptr);
-    id = protocfg->get_data_item_id(di_type);
+    id = protocfg->get_data_item_id(di_name, parent_di_info);
 }
 
-DataItem::DataItem(const std::string & di_type,
-                   const ProtocolConfig * protocfg) :
+DataItem::DataItem(const std::string & di_name,
+                   const ProtocolConfig * protocfg,
+                   const DataItemInfo * parent_di_info) :
     protocfg(protocfg)
 {
     assert(protocfg != nullptr);
-    id = protocfg->get_data_item_id(di_type);
+    id = protocfg->get_data_item_id(di_name, parent_di_info);
 
     // Now set a default value according to the value type for this
     // data item id.
 
-    DataItemValueType value_type = protocfg->get_data_item_value_type(id);
+    set_default_value(protocfg->get_data_item_value_type(di_name));
+}
 
-    switch (value_type)
+void
+DataItem::set_default_value(DataItemValueType di_value_type)
+{
+    switch (di_value_type)
     {
         case DataItemValueType::blank:
             value = boost::blank();
@@ -115,9 +121,11 @@ DataItem::DataItem(const std::string & di_type,
         case DataItemValueType::div_u64_u64:
             value = Div_u64_u64_t {0, 0};
             break;
+        case DataItemValueType::div_sub_data_items:
+            value = Div_sub_data_items_t {std::vector<DataItem>()};
+            break;
     }
 }
-
 
 //-----------------------------------------------------------------------------
 //
@@ -146,7 +154,7 @@ public:
         protocfg(protocfg) {}
 
     // serialize blank
-    std::vector<std::uint8_t> operator()(const boost::blank & operand) const
+    std::vector<std::uint8_t> operator()(const boost::blank &  /*operand*/) const
     {
         std::vector<std::uint8_t> buf;
         return buf;
@@ -397,6 +405,20 @@ public:
         return buf;
     }
 
+    // serialize Div_sub_data_items_t
+    std::vector<std::uint8_t> operator()(const Div_sub_data_items_t & operand) const
+    {
+        std::vector<std::uint8_t> buf;
+
+        for (const DataItem & sdi : operand.sub_data_items)
+        {
+            std::vector<std::uint8_t> one_serialized_sdi = sdi.serialize();
+            buf.insert(buf.end(), 
+                       one_serialized_sdi.begin(), one_serialized_sdi.end());
+        }
+        return buf;
+    }
+
 private:
     const ProtocolConfig * protocfg;
 }; // DataItemSerializeVisitor
@@ -483,7 +505,8 @@ DataItem::deserialize_array(std::vector<std::uint8_t>::const_iterator & it,
 
 void
 DataItem::deserialize(std::vector<std::uint8_t>::const_iterator & it,
-                      std::vector<std::uint8_t>::const_iterator it_end)
+                      std::vector<std::uint8_t>::const_iterator it_end,
+                      const DataItemInfo * parent_di_info)
 {
     // get the data item ID
 
@@ -508,9 +531,9 @@ DataItem::deserialize(std::vector<std::uint8_t>::const_iterator & it,
             " extends beyond the end of the message");
     }
 
-    DataItemValueType di_type = protocfg->get_data_item_value_type(id);
+    DataItemInfo di_info = protocfg->get_data_item_info(id, parent_di_info);
 
-    switch (di_type)
+    switch (di_info.value_type)
     {
         case DataItemValueType::blank:
         {
@@ -717,6 +740,19 @@ DataItem::deserialize(std::vector<std::uint8_t>::const_iterator & it,
             break;
         }
 
+        case DataItemValueType::div_sub_data_items:
+        {
+            Div_sub_data_items_t val;
+            while (it < di_end)
+            {
+                DataItem sdi(protocfg);
+                sdi.deserialize(it, di_end, &di_info);
+                val.sub_data_items.push_back(sdi);
+            }
+            value = val;
+            break;
+        }
+
         // Do not add a default: case to this switch!  We need every
         // enum value to have a corresponding case so that values of
         // that type are properly deserialized.  By not having a
@@ -750,8 +786,11 @@ class DataItemToStringVisitor :
 {
 public:
 
+    explicit DataItemToStringVisitor(const DataItemInfo * parent_di_info) :
+        parent_di_info(parent_di_info) {}
+
     // to_string blank
-    std::string operator()(const boost::blank & operand) const
+    std::string operator()(const boost::blank &  /*operand*/) const
     {
         return "";
     }
@@ -952,42 +991,78 @@ public:
         return ss.str();
     }
 
+    // to_string Div_sub_data_items_t
+    std::string operator()(const Div_sub_data_items_t & operand) const
+    {
+        std::ostringstream ss;
+
+        ss << "{ ";
+        for (const DataItem & sdi : operand.sub_data_items)
+        {
+            ss << sdi.to_string(parent_di_info) << " ";
+        }
+        ss << "} ";
+
+        return ss.str();
+    }
+
+private:
+    const DataItemInfo * parent_di_info;
 }; // class DataItemToStringVisitor
 
 std::string
-DataItem::to_string() const
+DataItem::to_string(const DataItemInfo * parent_di_info) const
 {
     std::ostringstream ss;
+    std::string di_name = protocfg->get_data_item_name(id, parent_di_info);
+    DataItemInfo di_info = protocfg->get_data_item_info(di_name);
 
-    ss << "data item id=" << id
-       << "(" << protocfg->get_data_item_name(id) << ") "
-       << "value=" << boost::apply_visitor(DataItemToStringVisitor(), value);
+    ss << di_name << " ";
+
+    if (di_info.value_type == DataItemValueType::div_sub_data_items)
+    {
+        parent_di_info = &di_info;
+    }
+
+    ss << boost::apply_visitor(DataItemToStringVisitor(parent_di_info), value);
+
     return ss.str();
 }
 
 std::string
-DataItem::name() const
+DataItem::name(const DataItemInfo * parent_di_info) const
 {
-    return protocfg->get_data_item_name(id);
+    return protocfg->get_data_item_name(id, parent_di_info);
 }
 
 std::string
-DataItem::value_to_string() const
+DataItem::value_to_string(const DataItemInfo * parent_di_info) const
 {
-    return boost::apply_visitor(DataItemToStringVisitor(), value);
+    return boost::apply_visitor(DataItemToStringVisitor(parent_di_info), value);
 }
 
 //-----------------------------------------------------------------------------
 //
 // from_string support
 
-class DataItemFromStringVisitor :
+// advance sstream past leading whitespace
+static void
+skip_whitespace(std::istringstream & ss)
+{
+    while (ss && isspace(ss.peek()))
+    {
+        ss.ignore();
+    }
+}
+
+class DataItemValueFromStringStreamVisitor :
     public boost::static_visitor<DataItemValue>
 {
 public:
 
-    explicit DataItemFromStringVisitor(const std::string & val_str) :
-        val_str(val_str) {}
+    explicit DataItemValueFromStringStreamVisitor(std::istringstream & ss,
+                                                  const std::string & value_type_name) :
+        ss(ss), value_type_name(value_type_name) {}
 
     bool is_field_separator(char c) const
     {
@@ -996,56 +1071,82 @@ public:
 
     // Make sure the next character in ss is a field separator and
     // that there are more characters after it.
-    void check_field_separator(std::istringstream & ss) const
+    void check_field_separator() const
     {
-
         if (! is_field_separator(ss.get()) || ! ss)
         {
-            throw std::invalid_argument(val_str);
+            throw std::invalid_argument("expected field separator");
         }
     }
 
-    // from_string to uintX_t
     template <typename T>
-    DataItemValue  operator()(const T & operand) const
+    T parse_uint() const
     {
-        std::istringstream ss(val_str);
         std::uint64_t u64;
 
         ss >> u64;
         if (ss.fail())
         {
-            throw std::invalid_argument(val_str);
+            // parse failed because there were no characters left in
+            // the stream
+
+            if (ss.eof())
+            {
+                throw std::invalid_argument("missing value of type " +
+                                            value_type_name);
+            }
+
+            // parse failed because of bad characters in the value
+
+            ss.clear();
+            std::string badvalue;
+            std::getline(ss, badvalue, ' ');
+
+            throw std::invalid_argument(badvalue +
+                                        " is not a valid value of type " +
+                                        value_type_name);
         }
 
         // Make sure the parsed value fits in type T
         T v = u64;
         if (v != u64)
         {
-            throw std::invalid_argument(val_str);
+            throw std::invalid_argument("value " +
+                                        std::to_string(u64) +
+                                        " is too large for type " +
+                                        value_type_name);
         }
         return v;
     }
 
+    // from_stringstream to uintX_t
     template <typename T>
-    std::vector<T> parse_vector(std::istringstream & ss) const
+    DataItemValue operator()(const T &  /*operand*/) const
+    {
+        return parse_uint<T>();
+    }
+
+    template <typename T>
+    std::vector<T> parse_vector() const
     {
         std::vector<T> vec;
 
-        while (ss && (ss.rdbuf()->in_avail() > 0))
-        {
-            std::uint64_t u64;
-            ss >> u64;
-            if (ss.fail())
-            {
-                throw std::invalid_argument(val_str);
-            }
+        // We have to allow for an empty vector, so it's possible that
+        // there is not even one valid value to be parsed.  Therefore,
+        // we don't use parse_uint<T> because it throws an exception
+        // if it doesn't find a valid value.
 
+        std::uint64_t u64;
+        while (ss >> u64)
+        {
             // Make sure the parsed value fits in type T
             T v = u64;
             if (v != u64)
             {
-                throw std::invalid_argument(val_str);
+                throw std::invalid_argument("value " +
+                                            std::to_string(u64) +
+                                            " is too large for type " +
+                                            value_type_name);
             }
 
             vec.push_back(v);
@@ -1055,46 +1156,32 @@ public:
                 ss.ignore();
             }
         }
+
+        // set up for parsing more data items after this one
+        if (ss.fail())
+        {
+            ss.clear();
+        }
         return vec;
     }
 
-    std::uint8_t
-    parse_uint8(std::istringstream & ss) const
-    {
-        unsigned int ui;
-
-        ss >> ui;
-        if (! ss || (ui > 255))
-        {
-            throw std::invalid_argument(val_str);
-        }
-        return std::uint8_t(ui);
-    }
-
-    // from_string to vector<uintX_t>
+    // from_stringstream to vector<uintX_t>
     template <typename T>
-    DataItemValue operator()(const std::vector<T> & operand) const
+    DataItemValue operator()(const std::vector<T> &  /*operand*/) const
     {
-        std::istringstream ss(val_str);
-
-        return parse_vector<T>(ss);
+        return parse_vector<T>();
     }
 
-    // from_string to array<uintX_t, N>
+    // from_stringstream to array<uintX_t, N>
     template <typename T, std::size_t N>
-    DataItemValue operator()(const std::array<T, N> & operand) const
+    DataItemValue operator()(const std::array<T, N> &  /*operand*/) const
     {
         std::array<T, N> arr;
-        std::istringstream ss(val_str);
         unsigned int i;
 
         for (i = 0; (ss && i < N); i++)
         {
-            ss >> arr[i];
-            if (ss.fail())
-            {
-                throw std::invalid_argument(val_str);
-            }
+            arr[i] = parse_uint<T>();
             // skip over the , between the numbers
             if (ss.peek() == ',')
             {
@@ -1104,81 +1191,74 @@ public:
 
         if (i < N)
         {
-            throw std::invalid_argument(val_str);
+            throw std::invalid_argument("array requires " +
+                                        std::to_string(N) +
+                                        " elements, but got only " +
+                                        std::to_string(i));
         }
         return arr;
     }
 
-    // from_string to blank
-    DataItemValue operator()(const boost::blank & operand) const
+    // from_stringstream to blank
+    DataItemValue operator()(const boost::blank &  /*operand*/) const
     {
         return boost::blank();
     }
 
-    // from_string to string
-    DataItemValue operator()(const std::string & operand) const
+    // from_stringstream to string
+    DataItemValue operator()(const std::string &  /*operand*/) const
     {
-        return val_str;
+        std::string s;
+        ss >> s;
+        return s;
     }
 
-    // from_string to DlepMac
-    DataItemValue operator()(const LLDLEP::DlepMac & operand) const
+    // from_stringstream to DlepMac
+    DataItemValue operator()(const LLDLEP::DlepMac &  /*operand*/) const
     {
-        std::istringstream ss(val_str);
         LLDLEP::DlepMac mac;
-        unsigned int ui;
-        bool valid = true;
 
-        while (ss >> std::hex >> ui)
+        // expect hex bytes for mac address
+        ss >> std::hex;
+        do
         {
-            if (ui > 255)
-            {
-                valid = false;
-                break;
-            }
-            mac.mac_addr.push_back(ui);
-            // skip over : between numbers
+            std::uint8_t byte = parse_uint<std::uint8_t>();
+            mac.mac_addr.push_back(byte);
             if (ss.peek() == ':')
             {
+                // move past : and expect another byte
                 ss.ignore();
             }
-        }
+            else
+            {
+                // no more mac addr bytes
+                break;
+            }
+        } while (true);
 
-        // If we didn't parse all the way to the end of the string,
-        // there must have been non-numeric characters in the string,
-        // and that's an error.
-        if (! ss.eof())
-        {
-            valid = false;
-        }
-
-        if (! valid)
-        {
-            throw std::invalid_argument(val_str);
-        }
-
+        // restore default expectation of decimal numbers
+        ss >> std::dec;
         return mac;
     }
 
-    // from_string to Div_u8_string_t
-    DataItemValue operator()(const Div_u8_string_t & operand) const
+    // from_stringstream to Div_u8_string_t
+    DataItemValue operator()(const Div_u8_string_t &  /*operand*/) const
     {
-        std::istringstream ss(val_str);
         Div_u8_string_t u8str;
 
-        u8str.field1 = parse_uint8(ss);
-
-        check_field_separator(ss);
-
-        // Get the rest of the stream as one string
+        u8str.field1 = parse_uint<decltype(u8str.field1)>();
+        check_field_separator();
+        // Get the rest of the stream as one string, possibly empty
         ss >> u8str.field2;
-
         return u8str;
     }
 
     template <typename IPAddrType>
-    IPAddrType parse_ip_addr(std::istringstream & ss) const
+    IPAddrType parse_ip_addr() const
     {
+        // The boost IP address parser does want to see leading spaces
+        skip_whitespace(ss);
+
         // Collect characters up to the field separator or the end of
         // the stream ss.
         std::string ip_str;
@@ -1199,188 +1279,234 @@ public:
         return ipaddr;
     }
 
-    // from_string to Div_u8_ipv4_t
-    DataItemValue operator()(const Div_u8_ipv4_t & operand) const
+    // from_stringstream to Div_u8_ipv4_t
+    DataItemValue operator()(const Div_u8_ipv4_t &  /*operand*/) const
     {
-        std::istringstream ss(val_str);
         Div_u8_ipv4_t u8ipv4;
 
-        u8ipv4.field1 = parse_uint8(ss);
-        check_field_separator(ss);
-        u8ipv4.field2 = parse_ip_addr<boost::asio::ip::address_v4>(ss);
+        u8ipv4.field1 = parse_uint<decltype(u8ipv4.field1)>();
+        check_field_separator();
+        u8ipv4.field2 = parse_ip_addr<boost::asio::ip::address_v4>();
         return u8ipv4;
     }
 
-    // from_string to Div_ipv4_u8_t
-    DataItemValue operator()(const Div_ipv4_u8_t & operand) const
+    // from_stringstream to Div_ipv4_u8_t
+    DataItemValue operator()(const Div_ipv4_u8_t &  /*operand*/) const
     {
-        std::istringstream ss(val_str);
         Div_ipv4_u8_t ipv4u8;
 
-        ipv4u8.field1 = parse_ip_addr<boost::asio::ip::address_v4>(ss);
-        check_field_separator(ss);
-        ipv4u8.field2 = parse_uint8(ss);
+        ipv4u8.field1 = parse_ip_addr<boost::asio::ip::address_v4>();
+        check_field_separator();
+        ipv4u8.field2 = parse_uint<decltype(ipv4u8.field2)>();
         return ipv4u8;
     }
 
-    // from_string to Div_u8_ipv6_t
-    DataItemValue operator()(const Div_u8_ipv6_t & operand) const
+    // from_stringstream to Div_u8_ipv6_t
+    DataItemValue operator()(const Div_u8_ipv6_t &  /*operand*/) const
     {
-        std::istringstream ss(val_str);
         Div_u8_ipv6_t u8ipv6;
 
-        u8ipv6.field1 = parse_uint8(ss);
-        check_field_separator(ss);
-        u8ipv6.field2 = parse_ip_addr<boost::asio::ip::address_v6>(ss);
+        u8ipv6.field1 = parse_uint<decltype(u8ipv6.field1)>();
+        check_field_separator();
+        u8ipv6.field2 = parse_ip_addr<boost::asio::ip::address_v6>();
         return u8ipv6;
     }
 
-    // from_string to Div_ipv6_u8_t
-    DataItemValue operator()(const Div_ipv6_u8_t & operand) const
+    // from_stringstream to Div_ipv6_u8_t
+    DataItemValue operator()(const Div_ipv6_u8_t &  /*operand*/) const
     {
-        std::istringstream ss(val_str);
         Div_ipv6_u8_t ipv6u8;
 
-        ipv6u8.field1 = parse_ip_addr<boost::asio::ip::address_v6>(ss);
-        check_field_separator(ss);
-        ipv6u8.field2 = parse_uint8(ss);
+        ipv6u8.field1 = parse_ip_addr<boost::asio::ip::address_v6>();
+        check_field_separator();
+        ipv6u8.field2 = parse_uint<decltype(ipv6u8.field2)>();
         return ipv6u8;
     }
 
-    // from_string to Div_u64_u8_t
-    DataItemValue operator()(const Div_u64_u8_t & operand) const
+    // from_stringstream to Div_u64_u8_t
+    DataItemValue operator()(const Div_u64_u8_t &  /*operand*/) const
     {
-        std::istringstream ss(val_str);
         Div_u64_u8_t u64u8;
 
-        ss >> u64u8.field1;
-        if (! ss)
-        {
-            throw std::invalid_argument(val_str);
-        }
-
-        check_field_separator(ss);
-
-        u64u8.field2 = parse_uint8(ss);
-
+        u64u8.field1 = parse_uint<decltype(u64u8.field1)>();
+        check_field_separator();
+        u64u8.field2 = parse_uint<decltype(u64u8.field2)>();
         return u64u8;
     }
 
-    // from_string to Div_u16_vu8_t
-    DataItemValue operator()(const Div_u16_vu8_t & operand) const
+    // from_stringstream to Div_u16_vu8_t
+    DataItemValue operator()(const Div_u16_vu8_t &  /*operand*/) const
     {
-        std::istringstream ss(val_str);
         Div_u16_vu8_t u16vu8;
 
-        ss >> u16vu8.field1;
-        if (! ss)
-        {
-            throw std::invalid_argument(val_str);
-        }
-
-        check_field_separator(ss);
-
-        u16vu8.field2 = parse_vector<std::uint8_t>(ss);
-
+        u16vu8.field1 = parse_uint<decltype(u16vu8.field1)>();
+        check_field_separator();
+        u16vu8.field2 = parse_vector<std::uint8_t>();
         return u16vu8;
     }
 
-    // from_string to Div_v_extid_t
-    DataItemValue operator()(const Div_v_extid_t & operand) const
+    // from_stringstream to Div_v_extid_t
+    DataItemValue operator()(const Div_v_extid_t &  /*operand*/) const
     {
-        std::istringstream ss(val_str);
         Div_v_extid_t extid;
 
-        extid.field1 = parse_vector<ExtensionIdType>(ss);
+        extid.field1 = parse_vector<ExtensionIdType>();
 
         return extid;
     }
 
-    // from_string to Div_u8_ipv4_u16_t
-    DataItemValue operator()(const Div_u8_ipv4_u16_t & operand) const
+    // from_stringstream to Div_u8_ipv4_u16_t
+    DataItemValue operator()(const Div_u8_ipv4_u16_t &  /*operand*/) const
     {
-        std::istringstream ss(val_str);
         Div_u8_ipv4_u16_t u8ipv4u16;
 
-        u8ipv4u16.field1 = parse_uint8(ss);
-        check_field_separator(ss);
-        u8ipv4u16.field2 = parse_ip_addr<boost::asio::ip::address_v4>(ss);
-        check_field_separator(ss);
-        ss >> u8ipv4u16.field3;
+        u8ipv4u16.field1 = parse_uint<decltype(u8ipv4u16.field1)>();
+        check_field_separator();
+        u8ipv4u16.field2 = parse_ip_addr<boost::asio::ip::address_v4>();
+        check_field_separator();
+        u8ipv4u16.field3 = parse_uint<decltype(u8ipv4u16.field3)>();
         return u8ipv4u16;
     }
 
-    // from_string to Div_u8_ipv6_u16_t
-    DataItemValue operator()(const Div_u8_ipv6_u16_t & operand) const
+    // from_stringstream to Div_u8_ipv6_u16_t
+    DataItemValue operator()(const Div_u8_ipv6_u16_t &  /*operand*/) const
     {
-        std::istringstream ss(val_str);
         Div_u8_ipv6_u16_t u8ipv6u16;
 
-        u8ipv6u16.field1 = parse_uint8(ss);
-        check_field_separator(ss);
-        u8ipv6u16.field2 = parse_ip_addr<boost::asio::ip::address_v6>(ss);
-        check_field_separator(ss);
-        ss >> u8ipv6u16.field3;
+        u8ipv6u16.field1 = parse_uint<decltype(u8ipv6u16.field1)>();
+        check_field_separator();
+        u8ipv6u16.field2 = parse_ip_addr<boost::asio::ip::address_v6>();
+        check_field_separator();
+        u8ipv6u16.field3 = parse_uint<decltype(u8ipv6u16.field3)>();
         return u8ipv6u16;
     }
 
-    // from_string to Div_u8_ipv4_u8_t
-    DataItemValue operator()(const Div_u8_ipv4_u8_t & operand) const
+    // from_stringstream to Div_u8_ipv4_u8_t
+    DataItemValue operator()(const Div_u8_ipv4_u8_t &  /*operand*/) const
     {
-        std::istringstream ss(val_str);
         Div_u8_ipv4_u8_t u8ipv4u8;
 
-        u8ipv4u8.field1 = parse_uint8(ss);
-        check_field_separator(ss);
-        u8ipv4u8.field2 = parse_ip_addr<boost::asio::ip::address_v4>(ss);
-        check_field_separator(ss);
-        u8ipv4u8.field3 = parse_uint8(ss);
+        u8ipv4u8.field1 = parse_uint<decltype(u8ipv4u8.field1)>();
+        check_field_separator();
+        u8ipv4u8.field2 = parse_ip_addr<boost::asio::ip::address_v4>();
+        check_field_separator();
+        u8ipv4u8.field3 = parse_uint<decltype(u8ipv4u8.field3)>();
         return u8ipv4u8;
     }
 
-    // from_string to Div_u8_ipv6_u8_t
-    DataItemValue operator()(const Div_u8_ipv6_u8_t & operand) const
+    // from_stringstream to Div_u8_ipv6_u8_t
+    DataItemValue operator()(const Div_u8_ipv6_u8_t &  /*operand*/) const
     {
-        std::istringstream ss(val_str);
         Div_u8_ipv6_u8_t u8ipv6u8;
 
-        u8ipv6u8.field1 = parse_uint8(ss);
-        check_field_separator(ss);
-        u8ipv6u8.field2 = parse_ip_addr<boost::asio::ip::address_v6>(ss);
-        check_field_separator(ss);
-        u8ipv6u8.field3 = parse_uint8(ss);
-
+        u8ipv6u8.field1 = parse_uint<decltype(u8ipv6u8.field1)>();
+        check_field_separator();
+        u8ipv6u8.field2 = parse_ip_addr<boost::asio::ip::address_v6>();
+        check_field_separator();
+        u8ipv6u8.field3 = parse_uint<decltype(u8ipv6u8.field3)>();
         return u8ipv6u8;
     }
 
-    // from_string to Div_u64_u64_t
-    DataItemValue operator()(const Div_u64_u64_t & operand) const
+    // from_stringstream to Div_u64_u64_t
+    DataItemValue operator()(const Div_u64_u64_t &  /*operand*/) const
     {
-        std::istringstream ss(val_str);
         Div_u64_u64_t u64u64;
 
-        ss >> u64u64.field1;
-        if (! ss)
-        {
-            throw std::invalid_argument(val_str);
-        }
-
-        check_field_separator(ss);
-
-        ss >> u64u64.field2;
-
+        u64u64.field1 = parse_uint<decltype(u64u64.field1)>();
+        check_field_separator();
+        u64u64.field2 = parse_uint<decltype(u64u64.field2)>();
         return u64u64;
     }
 
+    // from_stringstream to Div_sub_data_items_t
+    // This should never get called because sub data items are handled
+    // directly in from_istringstream()
+    DataItemValue operator()(const Div_sub_data_items_t &  /*operand*/) const
+    {
+        Div_sub_data_items_t sdi;
+        return sdi;
+    }
+
 private:
-    // string to parse
-    const std::string & val_str;
-}; // DataItemFromStringVisitor
+    // stringstream to parse
+    std::istringstream & ss;
+
+    // string type name so we can give better error messages
+    const std::string & value_type_name;
+}; // DataItemValueFromStringStreamVisitor
 
 void
-DataItem::from_string(const std::string & val_str)
+DataItem::value_from_istringstream(std::istringstream & ss)
 {
-    value = boost::apply_visitor(DataItemFromStringVisitor(val_str), value);
+    // set default numeric input to base 10
+    ss >> std::dec;
+    std::string value_type_name = LLDLEP::to_string(get_type());
+    value = boost::apply_visitor(
+        DataItemValueFromStringStreamVisitor(ss, value_type_name),
+        value);
+}
+
+void
+DataItem::value_from_string(const std::string & str)
+{
+    std::istringstream ss(str);
+    value_from_istringstream(ss);
+}
+
+void
+DataItem::from_istringstream(std::istringstream & ss,
+                             const DataItemInfo * parent_di_info)
+{
+    std::string di_name;
+
+    ss >> std::skipws >> di_name;
+    if ( ! ss)
+    {
+        throw std::invalid_argument("expected data item name, not end of line");
+    }
+
+    id = protocfg->get_data_item_id(di_name, parent_di_info);
+    DataItemInfo di_info = protocfg->get_data_item_info(di_name);
+    if (di_info.value_type == DataItemValueType::div_sub_data_items)
+    {
+        Div_sub_data_items_t div;
+        std::string token;
+
+        ss >> token;
+        if (token != "{" )
+        {
+            if (ss.eof())
+            {
+                token = "end of line";
+            }
+            throw std::invalid_argument("expected {, not " + token);
+        }
+
+        skip_whitespace(ss);
+        while (ss.peek() != '}')
+        {
+            DataItem subdi(protocfg);
+            subdi.from_istringstream(ss, &di_info);
+            div.sub_data_items.push_back(subdi);
+            skip_whitespace(ss);
+        }
+        // skip the closing }
+        ss.ignore();
+        value = div;
+    }
+    else // value does not contain sub data items
+    {
+        set_default_value(di_info.value_type);
+        value_from_istringstream(ss);
+    }
+}
+
+void
+DataItem::from_string(const std::string & str,
+                      const DataItemInfo * parent_di_info)
+{
+    std::istringstream ss(str);
+    from_istringstream(ss, parent_di_info);
 }
 
 //-----------------------------------------------------------------------------
@@ -1392,12 +1518,13 @@ class DataItemValidateVisitor :
 {
 public:
     DataItemValidateVisitor(const ProtocolConfig * protocfg,
-                            const ProtocolConfig::DataItemInfo & di_info) :
-        protocfg(protocfg), di_info(di_info) { }
+                            const DataItemInfo * di_info) :
+        protocfg(protocfg),
+        di_info(di_info) { }
 
     // default method does no checking
     template <typename T>
-    std::string operator()(const T & operand) const
+    std::string operator()(const T &  /*operand*/) const
     {
         return "";
     }
@@ -1443,7 +1570,7 @@ public:
 
     std::string operator()(const std::uint8_t & operand) const
     {
-        if (di_info.units == "percentage")
+        if (di_info->units == "percentage")
         {
             if (operand > 100)
             {
@@ -1451,7 +1578,7 @@ public:
                        ", must be <= 100";
             }
         }
-        else if (di_info.name == ProtocolStrings::Status)
+        else if (di_info->name == ProtocolStrings::Status)
         {
             return validate_status(operand);
         }
@@ -1460,7 +1587,7 @@ public:
 
     std::string operator()(const Div_u8_string_t & operand) const
     {
-        if (di_info.name == ProtocolStrings::Status)
+        if (di_info->name == ProtocolStrings::Status)
         {
             return validate_status(operand.field1);
         }
@@ -1523,17 +1650,41 @@ public:
         return "";
     }
 
+    std::string operator()(const Div_sub_data_items_t & operand) const
+    {
+        std::string err;
+
+        // validate each of the sub data items
+
+        for (const DataItem & sdi : operand.sub_data_items)
+        {
+            err = sdi.validate(di_info);
+            if (err != "")
+            {
+                return err;
+            }
+        }
+
+    // If we haven't found an error, check the number and kind of sub data
+    // items in the data item against what is allowed for this data item.
+
+        err = DataItem::validate_occurrences(operand.sub_data_items,
+                                             di_info->sub_data_items,
+                                             protocfg,
+                                             di_info);
+        return err;
+    }
+
 private:
     const ProtocolConfig * protocfg;
-    const ProtocolConfig::DataItemInfo & di_info;
+    const DataItemInfo * di_info;
 };
 
 std::string
-DataItem::validate() const
+DataItem::validate(const DataItemInfo * parent_di_info) const
 {
-    std::string di_name = protocfg->get_data_item_name(id);
-    ProtocolConfig::DataItemInfo di_info =
-        protocfg->get_data_item_info(di_name);
+    std::string di_name = protocfg->get_data_item_name(id, parent_di_info);
+    DataItemInfo di_info = protocfg->get_data_item_info(di_name);
 
     // check that the data item value has the correct type
 
@@ -1546,12 +1697,119 @@ DataItem::validate() const
     }
 
     std::string err =
-        boost::apply_visitor(DataItemValidateVisitor(protocfg, di_info),
+        boost::apply_visitor(DataItemValidateVisitor(protocfg, &di_info),
                              value);
     if (err != "")
     {
         err = di_name + " " + err;
     }
+
+    return err;
+}
+
+template <typename DataItemContainer>
+std::string 
+DataItem::validate_occurrences(const DataItemContainer & data_items,
+                               const std::vector<SubDataItem> & v_di_info,
+                               const ProtocolConfig * protocfg,
+                               const DataItemInfo * parent_di_info)
+{
+    std::string err = "";
+    std::map<DataItemIdType, unsigned int> di_occurrences;
+
+    // Count up how many of each data item there are in this message.
+
+    for (const auto & di : data_items)
+    {
+        if (di_occurrences.find(di.id) == di_occurrences.end())
+        {
+            di_occurrences[di.id] = 1;
+        }
+        else
+        {
+            di_occurrences[di.id]++;
+        }
+    }
+
+    // Go through each data item that is allowed for this data item
+    // and check if the actual count of data items in this message
+    // conform to the configured the "occurs" constraints.
+
+    for (const auto & di_info : v_di_info)
+    {
+        std::string di_name = di_info.name;
+
+        // number of times this data item id occurs in the message
+        unsigned int di_occurs_actual = 0;
+        try
+        {
+            di_occurs_actual = di_occurrences.at(di_info.id);
+
+            // remove this data item id from di_occurrences to signfiy that
+            // we have already checked it
+            di_occurrences.erase(di_info.id);
+        }
+        catch (std::out_of_range)
+        {
+            /* di_info.id is not in this message */
+        }
+
+        // check expected number of occurs vs. actual
+
+        if (di_info.occurs == "1")
+        {
+            if (di_occurs_actual != 1)
+            {
+                err = "exactly one of " + di_name + " required, but got " +
+                      std::to_string(di_occurs_actual);
+                break;
+            }
+        }
+        else if (di_info.occurs == "1+")
+        {
+            if (di_occurs_actual < 1)
+            {
+                err = "at least one of " + di_name + " required, but got none";
+                break;
+            }
+        }
+        else if (di_info.occurs == "0-1")
+        {
+            if (di_occurs_actual > 1)
+            {
+                err = "no more than one of " + di_name + " required, but got " +
+                      std::to_string(di_occurs_actual);
+                break;
+            }
+        }
+        else
+        {
+            assert(di_info.occurs == "0+");
+            // Any number of this data item is allowed, so there's no
+            // error case to check for.
+        }
+    } // for each data item defined for this signal
+
+    // If we haven't found an error yet, look for any data items that
+    // are still left; they are unexpected.
+
+    if (err == "")
+    {
+        // If any data items remain in di_occurrences, it means the
+        // message contained data items that are not allowed by the
+        // protocol configuration.
+
+        if (! di_occurrences.empty())
+        {
+            err = "unexpected data items: ";
+            for (const auto & kvpair : di_occurrences)
+            {
+                // this translates to DataItemName(count)
+                err += protocfg->get_data_item_name(kvpair.first, parent_di_info) +
+                       "(" + std::to_string(kvpair.second) + ") ";
+            }
+        }
+    } // if no error yet
 
     return err;
 }
@@ -1569,7 +1827,7 @@ public:
 
     // default method returns false
     template <typename T>
-    bool operator()(const T & operand) const
+    bool operator()(const T &  /*operand*/) const
     {
         return false;
     }
@@ -1646,7 +1904,7 @@ public:
 
     // default method returns none
     template <typename T>
-    DataItem::IPFlags operator()(const T & operand) const
+    DataItem::IPFlags operator()(const T &  /*operand*/) const
     {
         return DataItem::IPFlags::none;
     }
@@ -1656,7 +1914,7 @@ public:
         return static_cast<DataItem::IPFlags>(operand.field1);
     }
 
-    DataItem::IPFlags operator()(const Div_ipv4_u8_t & operand) const
+    DataItem::IPFlags operator()(const Div_ipv4_u8_t &  /*operand*/) const
     {
         // This data item value doesn't have an explicit flags field,
         // so we'll fake the "add" flag.
@@ -1668,7 +1926,7 @@ public:
         return static_cast<DataItem::IPFlags>(operand.field1);
     }
 
-    DataItem::IPFlags operator()(const Div_ipv6_u8_t & operand) const
+    DataItem::IPFlags operator()(const Div_ipv6_u8_t &  /*operand*/) const
     {
         // This data item value doesn't have an explicit flags field,
         // so we'll fake the "add" flag.
@@ -1699,7 +1957,9 @@ DataItem::find_ip_data_item(const DataItems & search_data_items) const
     for ( ; it != search_data_items.end(); it++)
     {
         if (ip_equal(*it))
+        {
             break;
+        }
     }
     return it;
 }
@@ -1741,7 +2001,8 @@ static std::vector<DataItemValueMap::value_type> mapvals
     { DataItemValueType::div_u8_ipv6_u16, "u8_ipv6_u16" },
     { DataItemValueType::div_u8_ipv4_u8, "u8_ipv4_u8" },
     { DataItemValueType::div_u8_ipv6_u8, "u8_ipv6_u8" },
-    { DataItemValueType::div_u64_u64, "u64_u64" }
+    { DataItemValueType::div_u64_u64, "u64_u64" },
+    { DataItemValueType::div_sub_data_items, "sub_data_items" }
 };
 
 static DataItemValueMap data_item_value_type_map(mapvals.begin(),

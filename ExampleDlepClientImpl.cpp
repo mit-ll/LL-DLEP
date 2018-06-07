@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2015, 2016 Massachusetts Institute of Technology
+ * Copyright (C) 2015, 2016, 2018 Massachusetts Institute of Technology
  */
 
 /// @file
@@ -450,7 +450,7 @@ DlepClientImpl::parse_config_file(const char * config_filename)
     // Use the xml2 parser to do the heavy lifting.
     doc = xmlParseFile(config_filename);
 
-    if (doc == NULL)
+    if (doc == nullptr)
     {
         std::cerr << error_color << config_filename
                   << " config file was not parsed successfully" << std::endl;
@@ -459,7 +459,7 @@ DlepClientImpl::parse_config_file(const char * config_filename)
 
     cur = xmlDocGetRootElement(doc);
 
-    if (cur == NULL)
+    if (cur == nullptr)
     {
         std::cerr << error_color << config_filename
                   << "config file was empty" << std::endl;
@@ -481,7 +481,7 @@ DlepClientImpl::parse_config_file(const char * config_filename)
     // Loop over the document nodes looking for parameters
 
     for (cur = cur->xmlChildrenNode;
-            cur != NULL;
+            cur != nullptr;
             cur = cur->next)
     {
         // std::cout << "node " << cur->name << std::endl;
@@ -490,7 +490,7 @@ DlepClientImpl::parse_config_file(const char * config_filename)
         if ((!xmlStrcmp(cur->name, (const xmlChar *)"params")))
         {
             for (xmlNodePtr param_node = cur->xmlChildrenNode;
-                    param_node != NULL;
+                    param_node != nullptr;
                     param_node = param_node->next)
             {
                 // Ignore "text" nodes.  They don't seem to be needed.
@@ -636,7 +636,7 @@ void
 DlepClientImpl::print_data_items(const std::string & msg,
                                  const LLDLEP::DataItems & data_items)
 {
-    if ((data_items.size() > 0) && (msg.length() > 0))
+    if ((!data_items.empty()) && (msg.length() > 0))
     {
         std::cout << msg << std::endl;
     }
@@ -655,7 +655,7 @@ DlepClientImpl::print_peer_info(const LLDLEP::PeerInfo & peer_info)
               << "heartbeat interval = " << peer_info.heartbeat_interval
               << std::endl;
 
-    if (peer_info.extensions.size() > 0)
+    if (!peer_info.extensions.empty())
     {
         std::cout << "extensions = ";
         std::string comma = "";
@@ -677,7 +677,7 @@ DlepClientImpl::print_peer_info(const LLDLEP::PeerInfo & peer_info)
 
     print_data_items("default metrics:", peer_info.data_items);
 
-    if (peer_info.destinations.size() > 0)
+    if (!peer_info.destinations.empty())
     {
         std::cout << "destinations:" << std::endl;
         for (auto mac : peer_info.destinations)
@@ -743,14 +743,6 @@ DlepClientImpl::destination_down(const std::string & peer_id,
                                  const LLDLEP::DlepMac & mac_address)
 {
     std::cout << lib_color << "\nDestination down, peer = " << peer_id
-              << " mac = " << mac_address << std::endl;
-}
-
-void
-DlepClientImpl::credit_request(const std::string & peer_id,
-                               const LLDLEP::DlepMac & mac_address)
-{
-    std::cout << lib_color << "\nCredit request, peer = " << peer_id
               << " mac = " << mac_address << std::endl;
 }
 

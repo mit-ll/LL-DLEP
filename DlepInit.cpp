@@ -69,14 +69,13 @@ DlepInit(DlepClient & dlep_client)
         return nullptr;
     }
 
-    bool dlep_modem = (local_type == "modem");
-
-    internal::DlepPtr dlep_ptr(new internal::Dlep(dlep_modem,
-                                                  dlep_client, logger));
-
     DlepService * dlep_service = nullptr;
     try
     {
+        bool dlep_modem = (local_type == "modem");
+
+        internal::DlepPtr dlep_ptr(new internal::Dlep(dlep_modem,
+                                                      dlep_client, logger));
         dlep_service = new internal::DlepServiceImpl(dlep_ptr, logger);
     }
     catch (internal::DlepServiceImpl::InitializationError)

@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2015, 2016 Massachusetts Institute of Technology
+ * Copyright (C) 2015, 2016, 2018 Massachusetts Institute of Technology
  */
 
 /// @file
@@ -17,7 +17,7 @@ using namespace LLDLEP;
 using namespace LLDLEP::internal;
 
 PeriodicMcastSendRcv::PeriodicMcastSendRcv(
-    DlepPtr d,
+    DlepPtr dlep,
     boost::asio::io_service & io_service,
     std::string interface_name,
     uint16_t udp_port,
@@ -28,7 +28,7 @@ PeriodicMcastSendRcv::PeriodicMcastSendRcv(
     bool receiving,
     DlepLoggerPtr logger) :
     udp_port(udp_port),
-    dlep(d),
+    dlep(dlep),
     logger(logger),
     interface_name(interface_name),
     multicast_address(multicast_addr),

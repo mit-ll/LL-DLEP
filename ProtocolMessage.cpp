@@ -55,7 +55,7 @@ ProtocolMessage::add_header(const std::string & msg_name)
     // Store the signal length, which does NOT include the header length.
     // Since there are no data items yet, the length is initially 0.
 
-    serialize(0, protocfg->get_signal_length_size(), msgbuf);
+    serialize(0U, protocfg->get_signal_length_size(), msgbuf);
 
     // Remember the size of the header so that we can account for it
     // when we update the signal length.
@@ -125,7 +125,7 @@ ProtocolMessage::add_heartbeat_interval(DlepClient & dlep_client)
     dlep_client.get_config_parameter("heartbeat-interval",
                                      &heartbeat_interval);
 
-    ProtocolConfig::DataItemInfo di_info =
+    DataItemInfo di_info =
         protocfg->get_data_item_info(ProtocolStrings::Heartbeat_Interval);
 
     // convert heartbeat_interval according to its configured units
@@ -485,13 +485,13 @@ ProtocolMessage::get_signal_name() const
 }
 
 std::string
-ProtocolMessage::parse(const uint8_t * buf, size_t buflen, bool is_sig,
+ProtocolMessage::parse(const uint8_t * buf, size_t buflen, bool is_signal,
                        const std::string & log_prefix)
 {
     // Copy the input data to the internal message buffer
     msgbuf.resize(buflen);
     memcpy(msgbuf.data(), buf, buflen);
-    is_signal_ = is_sig;
+    is_signal_ = is_signal;
 
     return parse(log_prefix);
 }
@@ -648,101 +648,8 @@ ProtocolMessage::validate(bool modem_sender) const
 
     if (err == "")
     {
-        std::map<DataItemIdType, unsigned int> di_occurrences;
-
-        // Count up how many of each data item there are in this message.
-
-        for (const auto & di : data_items)
-        {
-            if (di_occurrences.find(di.id) == di_occurrences.end())
-            {
-                di_occurrences[di.id] = 1;
-            }
-            else
-            {
-                di_occurrences[di.id]++;
-            }
-        }
-
-        // Go through each data item that is allowed for this signal
-        // and check if the actual count of data items in this message
-        // conform to the configured the "occurs" constraints.
-
-        for (const auto & difs : siginfo.data_items)
-        {
-            std::string di_name =
-                protocfg->get_data_item_name(difs.id);
-
-            // number of times this data item id occurs in the message
-            unsigned int di_occurs_actual = 0;
-            try
-            {
-                di_occurs_actual = di_occurrences.at(difs.id);
-
-                // remove this data item id from di_occurrences to signfiy that
-                // we have already checked it
-                di_occurrences.erase(difs.id);
-            }
-            catch (std::out_of_range)
-            {
-                /* difs.id is not in this message */
-            }
-
-            // check expected number of occurs vs. actual
-
-            if (difs.occurs == "1")
-            {
-                if (di_occurs_actual != 1)
-                {
-                    err = "exactly one of " + di_name + " required, but got " +
-                          std::to_string(di_occurs_actual);
-                    break;
-                }
-            }
-            else if (difs.occurs == "1+")
-            {
-                if (di_occurs_actual < 1)
-                {
-                    err = "at least one of " + di_name + " required, but got none";
-                    break;
-                }
-            }
-            else if (difs.occurs == "0-1")
-            {
-                if (di_occurs_actual > 1)
-                {
-                    err = "no more than one of " + di_name + " required, but got " +
-                          std::to_string(di_occurs_actual);
-                    break;
-                }
-            }
-            else
-            {
-                assert(difs.occurs == "0+");
-                // Any number of this data item is allowed, so there's no
-                // error case to check for.
-            }
-        } // for each data item defined for this signal
-
-        // If we haven't found an error yet, look for any data items that
-        // are still left; they are unexpected.
-
-        if (err == "")
-        {
-            // If any data items remain in di_occurrences, it means the
-            // message contained data items that are not allowed by the
-            // protocol configuration.
-
-            if (! di_occurrences.empty())
-            {
-                err = "unexpected data items: ";
-                for (const auto & kvpair : di_occurrences)
-                {
-                    err += protocfg->get_data_item_name(kvpair.first) +
-                           "(" + std::to_string(kvpair.second) + ") ";
-                }
-            }
-        } // if no error yet
+        err = DataItem::validate_occurrences(data_items, siginfo.data_items,
+                                             protocfg);
     } // if no error yet
 
     // If we still haven't found an error, validate the innards of
@@ -964,12 +871,6 @@ ProtocolMessage::get_heartbeat_interval() const
     }
 
     return v;
-}
-
-bool
-ProtocolMessage::get_credit_request() const
-{
-    return get_data_item_exists(ProtocolStrings::Credit_Request);
 }
 
 std::vector<ExtensionIdType>

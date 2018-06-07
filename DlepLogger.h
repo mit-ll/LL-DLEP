@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2013 Massachusetts Institute of Technology
+ * Copyright (C) 2013, 2018 Massachusetts Institute of Technology
  */
 #ifndef _DLEP_LOGGER_
 #define _DLEP_LOGGER_
@@ -46,9 +46,9 @@ public:
     DlepLogger();
     explicit DlepLogger(int run_level);
     ~DlepLogger();
-    void log(int level, std::string str);
+    void log(int level, const std::string & str);
     void log(int level, std::ostringstream & msg);
-    void log_time(int level, std::string str);
+    void log_time(int level, const std::string & str);
     void log_time(int level, std::ostringstream & msg);
     void set_run_level(int run_level);
     void set_log_file(const char * name);
@@ -70,9 +70,9 @@ typedef  boost::shared_ptr<DlepLogger> DlepLoggerPtr;
 #define LOG(_level, _msg) {                                          \
     std::ostringstream m;                                            \
     m << DEBUG_FILE << ":" << DEBUG_LINE << ":" << DEBUG_FUNCTION << \
-        "(): " << _msg.str() ;                                       \
-    logger->log_time(_level, m);                                      \
-    _msg.str("");                                                    \
+        "(): " << (_msg).str() ;                                     \
+    logger->log_time(_level, m);                                     \
+    (_msg).str("");                                                  \
 }
 
 } // namespace internal

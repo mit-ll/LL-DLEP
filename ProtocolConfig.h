@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2015, 2016 Massachusetts Institute of Technology
+ * Copyright (C) 2015, 2016, 2018 Massachusetts Institute of Technology
  */
 
 /// @file
@@ -17,7 +17,6 @@
 #include <array>
 #include <vector>
 #include "DataItem.h"
-#include "CreditWindow.h"
 #include "LatencyRange.h"
 
 namespace LLDLEP
@@ -47,68 +46,80 @@ public:
     /// @return the number of message bytes used for a data item length
     virtual std::size_t get_data_item_length_size() const = 0;
 
-    /// @return the data item id for a data item name
+    /// Return the data item id for a data item name.
+    ///
+    /// @param[in] name
+    ///            the data item name for which to find the id
+    /// @param[in] parent_di_info
+    ///            if \p name belongs to a sub data item, this is a pointer
+    ///            to the parent data item's DataItemInfo.  Otherwise,
+    ///            it must be a nullptr.
+    /// @return the data item id for \p name
     /// @throw BadDataItemName if \p name is not a valid data item name
     virtual DataItemIdType
-    get_data_item_id(const std::string & name) const = 0;
+    get_data_item_id(const std::string & name,
+                     const LLDLEP::DataItemInfo * parent_di_info = nullptr) const = 0;
 
-    /// @return the data item name for a data item id
+    /// Return the data item name for a data item id.
+    ///
+    /// @param[in] id
+    ///            the data item id for which to find the name
+    /// @param[in] parent_di_info
+    ///            if \p id belongs to a sub data item, this is a pointer
+    ///            to the parent data item's DataItemInfo.  Otherwise,
+    ///            it must be a nullptr.
+    /// @return the data item name for \p id
     /// @throw BadDataItemId if \p id is not a valid data item id
-    virtual std::string get_data_item_name(DataItemIdType id) const = 0;
-
-    /// @return the type for a data item id
-    /// @throw BadDataItemId if \p id is not a valid data item id
-    virtual DataItemValueType
-    get_data_item_value_type(DataItemIdType id) const = 0;
+    virtual std::string get_data_item_name(DataItemIdType id,
+                   const LLDLEP::DataItemInfo * parent_di_info = nullptr) const = 0;
 
     /// @return the type for a data item name
     /// @throw BadDataItemName if \p name is not a valid data item name
     virtual DataItemValueType
     get_data_item_value_type(const std::string & name) const = 0;
 
+    /// Determine whether a data item id is a metric.
+    ///
+    /// @param[in] id
+    ///            the data item id to examine
+    /// @param[in] parent_di_info
+    ///            if \p id belongs to a sub data item, this is a pointer
+    ///            to the parent data item's DataItemInfo.  Otherwise,
+    ///            it must be a nullptr.
     /// @return true if the data item id is a metric, else false
     /// @throw BadDataItemId if \p id is not a valid data item id
-    virtual bool is_metric(DataItemIdType id) const = 0;
+    virtual bool is_metric(DataItemIdType id,
+                   const LLDLEP::DataItemInfo * parent_di_info = nullptr) const = 0;
 
+    /// Determine whether a data item id contains an IP address.
+    ///
+    /// @param[in] id
+    ///            the data item id to examine
+    /// @param[in] parent_di_info
+    ///            if \p id belongs to a sub data item, this is a pointer
+    ///            to the parent data item's DataItemInfo.  Otherwise,
+    ///            it must be a nullptr.
     /// @return true if the data item id contains an IP address, else false
     /// @throw BadDataItemId if \p id is not a valid data item id
-    virtual bool is_ipaddr(DataItemIdType id) const = 0;
-
-    /// Information about one data item
-    struct DataItemInfo
-    {
-        std::string name;             ///< name of this data item
-        DataItemIdType id;            ///< id of this data item
-        DataItemValueType value_type; ///< type of this data item
-
-        /// boolean flag definitions
-        enum Flags : std::uint32_t
-        {
-            metric = (1 << 0) ///< this data item is considered a metric
-            // next flag = (1 << 1)
-        };
-
-        std::uint32_t flags; ///< OR-combination of enum Flags
-        std::string module;  ///< module that provides this data item
-        std::string units;   ///< units of this data item, "" if none given
-
-        DataItemInfo() :
-            name(""), id(0), value_type(DataItemValueType::div_u32),
-            flags(0), module(""), units("") {} ;
-    };
+    virtual bool is_ipaddr(DataItemIdType id,
+                   const LLDLEP::DataItemInfo * parent_di_info = nullptr) const = 0;
 
     /// @return information about all configured data items
-    virtual std::vector<DataItemInfo> get_data_item_info() const = 0;
+    virtual std::vector<LLDLEP::DataItemInfo> get_data_item_info() const = 0;
 
     /// @return information about the data item \p di_name
     /// @throw BadDataItemName if \p di_name is not a valid data item name
-    virtual DataItemInfo
+    virtual LLDLEP::DataItemInfo
     get_data_item_info(const std::string & di_name) const = 0;
+
+    virtual LLDLEP::DataItemInfo
+    get_data_item_info(DataItemIdType id,
+                   const LLDLEP::DataItemInfo * parent_di_info = nullptr) const = 0;
 
     /// @return information about all of the data items in \p di_names
     /// @throw BadDataItemName if any of \p di_names is not a valid data item
     /// name
-    virtual std::vector<DataItemInfo>
+    virtual std::vector<LLDLEP::DataItemInfo>
     get_data_item_info(const std::vector<std::string> & di_names) const = 0;
 
     //--------------------------------------------------------------------------
@@ -149,13 +160,7 @@ public:
     virtual std::string get_signal_prefix() const = 0;
 
     /// Information about one data item allowed on a signal
-    struct DataItemForSignal
-    {
-        DataItemIdType id;  ///< id of allowed data item
-
-        /// how many times this data item can occur ("1", "0-1", "0+", "1+")
-        std::string occurs;
-    };
+    typedef struct SubDataItem DataItemForSignal;
 
     /// Information about one signal/message
     struct SignalInfo
@@ -260,8 +265,8 @@ public:
         /// extension id of this module, or 0 if not configured
         ExtensionIdType extension_id;
 
-        /// data items provided by this module
-        std::vector<DataItemIdType> data_items;
+        /// data items provided by this module.  string is the data item name.
+        std::vector<std::string> data_items;
 
         /// signals provided by this module
         std::vector<SignalIdType> signals;

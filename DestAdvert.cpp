@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2015, 2016 Massachusetts Institute of Technology
+ * Copyright (C) 2015, 2016, 2018 Massachusetts Institute of Technology
  *
  * Contributor: Adjacent Link LLC, Bridgewater, NJ
  */
@@ -40,7 +40,7 @@ DestAdvert::DestAdvert(
     local_rfid(local_rfid),
     purge_advert_timer(io_service)
 {
-    begin_time = time(NULL);
+    begin_time = time(nullptr);
 
     start_purge_advert_timer();
 }
@@ -59,7 +59,7 @@ DestAdvert::~DestAdvert()
 DlepMessageBuffer DestAdvert::get_message_to_send(unsigned int * msg_len)
 {
     DestAdvertInfo info(send_interval,            // interval in sec
-                        time(NULL) - begin_time,  // uptime
+                        time(nullptr) - begin_time,  // uptime
                         ++seq_num,                // seqnum
                         local_rfid,               // our radio id
                         destinations);            // advertised destinations
@@ -135,7 +135,7 @@ void DestAdvert::handle_message(DlepMessageBuffer msg_buffer,
         DataItems empty_data_items;
 
         // new entry, save timestamp and advertisement info
-        dest_advert_db[dainfo.rfId] = DestAdvertDBEntry {time(NULL),
+        dest_advert_db[dainfo.rfId] = DestAdvertDBEntry {time(nullptr),
                                                          DestAdvertDBEntry::EntryState::down,
                                                          false,
                                                          dainfo,
@@ -151,7 +151,7 @@ void DestAdvert::handle_message(DlepMessageBuffer msg_buffer,
         LOG(DLEP_LOG_INFO, msg);
 
         // update timestamp
-        entry.timestamp = time(NULL);
+        entry.timestamp = time(nullptr);
 
         if (entry.estate == DestAdvertDBEntry::EntryState::up)
         {
@@ -355,7 +355,7 @@ DestAdvert::handle_purge_advert_timeout(const boost::system::error_code & error)
         }
     }
 
-    time_t current_time = time(NULL);
+    time_t current_time = time(nullptr);
     unsigned int hold_interval;
     dlep->dlep_client.get_config_parameter("destination-advert-hold-interval",
                                            &hold_interval);

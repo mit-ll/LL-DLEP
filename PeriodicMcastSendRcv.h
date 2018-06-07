@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2015, 2016 Massachusetts Institute of Technology
+ * Copyright (C) 2015, 2016, 2018 Massachusetts Institute of Technology
  */
 
 /// @file
@@ -45,7 +45,7 @@ public:
     /// @param[in] io_service     for handling network I/O and timers
     /// @param[in] interface_name name of the network interface to use
     /// @param[in] udp_port       UDP port number to put on multicast packets
-    /// @param[in] mcast_addr     multicast address to put on packets
+    /// @param[in] multicast_addr multicast address to put on packets
     /// @param[in] ttl            IP TTL to put on multicast packets
     /// @param[in] send_interval  number of seconds between sending packets
     /// @param[in] sending        true iff we are sending packets
@@ -55,7 +55,7 @@ public:
                          boost::asio::io_service & io_service,
                          std::string interface_name,
                          uint16_t udp_port,
-                         boost::asio::ip::address & mcast_addr,
+                         boost::asio::ip::address & multicast_addr,
                          unsigned int ttl,
                          unsigned int send_interval,
                          bool sending,

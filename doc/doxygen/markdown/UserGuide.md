@@ -10,8 +10,8 @@ computers/networks) that the modem can reach, and to provide metrics
 associated with those destinations.  The router can then make routing
 decisions based on that information.
 
-We assume the reader is reasonably familiar with the [DLEP
-draft](https://datatracker.ietf.org/doc/draft-ietf-manet-dlep/).  This
+We assume the reader is reasonably familiar with the [DLEP, 
+RFC 8175](https://tools.ietf.org/html/rfc8175).  This
 implementation supports multiple DLEP drafts by using a protocol
 configuration file that captures the main protocol characteristics
 that vary across drafts.  Configuration files are provided for
@@ -33,13 +33,7 @@ Each instance of LLDLEP::DlepService can only have one discovery interface
 configured.  However, a process can create multiple instances of
 the LLDLEP::DlepService, each with a different interface configured.
 
-The requirements on received TTL values introduced in DLEP draft 23
-are not enforced.
-
-The @ref credit_windowing extension implementation is incomplete.  The DLEP
-messaging infrastructure (e.g., credit data items) exists, but the actual
-accounting of used and available credits needs to be done elsewhere,
-such as in the kernel, and tied in with %Dlep.
+The requirements on received IP TTL values are not enforced.
 
 The @ref dest_advert protocol currently only works on Linux-derived operating
 systems, i.e., not Darwin.
@@ -224,17 +218,21 @@ general, the value in the Type field follows these rules:
   separated by commas, no embedded whitespace
 - An underscore _ marks the start of another field.  Fields must be separated
   by ; or / , with no embedded whitespace.
+- sub_data_items means the data item contains a list of other data items
+  enclosed in curly braces { }, e.g.,
+  DataItemName { sub_data_item_1 val_1 sub_data_item_2 val_2 }
 
 Examples values for specific types:
 
-Type         | Example Value
--------------|-----------------------------
-u8           | 128
-u8_ipv4_u16  | 1;192.0.2.0;49152
-u8_ipv6      | 1;fe80::20c:29ff:fe84:fcba
-v_extid      | 3,4,5
-dlepmac      | 01:02:03:04:05:06
-a2_u64       | 254362436,4567847
+Type           | Example Value
+---------------|-----------------------------
+u8             | 128
+u8_ipv4_u16    | 1;192.0.2.0;49152
+u8_ipv6        | 1;fe80::20c:29ff:fe84:fcba
+v_extid        | 3,4,5
+dlepmac        | 01:02:03:04:05:06
+a2_u64         | 254362436,4567847
+sub_data_items | { Resources 50 Latency 100 }
 
 All possible data item types are described in
 LLDLEP::DataItemValueType and in the @ref proto_config_schema.
@@ -607,10 +605,17 @@ are:
       configuration file.  There is also some discussion of data item
       types in @ref using_cli.
 
-    - id (required), a non-negative integer.  This will go in the
-      Data Item Type field of the data item.  Only one data item
-      can have a given id value across all modules; conflicts
-      are detected.
+    - id (optional), a non-negative integer.  This will go in the Data
+      Item Type field of the data item.  Only one data item can have a
+      given id value across all modules; conflicts are detected.  If
+      omitted, this data item will only be used as a sub data item
+      inside some other data item(s), and its id must be defined in a
+      sub_data_item section of that other data item.  See the
+      description of sub_data_item below.  A data item that is used
+      as a sub data item can still have an id defined here, as long as
+      the id doesn't conflict with another data item.  In this case,
+      the id can be omitted in the sub_data_item section, and the id
+      defined here will be used.
 
     - metric (required), true/false.  Is this data item considered
      a metric?  Any data item marked as a metric will be announced
@@ -624,6 +629,27 @@ are:
           - bits/second
           - percentage
           - octets
+
+    - sub_data_item (optional, can be repeated).  This specifies a
+      data item that can be nested inside the data item being defined.
+      The nested data item is called a sub data item.  Its elements
+      are:
+
+        - name (required), a string.  This is the name of the sub data
+          item, which must appear as a previously defined data item.
+
+        - id (optional), a non-negative integer.  If present, when
+          this sub data item appears within the data item being
+          defined, its id will have this value.  The same sub data
+          item (identified by name) can have different ids depending
+          on which data item it is nested within.  If id is not
+          present here, the sub data item's id will be the value given
+          when the sub data item was defined as a regular data item.
+          It is an error for the id to be undefined in both places.
+
+        - occurs (required), describes how many times this sub data item
+          can occur in this data item.  See the description of occurs
+          for signals for details.
 
 - signal (optional, can be repeated).  This specifies a signal/message
   provided or modified by this module.  A signal's elements are:
@@ -705,7 +731,7 @@ are:
 Extension modules should each have their own file so that they can be
 included (with XInclude) in the core module file to compose a complete
 configuration.  @ref rfc8175 (near the end) and the @ref
-credit_windowing_config provide an example of this technique.
+latency_range_config provide an example of this technique.
 
 The extensive protocol configurability presents many opportunities for
 testing other DLEP implementations.  The protocol can be tweaked to

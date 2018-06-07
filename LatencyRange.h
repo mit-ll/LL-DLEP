@@ -7,6 +7,9 @@
 /// @file
 /// Declarations for the Latency Range extension
 
+#ifndef LATENCY_RANGE_H
+#define LATENCY_RANGE_H
+
 namespace LLDLEP
 {
 namespace ProtocolStrings
@@ -16,5 +19,7 @@ namespace ProtocolStrings
 
 const std::string Latency_Range = "Latency_Range";
 
-}
-}
+} // namespace ProtocolStrings
+} // namespace LLDLEP
+
+#endif // LATENCY_RANGE_H

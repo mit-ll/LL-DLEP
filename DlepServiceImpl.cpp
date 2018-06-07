@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2015, 2016 Massachusetts Institute of Technology
+ * Copyright (C) 2015, 2016, 2018 Massachusetts Institute of Technology
  */
 
 /// @file
@@ -89,7 +89,7 @@ DlepServiceImpl::destination_up(const DlepMac & mac_address,
 
             dlep->dest_advert->add_advert_entry(mac_address,
                                                 DestAdvertDBEntry(
-                                                    time(NULL),
+                                                    time(nullptr),
                                                     DestAdvertDBEntry::EntryState::up,
                                                     true,
                                                     DestAdvertInfo(),
@@ -158,10 +158,8 @@ DlepServiceImpl::destination_update(const DlepMac & mac_address,
     }
 
     // It may be that this update is meant for a destination that
-    // doesn't belong to the local node.  For example, an update with
-    // a Credit Request must be for a destination declared up by a
-    // peer, not by us.  See if we can find the peer that owns this
-    // destination, and if so, send the update to them.
+    // doesn't belong to the local node.  See if we can find the peer
+    // that owns this destination, and if so, send the update to them.
 
     if (maybe_not_our_mac_address)
     {

@@ -242,7 +242,60 @@
             <name>Test_u64_u64</name>
             <type>u64_u64</type>
             <id>205</id>
-            <metric>true</metric>
+            <metric>false</metric>
+        </data_item>
+
+        <data_item>
+            <name>Test_u64_1</name>
+            <type>u64</type>
+            <id>206</id>
+            <metric>false</metric>
+        </data_item>
+
+        <data_item>
+            <name>Test_u64_0-1</name>
+            <type>u64</type>
+            <id>207</id>
+            <metric>false</metric>
+        </data_item>
+
+        <data_item>
+            <name>Test_u64_0+</name>
+            <type>u64</type>
+            <id>208</id>
+            <metric>false</metric>
+        </data_item>
+
+        <data_item>
+            <name>Test_u64_1+</name>
+            <type>u64</type>
+            <metric>false</metric>
+        </data_item>
+
+        <data_item>
+            <name>Test_parent_data_item</name>
+            <type>sub_data_items</type>
+            <id>250</id>
+            <metric>false</metric>
+            <sub_data_item>
+                <name>Test_u64_1</name>
+                <id>1</id>
+                <occurs>1</occurs>
+            </sub_data_item>
+            <sub_data_item>
+                <name>Test_u64_0-1</name>
+                <occurs>0-1</occurs>
+            </sub_data_item>
+            <sub_data_item>
+                <name>Test_u64_0+</name>
+                <id>3</id>
+                <occurs>0+</occurs>
+            </sub_data_item>
+            <sub_data_item>
+                <name>Test_u64_1+</name>
+                <id>4</id>
+                <occurs>1+</occurs>
+            </sub_data_item>
         </data_item>
 
         <!-- Signals -->

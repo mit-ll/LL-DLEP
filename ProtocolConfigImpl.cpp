@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2015, 2016 Massachusetts Institute of Technology
+ * Copyright (C) 2015, 2016, 2018 Massachusetts Institute of Technology
  */
 
 #include <boost/lexical_cast.hpp>
@@ -104,7 +104,7 @@ ProtocolConfigImpl::ProtocolConfigImpl(
     const std::string & proto_config_file,
     DlepLoggerPtr logger) :
     version { {0, 0} },
-logger(logger)
+    logger(logger)
 {
     std::string err = load_protocol_config(proto_config_schema,
                                            proto_config_file);
@@ -133,6 +133,7 @@ xml_error_handler(void * ctx, const char * msg, ...)
     va_start(ap, msg);
     char buf[1024];
     vsnprintf(buf, sizeof(buf), msg, ap);
+    va_end(ap);
     LOG(DLEP_LOG_ERROR, std::ostringstream(buf));
 }
 
@@ -145,6 +146,7 @@ xml_warning_handler(void * ctx, const char * msg, ...)
     va_start(ap, msg);
     char buf[1024];
     vsnprintf(buf, sizeof(buf), msg, ap);
+    va_end(ap);
     LOG(DLEP_LOG_NOTICE, std::ostringstream(buf));
 }
 
@@ -156,11 +158,11 @@ ProtocolConfigImpl::load_protocol_config(const std::string &
     LIBXML_TEST_VERSION
     std::ostringstream msg;
     std::string err = "";
-    xmlDocPtr doc = NULL;
-    xmlParserCtxtPtr parser_ctx = NULL;
-    xmlSchemaValidCtxtPtr schema_validate_ctx = NULL;
-    xmlSchemaParserCtxtPtr schema_parser_ctx = NULL;
-    xmlSchemaPtr schema = NULL;
+    xmlDocPtr doc = nullptr;
+    xmlParserCtxtPtr parser_ctx = nullptr;
+    xmlSchemaValidCtxtPtr schema_validate_ctx = nullptr;
+    xmlSchemaParserCtxtPtr schema_parser_ctx = nullptr;
+    xmlSchemaPtr schema = nullptr;
     int ret = 0;
     int xmlopts = 0;
 
@@ -172,7 +174,7 @@ ProtocolConfigImpl::load_protocol_config(const std::string &
     // validate against the schema yet.
 
     parser_ctx = xmlNewParserCtxt();
-    if (parser_ctx == NULL)
+    if (parser_ctx == nullptr)
     {
         err = "XML parser context creation failed";
         goto bailout;
@@ -186,8 +188,8 @@ ProtocolConfigImpl::load_protocol_config(const std::string &
         XML_PARSE_XINCLUDE |   // do XInclude processing
         XML_PARSE_NONET;       // forbid network access; everything is local
 
-    doc = xmlCtxtReadFile(parser_ctx, proto_config_file.c_str(), NULL, xmlopts);
-    if (doc == NULL)
+    doc = xmlCtxtReadFile(parser_ctx, proto_config_file.c_str(), nullptr, xmlopts);
+    if (doc == nullptr)
     {
         err = "XML parsing failed for " + proto_config_file;
         goto bailout;
@@ -211,7 +213,7 @@ ProtocolConfigImpl::load_protocol_config(const std::string &
     LOG(DLEP_LOG_DEBUG, msg);
 
     schema_parser_ctx = xmlSchemaNewParserCtxt(proto_config_schema.c_str());
-    if (schema_parser_ctx == NULL)
+    if (schema_parser_ctx == nullptr)
     {
         err = "XML schema parser context creation failed";
         goto bailout;
@@ -222,7 +224,7 @@ ProtocolConfigImpl::load_protocol_config(const std::string &
                              (xmlSchemaValidityWarningFunc)xml_warning_handler,
                              this);
     schema = xmlSchemaParse(schema_parser_ctx);
-    if (schema == NULL)
+    if (schema == nullptr)
     {
         err = "XML schema parsing failed for " + proto_config_schema;
         goto bailout;
@@ -234,7 +236,7 @@ ProtocolConfigImpl::load_protocol_config(const std::string &
     LOG(DLEP_LOG_DEBUG, msg);
 
     schema_validate_ctx = xmlSchemaNewValidCtxt(schema);
-    if (schema_validate_ctx == NULL)
+    if (schema_validate_ctx == nullptr)
     {
         err = "XML schema validate context creation failed";
         goto bailout;
@@ -258,27 +260,27 @@ bailout:
     msg << "cleaning up";
     LOG(DLEP_LOG_DEBUG, msg);
 
-    if (parser_ctx != NULL)
+    if (parser_ctx != nullptr)
     {
         xmlFreeParserCtxt(parser_ctx);
     }
 
-    if (doc != NULL)
+    if (doc != nullptr)
     {
         xmlFreeDoc(doc);
     }
 
-    if (schema_parser_ctx != NULL)
+    if (schema_parser_ctx != nullptr)
     {
         xmlSchemaFreeParserCtxt(schema_parser_ctx);
     }
 
-    if (schema != NULL)
+    if (schema != nullptr)
     {
         xmlSchemaFree(schema);
     }
 
-    if (schema_validate_ctx != NULL)
+    if (schema_validate_ctx != nullptr)
     {
         xmlSchemaFreeValidCtxt(schema_validate_ctx);
     }
@@ -295,7 +297,7 @@ bailout:
 void
 ProtocolConfigImpl::log_xml_tree(xmlNodePtr start_node, int level)
 {
-    if (start_node == NULL)
+    if (start_node == nullptr)
     {
         return;
     }
@@ -324,7 +326,7 @@ ProtocolConfigImpl::extract_protocol_config(xmlDocPtr doc)
     std::string err = "";
 
     xmlNodePtr root = xmlDocGetRootElement(doc);
-    assert(root != NULL);
+    assert(root != nullptr);
 
     // log_xml_tree(root, 0);
 
@@ -362,20 +364,24 @@ template<typename T>
 void
 ProtocolConfigImpl::log_node_path_and_value(xmlNodePtr node, T val)
 {
+    long lineno = xmlGetLineNo(node);
+
     // Build up the pathname to this value for logging.  This is not
     // efficient, but it is simple, and it only happens at startup.
 
     std::string path(std::string((const char *)node->name));
-    while (node->parent != NULL)
+    while (node->parent != nullptr)
     {
         node = node->parent;
-        if (node->name != NULL)
+        if (node->name != nullptr)
         {
             path = std::string((const char *)node->name) + "/" + path;
         }
     }
     std::ostringstream msg;
-    msg << path << " = " << std::boolalpha << val;
+    // XXX I'd like to log the name of the file here too, but
+    // node->doc->name is null.
+    msg << lineno << ": " << path << " = " << std::boolalpha << val;
     LOG(DLEP_LOG_DEBUG, msg);
 }
 
@@ -653,7 +659,7 @@ ProtocolConfigImpl::extract_module_signal(xmlNodePtr node,
         else if (node_name == "data_item")
         {
             DataItemForSignal difs =
-                extract_module_signal_data_item(node->children);
+                extract_module_data_item_ref(siginfo.name, node->children);
             siginfo.data_items.push_back(difs);
         }
         else if (node_name == "response")
@@ -800,7 +806,7 @@ ProtocolConfigImpl::extract_module_signal(xmlNodePtr node,
         // Append any new data items to the existing signal
         // configuration info.
 
-        if (siginfo.data_items.size() > 0)
+        if (!siginfo.data_items.empty())
         {
             existing_siginfo.data_items.insert(
                 existing_siginfo.data_items.end(),
@@ -815,22 +821,61 @@ ProtocolConfigImpl::extract_module_signal(xmlNodePtr node,
     } // end else modifying an existing signal
 }
 
-ProtocolConfigImpl::DataItemForSignal
-ProtocolConfigImpl::extract_module_signal_data_item(_xmlNode * node)
+// Extract a reference to a previously defined data item.
+// Signals/messages contain these references to specify which data
+// items are allowed in the signal.  Similarly, data items that
+// contain sub data items contain these references to specify which
+// data items are allowed as sub data items.
+SubDataItem
+ProtocolConfigImpl::extract_module_data_item_ref(const std::string & parent_name,
+                                                 _xmlNode * node)
 {
-    DataItemForSignal difs {0, ""};
+    SubDataItem sdi;
 
     for (; node; node = node->next)
     {
         std::string node_name((const char *)node->name);
         if (node_name == "name")
         {
-            std::string data_item_name = extract_node_value<std::string>(node);
-            difs.id = get_data_item_id(data_item_name);
+            sdi.name = extract_node_value<std::string>(node);
+
+            // Looking up the data item's info here to ensure
+            // that the data item has already been defined.
+
+            try
+            {
+                DataItemInfo di_info = get_data_item_info(sdi.name);
+            }
+            catch (std::invalid_argument)
+            {
+                throw BadProtocolConfig("In " + parent_name +
+                                        ", undefined reference to data item " +
+                                        sdi.name);
+            }
+
+            // If this data item has an id defined at the top level,
+            // copy it here.  The copied id may be overridden if an id
+            // is configured for this data item reference.
+            try
+            {
+                sdi.id = get_data_item_id(sdi.name);
+            }
+            catch (BadDataItemName)
+            {
+                // id doesn't have to be defined at the top level
+            }
+        }
+        else if (node_name == "id")
+        {
+            // The schema doesn't allow an id field for data item
+            // references in signals, so we should only come here for
+            // sub data items.
+
+            sdi.id = extract_node_value<DataItemIdType>(node);
         }
         else if (node_name == "occurs")
         {
-            difs.occurs = extract_node_value<std::string>(node);
+            sdi.occurs = extract_node_value<std::string>(node);
         }
         else
         {
@@ -840,9 +885,16 @@ ProtocolConfigImpl::extract_module_signal_data_item(_xmlNode * node)
         }
     }
 
-    return difs;
-}
+    // Error if the id wasn't defined anywhere.
 
+    if (sdi.id == IdUndefined)
+    {
+        throw BadProtocolConfig("In " + parent_name +
+            ", id is undefined for data item reference " + sdi.name);
+    }
+
+    return sdi;
+}
 
 void
 ProtocolConfigImpl::extract_module_data_item(xmlNodePtr node,
@@ -894,6 +946,12 @@ ProtocolConfigImpl::extract_module_data_item(xmlNodePtr node,
         {
             di_info.units = extract_node_value<std::string>(node);
         }
+        else if (node_name == "sub_data_item")
+        {
+            SubDataItem sdi = 
+                extract_module_data_item_ref(di_info.name, node->children);
+            di_info.sub_data_items.push_back(sdi);
+        }
         else
         {
             std::ostringstream msg;
@@ -902,14 +960,14 @@ ProtocolConfigImpl::extract_module_data_item(xmlNodePtr node,
         }
     }
 
-    auto it = data_item_info_map.find(di_info.id);
+    auto it = data_item_info_map.find(di_info.name);
     if (it != data_item_info_map.end())
     {
         throw BadProtocolConfig("redefinition of data item " + di_info.name);
     }
 
-    modinfo.data_items.push_back(di_info.id);
-    data_item_info_map[di_info.id] = di_info;
+    modinfo.data_items.push_back(di_info.name);
+    data_item_info_map[di_info.name] = di_info;
 }
 
 void
@@ -1072,15 +1130,42 @@ ProtocolConfigImpl::get_message_response_name(const std::string & msg_name) cons
     else
     {
         if (siginfo.flags & SignalInfo::Flags::message)
+        {
             return get_message_name(siginfo.response_id);
+        }
         else
+        {
             return get_signal_name(siginfo.response_id);
+        }
     }
 }
 
 DataItemIdType
-ProtocolConfigImpl::get_data_item_id(const std::string & name) const
+ProtocolConfigImpl::get_data_item_id(const std::string & name,
+                                     const DataItemInfo * parent_di_info) const
 {
+    if (parent_di_info)
+    {
+        for (const SubDataItem & sdi : parent_di_info->sub_data_items)
+        {
+            // if sdi.id is IdUndefined, it means it wasn't set in the protocol config
+            if ( (sdi.name == name) && (sdi.id != IdUndefined) )
+            {
+                return sdi.id;
+            }
+        }
+    }
+
+    // Execution comes here if parent_di_info was null (the data item
+    // name is not a sub data item), OR if there was a parent_di_info
+    // but the name was not found in its list of sub data items, OR if
+    // there was a parent_di_info, name was found in its list, but the
+    // associated id was IdUndefined (effectively, not set).  In any
+    // case, we now look up the name in the top-level scope.  This
+    // allows a core data item to be used as a sub data item without
+    // having to repeat its id in the protocol configuration of each
+    // parent data items it can appear in.
+
     auto iter = data_item_map.right.find(name);
     if (iter == data_item_map.right.end())
     {
@@ -1091,8 +1176,28 @@ ProtocolConfigImpl::get_data_item_id(const std::string & name) const
 }
 
 std::string
-ProtocolConfigImpl::get_data_item_name(DataItemIdType id) const
+ProtocolConfigImpl::get_data_item_name(DataItemIdType id,
+                                       const DataItemInfo * parent_di_info) const
 {
+    if (parent_di_info)
+    {
+        for (const SubDataItem & sdi : parent_di_info->sub_data_items)
+        {
+            if (sdi.id == id)
+            {
+                return sdi.name;
+            }
+        }
+    }
+
+    // Execution comes here if parent_di_info was null (id is not a
+    // sub data item) OR if there was a parent_di_info but the id was
+    // not found in its list of sub data items.  Either way, we now
+    // look up the id in the top-level scope.  This allows a core data
+    // item to be used as a sub data item without having to repeat its
+    // id in the protocol configuration of each parent data items it
+    // can appear in.
+
     auto iter = data_item_map.left.find(id);
     if (iter == data_item_map.left.end())
     {
@@ -1133,52 +1238,46 @@ ProtocolConfigImpl::get_signal_prefix() const
 }
 
 DataItemValueType
-ProtocolConfigImpl::get_data_item_value_type(DataItemIdType id) const
+ProtocolConfigImpl::get_data_item_value_type(const std::string & name) const
 {
-    auto it = data_item_info_map.find(id);
+    auto it = data_item_info_map.find(name);
     if (it == data_item_info_map.end())
     {
-        throw BadDataItemId(std::to_string(id));
+        throw BadDataItemName(name);
     }
 
     return it->second.value_type;
 }
 
-DataItemValueType
-ProtocolConfigImpl::get_data_item_value_type(const std::string & name) const
-{
-    return get_data_item_value_type(get_data_item_id(name));
-}
-
-std::vector<ProtocolConfigImpl::DataItemInfo>
+std::vector<DataItemInfo>
 ProtocolConfigImpl::get_data_item_info() const
 {
     std::vector<std::string> vs; //empty vector
     return get_data_item_info(vs);
 }
 
-ProtocolConfig::DataItemInfo
+DataItemInfo
 ProtocolConfigImpl::get_data_item_info(const std::string & di_name) const
 {
     std::vector<std::string> vdi {di_name};
     std::vector<DataItemInfo> vdiinfo = get_data_item_info(vdi);
-    if (vdiinfo.size() == 0)
+    if (vdiinfo.empty())
     {
         throw BadDataItemName(di_name);
     }
     return vdiinfo[0];
 }
 
-std::vector<ProtocolConfig::DataItemInfo>
+std::vector<DataItemInfo>
 ProtocolConfigImpl::get_data_item_info(const std::vector<std::string> &
                                        di_names) const
 {
-    std::vector<ProtocolConfig::DataItemInfo> vmi;
+    std::vector<DataItemInfo> vmi;
 
     for (const auto & kvpair : data_item_info_map)
     {
         const DataItemInfo & di_info = kvpair.second;
-        if (di_names.size() == 0)
+        if (di_names.empty())
         {
             vmi.push_back(di_info);
         }
@@ -1198,6 +1297,13 @@ ProtocolConfigImpl::get_data_item_info(const std::vector<std::string> &
     return vmi;
 }
 
+DataItemInfo
+ProtocolConfigImpl::get_data_item_info(DataItemIdType id,
+                                       const DataItemInfo * parent_di_info) const
+{
+    return get_data_item_info(get_data_item_name(id, parent_di_info));
+}
+
 std::vector<ProtocolConfig::SignalInfo>
 ProtocolConfigImpl::get_signal_info() const
 {
@@ -1210,7 +1316,7 @@ ProtocolConfigImpl::get_signal_info(const std::string & sig_name) const
 {
     std::vector<std::string> vs {sig_name};
     std::vector<SignalInfo> vsiginfo = get_signal_info(vs);
-    if (vsiginfo.size() == 0)
+    if (vsiginfo.empty())
     {
         throw BadSignalName(sig_name);
     }
@@ -1228,7 +1334,7 @@ const
     for (const auto & kvpair : signal_info_map)
     {
         const SignalInfo & sig_info = kvpair.second;
-        if (sig_names.size() == 0)
+        if (sig_names.empty())
         {
             vsi.push_back(sig_info);
         }
@@ -1250,7 +1356,7 @@ const
     for (const auto & kvpair : message_info_map)
     {
         const SignalInfo & sig_info = kvpair.second;
-        if (sig_names.size() == 0)
+        if (sig_names.empty())
         {
             vsi.push_back(sig_info);
         }
@@ -1282,7 +1388,7 @@ ProtocolConfigImpl::get_status_code_info(const std::string & sc_name) const
 {
     std::vector<std::string> vs {sc_name};
     std::vector<StatusCodeInfo> vscinfo = get_status_code_info(vs);
-    if (vscinfo.size() == 0)
+    if (vscinfo.empty())
     {
         throw BadSignalName(sc_name);
     }
@@ -1298,7 +1404,7 @@ ProtocolConfigImpl::get_status_code_info(const std::vector<std::string> &
     for (const auto & kvpair : status_code_info_map)
     {
         const StatusCodeInfo & sc_info = kvpair.second;
-        if (sc_names.size() == 0)
+        if (sc_names.empty())
         {
             vsi.push_back(sc_info);
         }
@@ -1330,7 +1436,7 @@ ProtocolConfigImpl::get_module_info(const std::string & module_name) const
 {
     std::vector<std::string> vm {module_name};
     std::vector<ModuleInfo> vmodinfo = get_module_info(vm);
-    if (vmodinfo.size() == 0)
+    if (vmodinfo.empty())
     {
         throw BadModuleName(module_name);
     }
@@ -1346,7 +1452,7 @@ ProtocolConfigImpl::get_module_info(
     for (const auto & kvpair : module_info_map)
     {
         const ModuleInfo & modinfo = kvpair.second;
-        if (module_names.size() == 0)
+        if (module_names.empty())
         {
             vmi.push_back(modinfo);
         }
@@ -1399,27 +1505,31 @@ ProtocolConfigImpl::get_experiment_names() const
 }
 
 bool
-ProtocolConfigImpl::is_metric(DataItemIdType id) const
+ProtocolConfigImpl::is_metric(DataItemIdType id,
+                              const DataItemInfo * parent_di_info) const
 {
-    auto it = data_item_info_map.find(id);
-    if (it == data_item_info_map.end())
+    // An undefined id isn't a metric.  This can happen with sub data items.
+    if (id == IdUndefined)
     {
-        throw BadDataItemId(std::to_string(id));
+        return false;
     }
 
-    return (it->second.flags & DataItemInfo::Flags::metric) ? true : false;
+    DataItemInfo di_info = get_data_item_info(id, parent_di_info);
+    return static_cast<bool>(di_info.flags & DataItemInfo::Flags::metric);
 }
 
 bool
-ProtocolConfigImpl::is_ipaddr(DataItemIdType id) const
+ProtocolConfigImpl::is_ipaddr(DataItemIdType id,
+                              const DataItemInfo * parent_di_info) const
 {
-    auto it = data_item_info_map.find(id);
-    if (it == data_item_info_map.end())
+    // An undefined id isn't an ip address.  This can happen with sub data items.
+    if (id == IdUndefined)
     {
-        throw BadDataItemId(std::to_string(id));
+        return false;
     }
 
-    DataItemValueType divt = it->second.value_type;
+    DataItemInfo di_info = get_data_item_info(id, parent_di_info);
+    DataItemValueType divt = di_info.value_type;
 
     return ((divt == DataItemValueType::div_u8_ipv4)     ||
             (divt == DataItemValueType::div_u8_ipv6)     ||

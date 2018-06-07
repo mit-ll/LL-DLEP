@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2013, 2015, 2016 Massachusetts Institute of Technology
+ * Copyright (C) 2013, 2015, 2016, 2018 Massachusetts Institute of Technology
  */
 #include "InfoBaseMgr.h"
 
@@ -73,7 +73,6 @@ DestinationData::DestinationData(const DlepMac & mac,
                                  const DataItems & initial_data_items,
                                  DlepPtr dlep) :
     mac_address(mac),
-    using_credit_windowing(false),
     dlep(dlep),
     logger(dlep->logger)
 {
@@ -82,23 +81,11 @@ DestinationData::DestinationData(const DlepMac & mac,
     msg << "Mac Address of destination is " << mac_address;
     LOG(DLEP_LOG_INFO, msg);
 
-    bool checking_for_credits = false;
-    DataItemIdType credit_id;
-    try
-    {
-        credit_id = dlep->protocfg->get_data_item_id(
-                        ProtocolStrings::Credit_Grant);
-        checking_for_credits = true;
-    }
-    catch (ProtocolConfig::BadDataItemName)
-    {
-    }
-
     for (auto const & di : initial_data_items)
     {
         // Only store data items with this destination that are
         // metrics or contain IP addresses.  This filters out unwanted
-        // data items like Status and credit-related data items.
+        // data items like Status.
 
         if (dlep->protocfg->is_metric(di.id))
         {
@@ -108,14 +95,6 @@ DestinationData::DestinationData(const DlepMac & mac,
         {
             update_ip_data_items("destination=" + mac_address.to_string(),
                                  ip_data_items, di, logger);
-        }
-
-        if (checking_for_credits && (di.id == credit_id))
-        {
-            // If we find a credit grant metric, that tells us this
-            // destination wants to use credit windowing.
-
-            using_credit_windowing = true;
         }
     } // for each data item
 }
@@ -186,8 +165,7 @@ DestinationData::log(const std::string & prefix, int log_level) const
 {
     ostringstream msg;
 
-    msg << "destination=" << mac_address
-        << " using credit windowing=" << using_credit_windowing
+    msg << prefix << " destination=" << mac_address
         << " needs response=" << needs_response_;
     LOG(log_level, msg);
 
@@ -455,7 +433,7 @@ PeerData::update_data_items(const DataItems & updates, bool tell_peers)
         }
     } // for each data item in updates
 
-    if (destination_updates.size() > 0)
+    if (!destination_updates.empty())
     {
         // Update all destinations' data metrics
         for (auto const & destpair : destination_data)

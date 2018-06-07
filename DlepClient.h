@@ -177,23 +177,6 @@ public:
     virtual void destination_down(const std::string & peer_id,
                                   const DlepMac & mac_address) = 0;
 
-    /// Request additional credits from the client for a destination.
-    ///
-    /// In response, the client should call DlepService::destination_update()
-    /// with the necessary Credit Grant and Credit Window Status metric
-    /// items.  The client can make that call during its processing of
-    /// this credit_request method, or it can defer the call until after
-    /// returning from this method.
-    ///
-    /// @param[in] peer_id
-    ///            the peer making the request
-    /// @param[in] mac_address
-    ///            the destination for which credits are requested.
-    ///            This must be a destination originating from the client
-    ///            side, not from the peer.
-    virtual void credit_request(const std::string & peer_id,
-                                const DlepMac & mac_address) = 0;
-
     /// Request that the client establish specific link characteristics
     /// for a destination.
     ///

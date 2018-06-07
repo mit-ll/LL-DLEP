@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2015, 2016 Massachusetts Institute of Technology
+ * Copyright (C) 2015, 2016, 2018 Massachusetts Institute of Technology
  */
 
 /// @file
@@ -10,7 +10,6 @@
 #define BOOST_TEST_MODULE lib_tests
 #include <boost/test/unit_test.hpp>
 
-#include "DataItem.h"
 #include "ProtocolConfigImpl.h"
 
 using namespace LLDLEP;
@@ -45,13 +44,14 @@ test_dataitem(const std::string & di_name, const DataItemValueType di_type,
 
     BOOST_TEST_MESSAGE(__FILE__ << ":" << __LINE__
                        << ": data item name=" << di_name
+                       << " id=" << di_id
                        << " type=" << LLDLEP::to_string(di_type)
                        << " serialized value size=" << serialized_value_size
                        << " expect valid=" << expect_valid);
 
     // check that di_name has the expected type
 
-    BOOST_CHECK_EQUAL(LLDLEP::to_string(protocfg->get_data_item_value_type(di_id)),
+    BOOST_CHECK_EQUAL(LLDLEP::to_string(protocfg->get_data_item_value_type(di_name)),
                       LLDLEP::to_string(di_type));
 
     // make the data item
@@ -94,19 +94,9 @@ test_dataitem(const std::string & di_name, const DataItemValueType di_type,
     std::string di_string = di.to_string();
     BOOST_CHECK_GT(di_string.length(), 0);
 
-    // find the part of the string after "value="
-    // this assumes that '=' does not occur in the value itself
+    // reconstitute the value in di2 from di_string
 
-    std::size_t val_index = di_string.find_last_of('=');
-    BOOST_REQUIRE(val_index != std::string::npos);
-    val_index++; // move past the '='
-    std::string val_str = di_string.substr(val_index);
-
-    // reconstitute the value in di2 from val_str.
-    // di2 already has the correct id from above, which
-    // will determine the type of value to parse.
-
-    di2.from_string(val_str);
+    di2.from_string(di_string);
 
     // check that di and di2 are the same when converted to strings
 
@@ -116,19 +106,24 @@ test_dataitem(const std::string & di_name, const DataItemValueType di_type,
 
     BOOST_CHECK(di == di2);
 
-    // validate the data item and check that the results are as
+    // validate both data items and check that the results are as
     // expected
 
     std::string err = di.validate();
+    std::string err2 = di2.validate();
     BOOST_TEST_MESSAGE(__FILE__ << ":" << __LINE__
                        << ": validate err=" << err);
+    BOOST_TEST_MESSAGE(__FILE__ << ":" << __LINE__
+                       << ": validate err2=" << err2);
     if (expect_valid)
     {
         BOOST_CHECK_EQUAL(err, "");
+        BOOST_CHECK_EQUAL(err2, "");
     }
     else
     {
         BOOST_CHECK_NE(err, "");
+        BOOST_CHECK_NE(err2, "");
     }
 
     delete protocfg;
@@ -154,7 +149,7 @@ std::vector<boost::asio::ip::address_v6> vipv6 =
 
 BOOST_AUTO_TEST_CASE(dataitem_blank)
 {
-    const std::string di_name = ProtocolStrings::Credit_Request;
+    const std::string di_name = "Credit_Request";
     DataItemValueType di_type = DataItemValueType::blank;
     const std::size_t serialized_value_size = 0;
 
@@ -269,7 +264,7 @@ BOOST_AUTO_TEST_CASE(dataitem_a2_u16)
 
 BOOST_AUTO_TEST_CASE(dataitem_a2_u64)
 {
-    const std::string di_name = ProtocolStrings::Credit_Window_Status;
+    const std::string di_name = "Credit_Window_Status";
     DataItemValueType di_type = DataItemValueType::div_a2_u64;
 
     for (auto i : vu64)
@@ -504,6 +499,75 @@ BOOST_AUTO_TEST_CASE(dataitem_u64_u64)
                                           div);
         }
     }
+}
+
+BOOST_AUTO_TEST_CASE(dataitem_with_sub_data_items)
+{
+    const std::string di_name = "Test_parent_data_item";
+    DataItemValueType di_type = DataItemValueType::div_sub_data_items;
+    ProtocolConfig * protocfg = get_protocol_config();
+    DataItemInfo di_info = protocfg->get_data_item_info(di_name);
+
+    std::uint64_t div_u64{0};
+    DataItem di_u64_1("Test_u64_1", div_u64, protocfg, &di_info);
+    DataItem di_u64_1p("Test_u64_1+", div_u64, protocfg, &di_info);
+    DataItem di_u64_01("Test_u64_0-1", div_u64, protocfg, &di_info);
+    DataItem di_u64_0p("Test_u64_0+", div_u64, protocfg, &di_info);
+    DataItem di_peer("Peer_Type", "12345678", protocfg);
+
+    struct DataItemListModifications
+    {
+        // "add" to add data item
+        // "remfirst" to remove first data item
+        // "remlast"  to remove last  data item
+        std::string operation;
+        DataItem di; // if adding, data item to add
+        bool valid; // after this add/remove, is the list expected to validate?
+    };
+
+    std::vector<DataItemListModifications> mods = {
+        { "add",      di_u64_1,   false },
+        { "add",      di_u64_1p,  true },
+        { "add",      di_u64_1p,  true },
+        { "add",      di_u64_0p,  true },
+        { "add",      di_u64_0p,  true },
+        { "add",      di_u64_01,  true },
+        { "add",      di_u64_01,  false },
+        { "remlast",  di_u64_01,  true },
+        { "add",      di_u64_1,   false },
+        { "remlast",  di_u64_1,   true },
+        { "add",      di_peer,    false },
+        { "remlast",  di_peer,    true },
+        { "remfirst", di_u64_1,   false },
+    };
+
+    Div_sub_data_items_t div;
+    const std::size_t serialized_value_header_size =
+        protocfg->get_data_item_id_size() +
+        protocfg->get_data_item_length_size();
+
+    for (auto const & m : mods)
+    {
+        if (m.operation == "add")
+        {
+            div.sub_data_items.push_back(m.di);
+        }
+        else if (m.operation == "remlast")
+        {
+            div.sub_data_items.pop_back();
+        }
+        else if (m.operation == "remfirst")
+        {
+            div.sub_data_items.erase(div.sub_data_items.begin());
+        }
+
+        std::size_t s = div.sub_data_items.size() *
+            (serialized_value_header_size + sizeof(std::uint64_t));
+
+        test_dataitem<Div_sub_data_items_t>(di_name, di_type, s, div, m.valid);
+    }
+
+    delete protocfg;
 }
 
 BOOST_AUTO_TEST_SUITE_END()

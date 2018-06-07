@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2015, 2016 Massachusetts Institute of Technology
+ * Copyright (C) 2015, 2016, 2018 Massachusetts Institute of Technology
  */
 
 /// @file
@@ -39,6 +39,7 @@
 #define DATA_ITEM_H
 
 #include <cstdint>
+#include <sstream>
 #include <boost/asio/ip/address.hpp>
 #include <boost/variant.hpp>
 #include "DlepMac.h"
@@ -232,7 +233,18 @@ struct Div_u64_u64_t
     }
 };
 
-/// Holds a data item value of any type.
+/// Data Item that contains only Sub Data Items
+class DataItem;
+struct Div_sub_data_items_t
+{
+    std::vector<DataItem> sub_data_items;
+    bool operator==(const Div_sub_data_items_t & other) const
+    {
+        return (sub_data_items == other.sub_data_items);
+    }
+};
+
+/// DataItemValue holds a data item value of any type.
 ///
 /// If a new data item must be supported that has a value type that is
 /// different from all of the existing ones, you will have to add a
@@ -273,7 +285,8 @@ typedef boost::variant <
       Div_u8_ipv6_u16_t,
       Div_u8_ipv4_u8_t,
       Div_u8_ipv6_u8_t,
-      Div_u64_u64_t
+      Div_u64_u64_t,
+      Div_sub_data_items_t
       > DataItemValue;
 
 /// DataItemValueType has one enum value for each type of value that
@@ -309,21 +322,71 @@ enum class DataItemValueType
                      ///< followed by unsigned 8 bit integer
     div_u8_ipv6_u8,  ///< unsigned 8 bit integer, followed by IPv6 address,
                      ///< followed by unsigned 8 bit integer
-    div_u64_u64      ///< two unsigned 64 bit integers
+    div_u64_u64,     ///< two unsigned 64 bit integers
+    div_sub_data_items ///< sub data items
 };
 
-/// @return string representation of the given data item value
+/// @return string representation of the given data item value type
 std::string to_string(DataItemValueType);
 
-/// @return data item value represented by the given string
+/// @return data item value type represented by the given string
 DataItemValueType from_string(const std::string &);
 
 /// internal representation of a data item id
 typedef std::uint32_t DataItemIdType;
 
 /// shorthand for a vector of DataItem
-class DataItem;
 typedef std::vector<DataItem> DataItems;
+
+/// Information about a sub data item, i.e., a data item nested in
+/// another data item known as the parent data item.  This comes from
+/// the protocol configuration.
+struct SubDataItem
+{
+    std::string name;   ///< name of this data item
+
+    /// id of this data item, scoped within the data item that carries it
+    DataItemIdType id;
+
+    /// how many times this data item can occur ("1", "0-1", "0+", "1+")
+    /// in the parent data item
+    std::string occurs;
+
+    SubDataItem():
+        name(""), id(~0), occurs("") {} ;
+};
+
+/// Information about one data item.  This comes from the protocol
+/// configuration.
+struct DataItemInfo
+{
+    std::string name;             ///< name of this data item
+
+    /// id of this data item.  If 0, this is a sub data item, and its
+    /// id is defined in the SubDataItem structure of each data item
+    /// that can carry this data item.
+    DataItemIdType id;
+
+    DataItemValueType value_type; ///< type of this data item
+
+    /// boolean flag definitions
+    enum Flags : std::uint32_t
+    {
+        metric = (1 << 0) ///< this data item is considered a metric
+        // next flag = (1 << 1)
+    };
+
+    std::uint32_t flags; ///< OR-combination of enum Flags
+    std::string module;  ///< module that provides this data item
+    std::string units;   ///< units of this data item, "" if none given
+
+    /// all sub data items allowed in this data item (usually none)
+    std::vector<SubDataItem> sub_data_items;
+
+    DataItemInfo() :
+        name(""), id(~0), value_type(DataItemValueType::div_u32),
+        flags(0), module(""), units("") {} ;
+};
 
 /// Holds one DLEP Data Item (TLV that goes in a signal/message)
 class DataItem
@@ -340,47 +403,111 @@ public:
 
     // Constructors
 
-    /// Default constructor.  Do not use.  It is only here because STL
+    /// Default constructor.  Rarely used.  It is mainly here because STL
     /// containers require it.
     explicit DataItem(const ProtocolConfig * protocfg = nullptr);
 
     /// Recommended constructor.
     ///
-    /// @param[in] di_type
+    /// @param[in] di_name
     ///            data item type, one of the data item strings listed in
     ///            LLDLEP::ProtocolStrings, or one added by an extension.
     ///            Alternatively, ProtocolConfig::get_data_item_info()
     ///            returns a list of all configured data items; the value
-    ///            of the field ProtocolConfig::DataItemInfo::name can be
-    ///            used for this parameter.
+    ///            of the field DataItemInfo.name can be used for this
+    ///            parameter.
     /// @param[in] di_value
     ///            initial value of the data item
     /// @param[in] protocfg
     ///            protocol configuration object, usually obtained from
     ///            DlepService::get_protocol_config().  Do not use nullptr.
-    /// @throw ProtocolConfig::BadDataItemName if \p di_type is not a valid
+    /// @param[in] parent_di_info
+    ///            if the constructed data item is a sub data item, this is
+    ///            a pointer to the parent data item's DataItemInfo.
+    ///            Otherwise, it must be a nullptr.
+    /// @throw ProtocolConfig::BadDataItemName if \p di_name is not a valid
     ///        data item name
+    ///
+    /// Example:
+    /// @code
+    ///    std::uint8_t val8 = 100;
+    ///    DataItem di(LLDLEP::ProtocolStrings::Resources,
+    ///                val8, dlep_service->get_protocol_config());
+    /// @endcode
+    ///
+    /// Example using sub data items.
+    /// This assumes a protocol configuration that defines:
+    /// - a data item named "MySubDataItem" with type u32, e.g.:
+    /// @code{.xml}
+    /// <data_item>
+    ///     <name>MySubDataItem</name>
+    ///     <type>u32</type>
+    ///     <metric>false</metric>
+    /// </data_item>
+    /// @endcode
+    /// - a data item named "MyParentDataItem" with type sub_data_items.  It
+    ///    should declare "MySubDataItem" as a sub_data_item, e.g.:
+    /// @code{.xml}
+    /// <data_item>
+    ///     <name>MyParentDataItem</name>
+    ///     <type>sub_data_items</type>
+    ///     <id>250</id>
+    ///     <metric>false</metric>
+    ///     <sub_data_item>
+    ///         <name>MySubDataItem</name>
+    ///         <id>1</id>
+    ///         <occurs>1</occurs>
+    ///     </sub_data_item>
+    /// </data_item>
+    /// @endcode
+    ///
+    /// MySubDataItem is a sub data item of (will be nested within)
+    /// MyParentDataItem.
+    ///
+    /// @code
+    ///    // get the data item info for MyParentDataItem, needed to create the sub data item
+    ///    LLDLEP::ProtocolConfig protocfg = dlep_service->get_protocol_config();
+    ///    LLDLEP::DataItemInfo di_info = protocfg->get_data_item_info("MyParentDataItem");
+    ///
+    ///    // create the sub data item
+    ///    std::uint32_t val32 = 50;
+    ///    DataItem subdi("MySubDataItem", val32, protocfg, &di_info);
+    ///
+    ///    // create the parent data item's value
+    ///    LLDLEP::Div_sub_data_items_t parentdi_val;
+    ///    parentdi_val.sub_data_items.push_back(subdi);
+    ///
+    ///    // create the parent data item
+    ///    DataItem parentdi("MyParentDataItem", parentdi_val, protocfg);
+    /// @endcode
+    ///
 
-    DataItem(const std::string & di_type, const DataItemValue & di_value,
-             const ProtocolConfig * protocfg);
+    DataItem(const std::string & di_name, const DataItemValue & di_value,
+             const ProtocolConfig * protocfg,
+             const DataItemInfo * parent_di_info = nullptr);
 
     /// Alternate constructor.
-    /// This defaults the data item's value, so you should set the value
-    /// after the DataItem is constructed.
+    /// This assigns a default value to the data item, so you may need to
+    /// the value after the DataItem is constructed.
     ///
-    /// @param[in] di_type
+    /// @param[in] di_name
     ///            data item type, one of the data item strings listed in
     ///            LLDLEP::ProtocolStrings, or one added by an extension.
     ///            Alternatively, ProtocolConfig::get_data_item_info()
     ///            returns a list of all configured data items; the value
-    ///            of the field ProtocolConfig::DataItemInfo::name can be
-    ///            used for this parameter.
+    ///            of the field DataItemInfo.name can be used for this
+    ///            parameter.
     /// @param[in] protocfg
     ///            protocol configuration object, usually obtained from
     ///            DlepService::get_protocol_config().  Do not use nullptr.
-    /// @throw ProtocolConfig::BadDataItemName if \p di_type is not a valid
+    /// @param[in] parent_di_info
+    ///            if the constructed data item is a sub data item, this is
+    ///            a pointer to the parent data item's DataItemInfo.
+    ///            Otherwise, it must be a nullptr.
+    /// @throw ProtocolConfig::BadDataItemName if \p di_name is not a valid
     ///        data item name
-    DataItem(const std::string & di_type, const ProtocolConfig * protocfg);
+    DataItem(const std::string & di_name, const ProtocolConfig * protocfg,
+             const DataItemInfo * parent_di_info = nullptr);
 
     /// @return the type of the currently-stored value
     DataItemValueType get_type() const;
@@ -403,36 +530,117 @@ public:
     ///                marks the end of the buffer (could be past the end
     ///                of this data item).  deserialization will not cross
     ///                this boundary.
+    /// @param[in] parent_di_info
+    ///            if the data item is a sub data item, this is
+    ///            a pointer to the parent data item's DataItemInfo.
+    ///            Otherwise, it must be a nullptr.
     /// @throw std::length_error if there was a problem with the data item
     ///        length, e.g., the data item needed more bytes beyond \p it_end
     void deserialize(std::vector<std::uint8_t>::const_iterator & it,
-                     std::vector<std::uint8_t>::const_iterator it_end);
+                     std::vector<std::uint8_t>::const_iterator it_end,
+                     const DataItemInfo * parent_di_info = nullptr);
 
+    /// Convert the data item to a string.
+    ///
+    /// @param[in] parent_di_info
+    ///            if the data item is a sub data item, this is
+    ///            a pointer to the parent data item's DataItemInfo.
+    ///            Otherwise, it must be a nullptr.
     /// @return string representation of this data item.
     /// The string will contain both the name and the value.
-    std::string to_string() const;
+    std::string to_string(const DataItemInfo * parent_di_info = nullptr) const;
 
+    /// Get the data item's name as a string.
+    /// @param[in] parent_di_info
+    ///            if the data item is a sub data item, this is
+    ///            a pointer to the parent data item's DataItemInfo.
+    ///            Otherwise, it must be a nullptr.
     /// @return string representation of this data item's name.
-    std::string name() const;
+    std::string name(const DataItemInfo * parent_di_info = nullptr) const;
 
+    /// Convert the data item's value to a string.
+    /// @param[in] parent_di_info
+    ///            if the data item is a sub data item, this is
+    ///            a pointer to the parent data item's DataItemInfo.
+    ///            Otherwise, it must be a nullptr.
     /// @return string representation of this data item's value.
-    std::string value_to_string() const;
+    std::string value_to_string(const DataItemInfo * parent_di_info = nullptr) const;
 
-    /// Convert from string representation.  Use the current type of
-    /// the value member to decide what kind of value to parse.  Store
-    /// the result in value.  This is the inverse function of
-    /// value_to_string(), NOT of to_string().
-    /// @param[in] val_str string to convert from.
-    void from_string(const std::string & val_str);
+    /// Convert from string representation of the data item's name and
+    /// value, and store the result in the data item.  This is the
+    /// inverse function of to_string().
+    ///
+    /// @param[in] str string to convert from.
+    /// @param[in] parent_di_info
+    ///            if the data item is a sub data item, this is
+    ///            a pointer to the parent data item's DataItemInfo.
+    ///            Otherwise, it must be a nullptr.
+    void from_string(const std::string & str,
+                     const DataItemInfo * parent_di_info = nullptr);
+
+    /// Works like from_string(), but takes input from an istringstream.
+    /// @param[in] ss
+    ///            istringstream to convert from.
+    /// @param[in] parent_di_info
+    ///            if the data item is a sub data item, this is
+    ///            a pointer to the parent data item's DataItemInfo.
+    ///            Otherwise, it must be a nullptr.
+    void from_istringstream(std::istringstream & ss,
+                            const DataItemInfo * parent_di_info = nullptr);
+
+    /// Convert from string representation of the data item's value,
+    /// and store the result in the data item.  This is the inverse
+    /// function of value_to_string().
+    ///
+    /// @param[in] str string to convert from.
+    void value_from_string(const std::string & str);
+
+    /// Works like value_from_string(),  but takes input from an istringstream.
+    ///
+    /// @param[in] ss
+    ///            istringstream to convert from.
+    void value_from_istringstream(std::istringstream & ss);
 
     /// Check this data item for validity.  The data item value's type
     /// must be correct for its id, and any restrictions on the value
     /// must be met.  Uses information from the protocfg object
     /// supplied at construction time.
     ///
+    /// @param[in] parent_di_info
+    ///            if the data item is a sub data item, this is
+    ///            a pointer to the parent data item's DataItemInfo.
+    ///            Otherwise, it must be a nullptr.
     /// @return empty string "" if the data item is valid, else a string
     ///         description of why it is invalid
-    std::string validate() const;
+    std::string validate(const DataItemInfo * parent_di_info = nullptr) const;
+
+    /// Check that a container of data items conforms to the
+    /// constraints on the number of occurrences of each data item
+    /// type according to the protocol configuration.
+    ///
+    /// This is a static method because it is used to check sub data
+    /// items AND top-level data items in messages.  In the latter
+    /// case, there is no data item on which to invoke the method.
+    ///
+    /// @param[in] data_items
+    ///            Container (map, vector) holding the data items to check
+    /// @param[in] v_di_info
+    ///            vector of SubDataItem/DataItemForSignal that has the
+    ///            constraints to be checked
+    /// @param[in] protocfg
+    ///            protocol configuration object
+    /// @param[in] parent_di_info
+    ///            if the data item is a sub data item, this is
+    ///            a pointer to the parent data item's DataItemInfo.
+    ///            Otherwise, it must be a nullptr.
+    ///
+    /// @return  empty string "" if the data items are valid, else a string
+    ///         description of why they are invalid
+    template <typename DataItemContainer>
+    static std::string validate_occurrences(const DataItemContainer & data_items,
+                                            const std::vector<SubDataItem> & v_di_info,
+                                            const ProtocolConfig * protocfg,
+                                            const DataItemInfo * parent_di_info = nullptr);
 
     /// Compare the IP address information in this data item with
     /// another data item.  IP address information includes IP addresses
@@ -484,11 +692,11 @@ private:
     deserialize_array(std::vector<std::uint8_t>::const_iterator & it,
                       std::vector<std::uint8_t>::const_iterator di_end);
 
+    void set_default_value(DataItemValueType di_value_type);
+
     /// from constructor, we do not own it
     const ProtocolConfig * protocfg;
 };
-
-
 
 } // namespace LLDLEP
 

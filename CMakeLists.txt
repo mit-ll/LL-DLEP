@@ -1,11 +1,14 @@
 cmake_minimum_required (VERSION 2.8)
 project (dlep)
 
-SET(DLEP_VERSION 1.10) # Release version of the software
-SET(SOVERSION 1.0) # The library version (e.g. libdlep.so.1.0 would be SOVERSION 1.0)
+SET(DLEP_VERSION 2.1) # Release version of the software
+SET(SOVERSION 2.1) # The library version (e.g. libdlep.so.1.0 would be SOVERSION 1.0)
 
 SET(DLEPLIB_SRCS DestAdvert.cpp DlepInit.cpp DlepLogger.cpp Dlep.cpp Peer.cpp InfoBaseMgr.cpp PeerDiscovery.cpp DlepServiceImpl.cpp DlepMac.cpp PeriodicMcastSendRcv.cpp NetUtils.cpp ProtocolMessage.cpp DataItem.cpp ProtocolConfigImpl.cpp)
-SET(DLEP_PUBLIC_HDRS DlepInit.h DlepClient.h DlepService.h DlepCommon.h DataItem.h ProtocolConfig.h CreditWindow.h IdTypes.h DlepMac.h Serialize.h)
+SET(DLEP_PUBLIC_HDRS DlepInit.h DlepClient.h DlepService.h DlepCommon.h DataItem.h ProtocolConfig.h IdTypes.h DlepMac.h Serialize.h LatencyRange.h)
+
+# Enable "all" c++ warnings, and consider them to be errors
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
 
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)

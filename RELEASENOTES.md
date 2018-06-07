@@ -1,5 +1,15 @@
 MIT Lincoln Laboratory DLEP (LL-DLEP) Implementation
 
+Release 2.1  July 23, 2018
+==================================
+
+Unit tests for low-level serialization are added, and defects exposed
+by the new tests are fixed.
+
+Many warnings from gcc -Wall, cppcheck, clang-tidy are fixed.
+
+Code for an obsolete credit window extension is removed.
+
 Release 1.10
 ==================================
 

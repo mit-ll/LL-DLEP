@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2015, 2016 Massachusetts Institute of Technology
+ * Copyright (C) 2015, 2016, 2018 Massachusetts Institute of Technology
  */
 
 /// @file
@@ -22,51 +22,48 @@ public:
     /// @see DlepClient for documentation of inherited methods
 
     void get_config_parameter(const std::string & parameter_name,
-                              ConfigValue * value);
+                              ConfigValue * value) override;
     void get_config_parameter(const std::string & parameter_name,
-                              bool * value);
+                              bool * value) override;
     void get_config_parameter(const std::string & parameter_name,
-                              unsigned int * value);
+                              unsigned int * value) override;
     void get_config_parameter(const std::string & parameter_name,
-                              std::string * value);
+                              std::string * value) override;
     void get_config_parameter(const std::string & parameter_name,
-                              boost::asio::ip::address * value);
+                              boost::asio::ip::address * value) override;
     void get_config_parameter(const std::string & parameter_name,
-                              std::vector<unsigned int> * value);
+                              std::vector<unsigned int> * value) override;
 
     void print_data_items(const std::string & msg,
                           const LLDLEP::DataItems & data_items);
 
     void print_peer_info(const LLDLEP::PeerInfo & peer_info);
 
-    void peer_up(const LLDLEP::PeerInfo & peer_info);
+    void peer_up(const LLDLEP::PeerInfo & peer_info) override;
 
     void peer_update(const std::string & peer_id,
-                     const LLDLEP::DataItems & data_items);
+                     const LLDLEP::DataItems & data_items) override;
 
-    void peer_down(const std::string & peer_id);
+    void peer_down(const std::string & peer_id) override;
 
     std::string destination_up(const std::string & peer_id,
                                const LLDLEP::DlepMac & mac_address,
-                               const LLDLEP::DataItems & data_items);
+                               const LLDLEP::DataItems & data_items) override;
 
     void destination_update(const std::string & peer_id,
                             const LLDLEP::DlepMac & mac_address,
-                            const LLDLEP::DataItems & data_items);
+                            const LLDLEP::DataItems & data_items) override;
 
     void destination_down(const std::string & peer_id,
-                          const LLDLEP::DlepMac & mac_address);
-
-    void credit_request(const std::string & peer_id,
-                        const LLDLEP::DlepMac & mac_address);
+                          const LLDLEP::DlepMac & mac_address) override;
 
     void linkchar_request(const std::string & peer_id,
                           const LLDLEP::DlepMac & mac_address,
-                          const LLDLEP::DataItems & data_items);
+                          const LLDLEP::DataItems & data_items) override;
 
     void linkchar_reply(const std::string & peer_id,
                         const LLDLEP::DlepMac & mac_address,
-                        const LLDLEP::DataItems & data_items);
+                        const LLDLEP::DataItems & data_items) override;
 
     /// Parse command line arguments.
     /// Loads the configuration database with values from the command line

@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2013 Massachusetts Institute of Technology
+ * Copyright (C) 2013, 2015, 2016, 2018 Massachusetts Institute of Technology
  */
 
 /// @file
@@ -127,7 +127,7 @@ ResponsePending::ResponsePending(const ProtocolConfig * protocfg,
 std::string
 ResponsePending::queue_name() const
 {
-    if (destination.mac_addr.size() == 0)
+    if (destination.mac_addr.empty())
     {
         return "session queue";
     }
@@ -783,7 +783,7 @@ Peer::start_peer()
 
         std::vector<ExtensionIdType> v_extid =
             dlep->protocfg->get_extension_ids();
-        if (v_extid.size() > 0)
+        if (!v_extid.empty())
         {
             pm.add_extensions(v_extid);
         }
@@ -1055,7 +1055,7 @@ Peer::send_peer_initialization_response()
 
     // Add extensions if any
 
-    if (mutual_extensions.size() > 0)
+    if (!mutual_extensions.empty())
     {
         pm.add_extensions(mutual_extensions);
     }
@@ -1089,7 +1089,7 @@ void Peer::store_heartbeat_interval(ProtocolMessage & pm)
 
     // We assume that the peer is configured with the same units as we are
 
-    ProtocolConfig::DataItemInfo di_info =
+    DataItemInfo di_info =
         dlep->protocfg->get_data_item_info(ProtocolStrings::Heartbeat_Interval);
 
     unsigned int divisor = 1;
@@ -1219,7 +1219,7 @@ Peer::handle_peer_initialization(ProtocolMessage & pm)
         if (NetUtils::ipv4ToEtherMacAddr(peer_endpoint_tcp.address(),
                                          peerMac,
                                          discovery_iface,
-                                         msg) == true)
+                                         msg))
         {
             msg << "got peer mac address " << peerMac.to_string();
             LOG(DLEP_LOG_INFO, msg);
@@ -1336,7 +1336,7 @@ Peer::handle_peer_update_response(ProtocolMessage & pm)
 }
 
 void
-Peer::handle_peer_termination(ProtocolMessage & pm)
+Peer::handle_peer_termination(ProtocolMessage &  /*pm*/)
 {
     send_simple_response(ProtocolStrings::Session_Termination_Response, "");
 
@@ -1642,38 +1642,7 @@ Peer::handle_destination_update(ProtocolMessage & pm)
     }
     else
     {
-        // Is this one of our destinations (one for which we sent a
-        // Destination Up)?
-        bool local_destination =
-            dlep->local_pdp->validDestination(destination_mac);
-
-        if (local_destination)
-        {
-            if (pm.get_credit_request())
-            {
-                // This is a credit request for a destination that we advertised
-                // (not a destination from a peer).
-
-                // XXX what to do if there are other data items besides
-                // the credit request?  Currently we just ignore them.
-
-                dlep->dlep_client.credit_request(peer_id, destination_mac);
-                return;
-            }
-        }
-
-        // If we get here, we couldn't make sense of this destination update.
-
-        msg << "peer=" << peer_id;
-        if (local_destination)
-        {
-            msg << " local mac=" << destination_mac
-                << " expected credit request, but didn't find one";
-        }
-        else
-        {
-            msg << " unknown mac=" << destination_mac;
-        }
+        msg << " unknown mac=" << destination_mac;
         LOG(DLEP_LOG_ERROR, msg);
         terminate(ProtocolStrings::Invalid_Message);
     }
@@ -1756,7 +1725,7 @@ Peer::handle_link_characteristics_request(ProtocolMessage & pm)
         return;
     }
 
-    if (data_items.size() == 0)
+    if (data_items.empty())
     {
         DataItems all_data_items;
         DataItems metric_data_items;
@@ -1815,7 +1784,7 @@ Peer::handle_link_characteristics_response(ProtocolMessage & pm)
 }
 
 void
-Peer::handle_heartbeat(ProtocolMessage & pm)
+Peer::handle_heartbeat(ProtocolMessage &  /*pm*/)
 {
     ostringstream msg;
     msg << "from peer=" << peer_id;
@@ -2071,7 +2040,9 @@ Peer::validate_ip_data_items(const DataItems & new_data_items,
     for (const DataItem & ndi : new_data_items)
     {
         if (! dlep->protocfg->is_ipaddr(ndi.id))
+        {
             continue;
+        }
 
         if (ndi.ip_flags() & DataItem::IPFlags::add)
         {

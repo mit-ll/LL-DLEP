@@ -115,11 +115,6 @@ public:
     /// specified data items are NOT stored locally, since it is
     /// not a locally-owned destination.
     ///
-    /// Use this method to request credits, grant credits, report
-    /// the credit window status for a destination by including a
-    /// Credit Request, Credit Grant, or Credit Window Status data
-    /// item.
-    ///
     /// @param[in] mac_address
     ///            the destination being updated
     /// @param[in] data_items

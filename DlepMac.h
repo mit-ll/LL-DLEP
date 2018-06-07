@@ -39,7 +39,7 @@ bool operator<(const DlepMac & mac1, const DlepMac & mac2);
 bool operator==(const DlepMac & mac1, const DlepMac & mac2);
 
 /// Output operator for convenient output to an ostream
-std::ostream & operator<<(std::ostream & os, DlepMac mac);
+std::ostream & operator<<(std::ostream & os, const DlepMac & mac);
 
 
 /// set of DlepMac addrs

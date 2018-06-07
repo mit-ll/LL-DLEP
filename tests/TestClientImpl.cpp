@@ -505,7 +505,7 @@ TestClientImpl::peer_up(const LLDLEP::PeerInfo & peer_info)
 
 void
 TestClientImpl::peer_update(const std::string & peer_id,
-                            const LLDLEP::DataItems & data_items)
+                            const LLDLEP::DataItems &  /*data_items*/)
 {
     peer_update_waiter.notify(peer_id);
 }
@@ -516,45 +516,39 @@ void TestClientImpl::peer_down(const std::string & peer_id)
 }
 
 std::string
-TestClientImpl::destination_up(const std::string & peer_id,
+TestClientImpl::destination_up(const std::string &  /*peer_id*/,
                                const LLDLEP::DlepMac & mac_address,
-                               const LLDLEP::DataItems & data_items)
+                               const LLDLEP::DataItems &  /*data_items*/)
 {
     destination_up_waiter.notify(mac_address);
     return "";
 }
 
 void
-TestClientImpl::destination_update(const std::string & peer_id,
+TestClientImpl::destination_update(const std::string &  /*peer_id*/,
                                    const LLDLEP::DlepMac & mac_address,
-                                   const LLDLEP::DataItems & data_items)
+                                   const LLDLEP::DataItems &  /*data_items*/)
 {
     destination_update_waiter.notify(mac_address);
 }
 
 void
-TestClientImpl::destination_down(const std::string & peer_id,
+TestClientImpl::destination_down(const std::string &  /*peer_id*/,
                                  const LLDLEP::DlepMac & mac_address)
 {
     destination_down_waiter.notify(mac_address);
 }
 
 void
-TestClientImpl::credit_request(const std::string & peer_id,
-                               const LLDLEP::DlepMac & mac_address)
+TestClientImpl::linkchar_request(const std::string &  /*peer_id*/,
+                                 const LLDLEP::DlepMac &  /*mac_address*/,
+                                 const LLDLEP::DataItems &  /*data_items*/)
 {
 }
 
 void
-TestClientImpl::linkchar_request(const std::string & peer_id,
-                                 const LLDLEP::DlepMac & mac_address,
-                                 const LLDLEP::DataItems & data_items)
-{
-}
-
-void
-TestClientImpl::linkchar_reply(const std::string & peer_id,
-                               const LLDLEP::DlepMac & mac_address,
-                               const LLDLEP::DataItems & data_items)
+TestClientImpl::linkchar_reply(const std::string &  /*peer_id*/,
+                               const LLDLEP::DlepMac &  /*mac_address*/,
+                               const LLDLEP::DataItems &  /*data_items*/)
 {
 }

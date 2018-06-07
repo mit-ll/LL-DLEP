@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2015, 2016 Massachusetts Institute of Technology
+ * Copyright (C) 2015, 2016, 2018 Massachusetts Institute of Technology
  */
 
 /// @file
@@ -115,7 +115,7 @@ public:
 
             tokenize();
 
-            if (tokens.size() == 0)
+            if (tokens.empty())
             {
                 // line was blank or contained only whitespace
                 continue;
@@ -147,7 +147,7 @@ private:
     DlepClientImpl * dlep_client;
     LLDLEP::DlepService * dlep_service;
     LLDLEP::ProtocolConfig * protocfg;
-    std::vector<LLDLEP::ProtocolConfig::DataItemInfo> data_item_info;
+    std::vector<LLDLEP::DataItemInfo> data_item_info;
 
     /// line of input from the user
     std::string line;
@@ -226,7 +226,7 @@ private:
         bool valid = true;
         try
         {
-            di_mac.from_string(mac_token);
+            di_mac.value_from_string(mac_token);
             try
             {
                 LLDLEP::DlepMac mac = boost::get<LLDLEP::DlepMac>(di_mac.value);
@@ -252,67 +252,58 @@ private:
         return valid;
     }
 
+    static void
+    skip_whitespace(std::istringstream & ss)
+    {
+        while (ss && isspace(ss.peek()))
+        {
+            ss.ignore();
+        }
+    }
+
     bool parse_data_items(LLDLEP::DataItems & data_items)
     {
+        std::string rest_of_line;
+
+        // Make a string containing all of the remaining tokens,
+        // separated by spaces.  This is more convenient for
+        // from_istringstream().  The stringstream will keep
+        // track of where we are in parsing the line.
+
         while (current_token != tokens.end())
         {
-            // get the data item name
+            rest_of_line.append(*current_token++);
+            rest_of_line.append(" ");
+        }
 
-            std::string & data_item_name = *current_token++;
-
-            // Find the data item info for this data item name.
-
-            auto di_iter = data_item_info.begin();
-            for (; di_iter != data_item_info.end(); di_iter++)
+        std::istringstream ss(rest_of_line);
+        try
+        {
+            do
             {
-                if (di_iter->name == data_item_name)
+                skip_whitespace(ss);
+                if (ss.eof())
                 {
                     break;
                 }
-            }
-
-            if (di_iter == data_item_info.end())
-            {
-                std::cerr << dlep_client->error_color
-                          << data_item_name << " is not a valid data item name."
-                          << " Try 'show dataitems'" << std::endl;
-                return false;
-            }
-
-            // If the type for this data item name is not blank, then get the
-            // next token as the data_item_value, else do not consume another
-            // token and leave data_item_value as the empty string.
-
-            std::string data_item_value;
-            if (di_iter->value_type != LLDLEP::DataItemValueType::blank)
-            {
-                if (current_token == tokens.end())
-                {
-                    std::cerr << dlep_client->error_color
-                              << "no value given for data item " << data_item_name
-                              << std::endl;
-                    return false;
-                }
-
-                data_item_value = *current_token++;
-            }
-
-            LLDLEP::DataItem di(di_iter->name, protocfg);
-            try
-            {
-                di.from_string(data_item_value);
+                LLDLEP::DataItem di(protocfg);
+                di.from_istringstream(ss);
                 data_items.push_back(di);
             }
-            catch (std::invalid_argument)
-            {
-                std::cerr << dlep_client->error_color
-                          << data_item_value << " is not a valid value of type "
-                          << to_string(di_iter->value_type) << " for " << data_item_name
-                          << std::endl;
-                // no use going any further
-                return false;
-            }
-        } // end while parsing data items
+            while (ss);
+        }
+        catch (LLDLEP::ProtocolConfig::BadDataItemName e)
+        {
+            std::cerr << dlep_client->error_color
+                      << e.what() << " is not a valid data item name."
+                      << " Try 'show dataitems'" << std::endl;
+            return false;
+        }
+        catch (std::invalid_argument e)
+        {
+            std::cerr << dlep_client->error_color << e.what() << std::endl;
+            return false;
+        }
 
         return true;
     }
@@ -367,7 +358,7 @@ private:
     }
 
     // cppcheck-suppress unusedFunction
-    void handle_help(const std::string & cmd_name)
+    void handle_help(const std::string &  /*cmd_name*/)
     {
         std::cout << dlep_client->info_color;
         for (CommandInfo ci : command_info)
@@ -382,7 +373,7 @@ private:
     }
 
     // cppcheck-suppress unusedFunction
-    void handle_quit(const std::string & cmd_name)
+    void handle_quit(const std::string &  /*cmd_name*/)
     {
         cli_continue = false;
     }
@@ -594,7 +585,7 @@ private:
         help_linkchar_reply(cmd_name);
     }
 
-    void handle_linkchar_request(const std::string & cmd_name)
+    void handle_linkchar_request(const std::string &  /*cmd_name*/)
     {
         LLDLEP::DlepMac mac_address;
         if (! parse_mac_address(&mac_address))
@@ -703,7 +694,7 @@ private:
         help_dataitems();
     }
 
-    void handle_peer_update(const std::string & cmd_name)
+    void handle_peer_update(const std::string &  /*cmd_name*/)
     {
         LLDLEP::DataItems data_items;
 
@@ -743,22 +734,39 @@ private:
         std::cout << dlep_client->info_color
                   << "Configured data items:" << std::endl;
         Table table(std::vector<std::string>
-                    {"ID", "Name", "Type", "Units", "Module", "Flags"});
+                    {"ID", "Name", "Type", "Units", "Module", "Flags",
+                     "SubDataItem ID", "SubDataItem Name", "Occurs"});
 
         for (const auto & di_info : data_item_info)
         {
-            table.add_field(std::to_string(di_info.id));
-            table.add_field(di_info.name);
+            if (di_info.id != LLDLEP::IdUndefined)
+            {
+                table.add_field(std::to_string(di_info.id));
+            }
+            table.add_field("Name", di_info.name);
             table.add_field(to_string(di_info.value_type));
             table.add_field(di_info.units);
             table.add_field(di_info.module);
             if (di_info.flags &
-                    LLDLEP::ProtocolConfig::DataItemInfo::Flags::metric)
+                    LLDLEP::DataItemInfo::Flags::metric)
             {
                 table.add_field("metric");
             }
+
+            // add the sub data items for this data item, if any
+            for (const auto & sub_di_info : di_info.sub_data_items)
+            {
+                table.add_field("SubDataItem ID",
+                                std::to_string(sub_di_info.id));
+                table.add_field(protocfg->get_data_item_name(sub_di_info.id,
+                                                             &di_info));
+                table.add_field(sub_di_info.occurs);
+                table.finish_row();
+            }
+
             table.finish_row();
-        }
+        } // end for each data item
+
         table.print(std::cout);
     }
 
@@ -860,10 +868,10 @@ private:
             }
             table.finish_row();
 
-            for (const auto & id : modinfo.data_items)
+            for (const auto & di_name : modinfo.data_items)
             {
                 table.add_field("Provides", "data item");
-                table.add_field(protocfg->get_data_item_name(id));
+                table.add_field(di_name);
                 table.finish_row();
             }
 

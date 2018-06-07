@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2013 Massachusetts Institute of Technology
+ * Copyright (C) 2013, 2018 Massachusetts Institute of Technology
  */
 #include "DlepLogger.h"
 #include <time.h>
@@ -48,7 +48,7 @@ DlepLogger::~DlepLogger()
 }
 
 void
-DlepLogger::log(int level, std::string str)
+DlepLogger::log(int level, const std::string & str)
 {
     boost::mutex::scoped_lock lock(mutex);
     if (level >= run_level)
@@ -65,7 +65,7 @@ DlepLogger::log(int level, std::ostringstream & msg)
 }
 
 void
-DlepLogger::log_time(int level, std::string str)
+DlepLogger::log_time(int level, const std::string & str)
 {
     boost::mutex::scoped_lock lock(mutex);
     if (level >= run_level)
@@ -111,8 +111,8 @@ DlepLogger::time_string_get()
 {
     char buf[128];
     timeval tp;
-    gettimeofday(&tp, 0);
-    time_t tim = time(NULL);
+    gettimeofday(&tp, nullptr);
+    time_t tim = time(nullptr);
     tm now;
     localtime_r(&tim, &now);
     snprintf(buf, sizeof(buf), "%02d:%02d:%02d.%03ld ",

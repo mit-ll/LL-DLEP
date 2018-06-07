@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2015, 2016 Massachusetts Institute of Technology
+ * Copyright (C) 2015, 2016, 2018 Massachusetts Institute of Technology
  *
  * Contributor: Adjacent Link LLC, Bridgewater, NJ
  */
@@ -48,7 +48,7 @@ get_ip_addr_from_iface(const std::string & iface_name,
                        DlepLoggerPtr logger)
 {
     std::ostringstream msg;
-    struct ifaddrs * ifaddr = NULL, *ifa = NULL;
+    struct ifaddrs * ifaddr = nullptr, *ifa = nullptr;
     int addr_family = want_ipv4_addr ? AF_INET : AF_INET6;
 
     // default value for ipaddr is "unspecified"
@@ -65,9 +65,9 @@ get_ip_addr_from_iface(const std::string & iface_name,
 
     // Loop over the addresses, looking for one we like.
 
-    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next)
+    for (ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next)
     {
-        if (ifa->ifa_addr == NULL)
+        if (ifa->ifa_addr == nullptr)
         {
             continue;
         }
@@ -167,7 +167,7 @@ get_iface_from_ip_addr(const boost::asio::ip::address & ipaddr,
                        DlepLoggerPtr logger)
 {
     std::ostringstream msg;
-    struct ifaddrs * ifaddr = NULL, *ifa = NULL;
+    struct ifaddrs * ifaddr = nullptr, *ifa = nullptr;
     int addr_family = ipaddr.is_v4() ? AF_INET : AF_INET6;
     std::string iface_name;
 
@@ -182,9 +182,9 @@ get_iface_from_ip_addr(const boost::asio::ip::address & ipaddr,
 
     // Loop over the addresses, looking for one equal to ipaddr.
 
-    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next)
+    for (ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next)
     {
-        if (ifa->ifa_addr == NULL)
+        if (ifa->ifa_addr == nullptr)
         {
             continue;
         }
@@ -445,5 +445,5 @@ ipv4ToEtherMacAddr(const boost::asio::ip::address & addr,
 }
 
 } // namespace NetUtils
-} // namespace internals
+} // namespace internal
 } // namespace LLDLEP

@@ -7,6 +7,9 @@
 /// @file
 /// Declaration of Table class
 
+#ifndef TABLE_H
+#define TABLE_H
+
 #include <string>
 #include <vector>
 #include <ostream>
@@ -34,3 +37,5 @@ private:
     typedef std::vector<std::string> Row;
     std::vector<Row> table;
 };
+
+#endif // TABLE_H

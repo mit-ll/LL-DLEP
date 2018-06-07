@@ -417,7 +417,7 @@ destination_update_ip_list(DlepModemRouterFixture & mrf,
     dest_info.data_items.clear();
     r = mrf.router_service->get_destination_info(peers[0], mac, dest_info);
     BOOST_REQUIRE(r == DlepService::ReturnStatus::ok);
-    BOOST_REQUIRE(dest_info.data_items.size() == 0);
+    BOOST_REQUIRE(dest_info.data_items.empty());
 
     // bring the destination down
     mrf.router_client.destination_down_waiter.prepare_to_wait();
@@ -508,13 +508,12 @@ BOOST_AUTO_TEST_CASE(destination_update_ip)
 {
     DataItems add_data_items, drop_data_items;
     DlepMac mac = {{0x10, 0x22, 0x33, 0x44, 0x55, 0x66}};
+    bool first_time = true;
 
     for (const auto & cf : config_files)
     {
         DlepModemRouterFixture mrf(cf.modem_config_file,
                                    cf.router_config_file);
-        bool first_time = true;
-
         if (first_time)
         {
             destination_update_populate_ip_data_items(mrf,

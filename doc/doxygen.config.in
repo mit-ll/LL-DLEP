@@ -38,7 +38,7 @@ PROJECT_NAME           = "MIT Lincoln Laboratory DLEP"
 # could be handy for archiving the generated documentation or if some version
 # control system is used.
 
-PROJECT_NUMBER         = "Release 1.10"
+PROJECT_NUMBER         = "Release 2.1"
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description
 # for a project that appears at the top of each page and should give viewer a
@@ -796,6 +796,7 @@ EXCLUDE_SYMLINKS       = NO
 
 EXCLUDE_PATTERNS       = */build*/*
 EXCLUDE_PATTERNS       += */package/*
+EXCLUDE_PATTERNS       += */tests/*
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the

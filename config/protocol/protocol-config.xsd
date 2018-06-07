@@ -4,7 +4,7 @@
 <!--
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2015, 2016 Massachusetts Institute of Technology
+ * Copyright (C) 2015, 2016, 2018 Massachusetts Institute of Technology
 -->
 
 
@@ -42,6 +42,7 @@
       <xs:enumeration value="u8_ipv6_u8"/>  <!-- unsigned 8 bit integer, followed by IPv6 address,
                                                  followed by unsigned 8 bit integer -->
       <xs:enumeration value="u64_u64"/>     <!-- two unsigned 64 bit integers -->
+      <xs:enumeration value="sub_data_items"/>  <!-- sub data items -->
     </xs:restriction>
   </xs:simpleType>
 
@@ -57,24 +58,6 @@
       <xs:enumeration value="octets"/>  <!-- bytes -->
     </xs:restriction>
   </xs:simpleType>
-
-  <!-- all information about a particular data item -->
-
-  <xs:complexType name="DataItemType">
-    <xs:sequence>
-      <xs:element name="name"   type="xs:string"/>
-      <xs:element name="type"   type="DataItemValueType"/>
-      <xs:element name="id"     type="xs:nonNegativeInteger"/>
-
-      <!-- is this data item considered a metric? -->
-      <xs:element name="metric" type="xs:boolean"/>
-
-      <!-- optional units -->
-      <xs:element name="units"  type="DataItemUnits"
-                  minOccurs="0" maxOccurs="1"/>
-
-    </xs:sequence>
-  </xs:complexType>
 
   <!-- How many times can a data item occur in a signal? -->
 
@@ -94,6 +77,51 @@
       <xs:enumeration value="0+"/>
     </xs:restriction>
   </xs:simpleType>
+
+  <!-- type to use for DataItem IDs
+       Ideally this would be positiveInteger because in RFC 8175 IDs
+       cannot be 0.  However, in some previous drafts, ID 0 was
+       actually assigned to a data item.  To continue to support those
+       drafts, we have to allow 0 here, thus we use
+       nonNegativeInteger.  In the future, when compatibility with old
+       drafts isn't an issue, this could be changed to
+       positiveInteger.
+  -->
+
+  <xs:simpleType name="DataItemIdType">
+    <xs:restriction base="xs:nonNegativeInteger" />
+  </xs:simpleType>
+
+  <!-- all information about a particular data item -->
+
+  <xs:complexType name="DataItemType">
+    <xs:sequence>
+      <xs:element name="name"   type="xs:string"/>
+      <xs:element name="type"   type="DataItemValueType"/>
+      <xs:element name="id"     type="DataItemIdType"
+                  minOccurs="0" maxOccurs="1"/>
+
+      <!-- is this data item considered a metric? -->
+      <xs:element name="metric" type="xs:boolean"/>
+
+      <!-- optional units -->
+      <xs:element name="units"  type="DataItemUnits"
+                  minOccurs="0" maxOccurs="1"/>
+
+      <!-- list of allowed sub data items for this data item -->
+      <xs:element name="sub_data_item"
+                  minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="name"   type="xs:string"/>
+            <xs:element name="id"     type="DataItemIdType"
+                        minOccurs="0" maxOccurs="1"/>
+            <xs:element name="occurs" type="DataItemOccurenceType"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
 
   <!-- Which peer can send a signal? -->
 

@@ -94,9 +94,6 @@ private:
     /// is a vector.
     DataItems ip_data_items;
 
-    /// Is this destination using the credit windowing flow control extension?
-    bool using_credit_windowing;
-
     /// Is the peer expecting a Destination Announce Response or Destination
     /// Up Response for this destination?
     std::string needs_response_;
@@ -126,10 +123,10 @@ public:
                         bool tell_peers);
     void sendAllDestinations(boost::shared_ptr<Peer> peer);
     bool updateDestination(const LLDLEP::DlepMac & mac,
-                           const LLDLEP::DataItems & updated_values,
+                           const LLDLEP::DataItems & updates,
                            bool tell_peers);
     bool removeDestination(const LLDLEP::DlepMac & mac, bool tell_peers);
-    bool getDestinationData(const LLDLEP::DlepMac & mac, DestinationDataPtr * ndpp);
+    bool getDestinationData(const LLDLEP::DlepMac & mac, DestinationDataPtr * ddpp);
     void logDestinations(bool include_metrics);
     void getDestinations(std::vector<LLDLEP::DlepMac> & destinations);
 

@@ -25,6 +25,9 @@ typedef std::uint32_t DataItemIdType;
 typedef std::uint32_t ExtensionIdType;
 typedef std::uint32_t StatusCodeIdType;
 
+// value to use if an ID is unknown or undefined
+constexpr std::uint32_t IdUndefined = ~0U;
+
 }  // namespace LLDLEP
 
 #endif // IDTYPES_H

@@ -931,6 +931,4 @@ This protocol configuration file conforms to DLEP draft 29.
         file to contain one module, enclosed in <module> ... </module>.
     -->
 
-    <xi:include href="credit-windowing-03.xml"/>
-
 </dlep>

@@ -14,5 +14,5 @@
 \page rfc8175 DLEP RFC 8175 protocol configuration
 \include dlep-rfc-8175.xml
 
-\page credit_windowing_config Credit Windowing protocol configuration module
-\include credit-windowing-03.xml
+\page latency_range_config Latency Range extension protocol configuration
+\include latency-range-03.xml

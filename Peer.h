@@ -140,8 +140,8 @@ public:
     /// Peer constructor.  A peer does not exist until we have an
     /// open socket to it.  A peer starts out in state ps_connected.
     /// @param peer_socket established socket connection to the peer
-    /// @param d           main Dlep object
-    Peer(boost::asio::ip::tcp::socket * peer_socket, DlepPtr d);
+    /// @param dlep        main Dlep object
+    Peer(boost::asio::ip::tcp::socket * peer_socket, DlepPtr dlep);
     ~Peer();
 
     // Start and stop the Peer thread
@@ -181,7 +181,7 @@ public:
                                       const LLDLEP::DataItems & requests);
 
     void link_characteristics_response(const LLDLEP::DlepMac & mac,
-                                  const LLDLEP::DataItems & requests);
+                                  const LLDLEP::DataItems & updates);
 
     // Return info about a destination with the given MAC
     // address. NULL if no such destination exists.
@@ -238,7 +238,7 @@ private:
 
     bool is_not_interested(const DlepMac & destination) const;
     void not_interested(const DlepMac & destination);
-    void send_message_expecting_response(ResponsePendingPtr ack_pending);
+    void send_message_expecting_response(ResponsePendingPtr rp);
     bool handle_response(const ProtocolMessage & pm);
     bool should_send_response(const std::string & response_name) const;
     void send_simple_response(const std::string & response_name,

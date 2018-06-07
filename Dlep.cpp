@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2015, 2016 Massachusetts Institute of Technology
+ * Copyright (C) 2015, 2016, 2018 Massachusetts Institute of Technology
  */
 #include <stdio.h>
 #include <string.h>
@@ -94,7 +94,7 @@ Dlep::initialize()
 
         DataItems initial_local_data_items;
 
-        std::vector<ProtocolConfig::DataItemInfo> data_item_info =
+        std::vector<DataItemInfo> data_item_info =
             protocfg->get_data_item_info();
 
         for (auto minfo : data_item_info)
@@ -213,9 +213,9 @@ Dlep::initialize()
 
                 DlepMac mac;
 
-                for (size_t i = 0; i <  dest_advert_rfid.size(); ++i)
+                for (auto rfid_byte : dest_advert_rfid)
                 {
-                    mac.mac_addr.push_back(dest_advert_rfid[i]);
+                    mac.mac_addr.push_back(rfid_byte);
                 }
 
                 dest_advert.reset(new DestAdvert(this,
@@ -350,8 +350,7 @@ Dlep::start_async_accept()
     // The modem is the TCP server, so only it should be accepting connections.
     assert(modem);
 
-    boost::asio::ip::tcp::socket * peer_socket(new boost::asio::ip::tcp::socket(
-                                                   io_service_));
+    auto peer_socket(new boost::asio::ip::tcp::socket(io_service_));
 
     session_acceptor->async_accept(*peer_socket,
                                    boost::bind(&Dlep::handle_async_make_peer,
@@ -381,8 +380,7 @@ Dlep::start_async_connect(const boost::asio::ip::address & dest_ip,
     msg << "session address=" << dest_ip << " port=" << port;
     LOG(DLEP_LOG_DEBUG, msg);
 
-    boost::asio::ip::tcp::socket * peer_socket(new boost::asio::ip::tcp::socket(
-                                                   io_service_));
+    auto peer_socket(new boost::asio::ip::tcp::socket(io_service_));
 
     // boost::asio really wants us to "resolve" the host we're connecting
     // to, even though we already have its IP address.
@@ -515,7 +513,7 @@ Dlep::start_dlep()
 }
 
 void
-Dlep::handle_ex_peers_timeout(const boost::system::error_code & error)
+Dlep::handle_ex_peers_timeout(const boost::system::error_code &  /*error*/)
 {
     boost::recursive_mutex::scoped_lock lock(mutex);
 

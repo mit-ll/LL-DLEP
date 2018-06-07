@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2015, 2016 Massachusetts Institute of Technology
+ * Copyright (C) 2015, 2016, 2018 Massachusetts Institute of Technology
  */
 
 #include <iomanip>
@@ -76,15 +76,29 @@ void Table::print(std::ostream & os)
     // for each possible column.
     std::vector<std::size_t> column_widths(table[0].size(), 0);
 
+    // Should we skip printing this column?  Yes (true) if the column
+    // was completely empty except for the column name in the first
+    // row.
+    std::vector<bool> skip_column(table[0].size(), true);
+
     // Figure out how wide columns need to be to print nicely.
 
+    bool heading_row = true;  // true only for first row
     for (const auto & row : table)
     {
         for (unsigned int ci = 0; ci < row.size(); ci++)
         {
             column_widths[ci] = std::max(column_widths[ci],
                                          row[ci].length());
+            if ( ! heading_row && (row[ci].length() > 0))
+            {
+                // If column ci on this row is non-blank, don't
+                // skip printing this column
+                skip_column[ci] = false;
+            }
         }
+
+        heading_row = false;
     }
 
     // Increase each column width by 1 to leave a space between columns.
@@ -101,7 +115,10 @@ void Table::print(std::ostream & os)
     {
         for (unsigned int ci = 0; ci < row.size(); ci++)
         {
-            os << std::setw(column_widths[ci]) << row[ci];
+            if ( ! skip_column[ci])
+            {
+                os << std::setw(column_widths[ci]) << row[ci];
+            }
         }
         os << std::endl;
     }
