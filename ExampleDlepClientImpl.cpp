@@ -125,28 +125,28 @@ DlepClientImpl::ConfigParameterMapType DlepClientImpl::param_info =
     {
         "discovery-interval",       {
             ConfigParameterInfo::ParameterType::UnsignedInteger,
-            "5",
+            "60",
             "Time between sending PeerDiscovery signals"
         }
     },
     {
         "discovery-mcast-address",  {
             ConfigParameterInfo::ParameterType::IPAddress,
-            "225.0.0.44",
+            "224.0.0.117",
             "address to send PeerDiscovery signals to"
         }
     },
     {
         "discovery-port",           {
             ConfigParameterInfo::ParameterType::UnsignedInteger,
-            "30002",
+            "854",
             "UDP Port to send PeerDiscovery signals to"
         }
     },
     {
         "discovery-ttl",           {
             ConfigParameterInfo::ParameterType::UnsignedInteger,
-            "1",
+            "255",
             "IP TTL to use on PeerDiscovery signals"
         }
     },
@@ -160,14 +160,14 @@ DlepClientImpl::ConfigParameterMapType DlepClientImpl::param_info =
     {
         "heartbeat-interval",       {
             ConfigParameterInfo::ParameterType::UnsignedInteger,
-            "5",
+            "60",
             "Time between sending Heartbeat signals"
         }
     },
     {
         "heartbeat-threshold",      {
             ConfigParameterInfo::ParameterType::UnsignedInteger,
-            "2",
+            "4",
             "Number of missed Heartbeats to tolerate"
         }
     },
@@ -207,9 +207,16 @@ DlepClientImpl::ConfigParameterMapType DlepClientImpl::param_info =
         }
     },
     {
+        "peer-flags",                {
+            ConfigParameterInfo::ParameterType::UnsignedInteger,
+            "0",
+            "Flags field value of Peer Type data item"
+        }
+    },
+    {
         "protocol-config-file",              {
             ConfigParameterInfo::ParameterType::String,
-            INSTALL_CONFIG "/dlep-draft-24.xml",
+            INSTALL_CONFIG "/dlep-rfc-8175.xml",
             "XML file containing DLEP protocol configuration"
         }
     },
@@ -244,7 +251,7 @@ DlepClientImpl::ConfigParameterMapType DlepClientImpl::param_info =
     {
         "session-port",             {
             ConfigParameterInfo::ParameterType::UnsignedInteger,
-            "30003",
+            "854",
             "TCP port number that the modem listens on for session connections"
         }
     },
@@ -487,7 +494,9 @@ DlepClientImpl::parse_config_file(const char * config_filename)
                     param_node = param_node->next)
             {
                 // Ignore "text" nodes.  They don't seem to be needed.
-                if ((!xmlStrcmp(param_node->name, (const xmlChar *)"text")))
+                // Also ignore "comment" nodes.
+                if ((!xmlStrcmp(param_node->name, (const xmlChar *)"text")) ||
+                    (!xmlStrcmp(param_node->name, (const xmlChar *)"comment")))
                 {
                     continue;
                 }

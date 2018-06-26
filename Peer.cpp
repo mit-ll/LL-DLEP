@@ -160,6 +160,7 @@ Peer::should_send_response(const std::string & response_name) const
 void
 Peer::send_simple_response(const std::string & response_name,
                            const std::string & status_name,
+                           const std::string & status_message,
                            const DlepMac * mac)
 {
     if (! should_send_response(response_name))
@@ -172,7 +173,7 @@ Peer::send_simple_response(const std::string & response_name,
     pm.add_header(response_name);
     if (status_name != "")
     {
-        pm.add_status(status_name, "");
+        pm.add_status(status_name, status_message);
     }
     if (mac != nullptr)
     {
@@ -1114,11 +1115,14 @@ void
 Peer::handle_peer_initialization(ProtocolMessage & pm)
 {
     ostringstream msg;
+    DataItems data_items = pm.get_data_items();
+    LLDLEP::DataItems empty_data_items;
+    std::string status_message =
+        validate_ip_data_items(data_items, empty_data_items);
 
-    if (! dlep->is_modem())
+    if (status_message != "")
     {
-        msg << "router should not be receiving " << pm.get_signal_name();
-        LOG(DLEP_LOG_ERROR, msg);
+        terminate(ProtocolStrings::Inconsistent_Data, status_message);
         return;
     }
 
@@ -1180,9 +1184,6 @@ Peer::handle_peer_initialization(ProtocolMessage & pm)
         /* no-op */
     }
 
-    // XXX_ser what to do about version data item?
-
-    LLDLEP::DataItems empty_data_items;
     peer_pdp = dlep->info_base_manager->addPeer(peer_id, empty_data_items);
 
     send_peer_initialization_response();
@@ -1309,12 +1310,23 @@ void
 Peer::handle_peer_update(ProtocolMessage & pm)
 {
     DataItems data_items = pm.get_data_items();
-    std::string update_status =
-        peer_pdp->update_data_items(data_items, false);
+    std::string status_message =
+        validate_ip_data_items(data_items, peer_pdp->get_ip_data_items());
 
+    if (status_message != "")
+    {
+        terminate(ProtocolStrings::Inconsistent_Data, status_message);
+        return;
+    }
+
+    std::string update_status = peer_pdp->update_data_items(data_items, false);
+
+    // We always send the update to the client, even if there was an error.
+    // Is that OK?
     dlep->dlep_client.peer_update(peer_id, data_items);
 
-    send_simple_response(ProtocolStrings::Session_Update_Response, update_status);
+    send_simple_response(ProtocolStrings::Session_Update_Response,
+                         update_status, "");
 }
 
 void
@@ -1344,8 +1356,8 @@ Peer::handle_peer_termination_response(ProtocolMessage & pm)
 
 /// This method handles Destination Up, Destination Announce Response,
 /// and some cases of Destination Up Response:
-/// - In the DLEP protocol, Destination Announce Response is equivalent
-///   to Destination Up, thus handled here.
+/// - Destination Announce Response is equivalent to Destination Up, thus
+///   handled here.
 /// - In older DLEP drafts that didn't have Destination Announce Response,
 ///   Destination Up Response is used instead from modem to router, so
 ///   that case is also handled here.
@@ -1370,6 +1382,17 @@ Peer::handle_destination_up(ProtocolMessage & pm)
     std::string statusname;
     if (! already_have_this_dest)
     {
+        DataItems data_items = pm.get_data_items();
+        DataItems empty_data_items;
+        std::string status_message =
+            validate_ip_data_items(data_items, empty_data_items);
+
+        if (status_message != "")
+        {
+            terminate(ProtocolStrings::Inconsistent_Data, status_message);
+            return;
+        }
+
         // If the peer had previously expressed Not Interested in
         // this destination, reinstate interest by removing it from
         // the not_interested set.
@@ -1381,7 +1404,6 @@ Peer::handle_destination_up(ProtocolMessage & pm)
             LOG(DLEP_LOG_INFO, msg);
         }
 
-        DataItems data_items = pm.get_data_items();
         statusname = dlep->dlep_client.destination_up(peer_id, destination_mac,
                                                       data_items);
 
@@ -1419,7 +1441,7 @@ Peer::handle_destination_up(ProtocolMessage & pm)
 
     if (response_name != "")
     {
-        send_simple_response(response_name, statusname, &destination_mac);
+        send_simple_response(response_name, statusname, "", &destination_mac);
     }
 }
 
@@ -1583,7 +1605,7 @@ Peer::handle_destination_announce(ProtocolMessage & pm)
     {
         // Error responses can be sent right away.
         
-        send_simple_response(response_name, statusname, &destination_mac);
+        send_simple_response(response_name, statusname, "", &destination_mac);
     }
 }
 
@@ -1606,6 +1628,14 @@ Peer::handle_destination_update(ProtocolMessage & pm)
     if (good_destination)
     {
         DataItems update_data_items = pm.get_data_items_no_mac();
+        std::string status_message =
+            validate_ip_data_items(update_data_items, ddp->get_ip_data_items());
+        if (status_message != "")
+        {
+            terminate(ProtocolStrings::Inconsistent_Data, status_message);
+            return;
+        }
+
         ddp->update(update_data_items, false);
         dlep->dlep_client.destination_update(peer_id, destination_mac,
                                              update_data_items);
@@ -1688,7 +1718,7 @@ Peer::handle_destination_down(ProtocolMessage & pm)
     dlep->dlep_client.destination_down(peer_id, destination_mac);
 
     send_simple_response(ProtocolStrings::Destination_Down_Response,
-                    ProtocolStrings::Success, &destination_mac);
+                         ProtocolStrings::Success, "", &destination_mac);
 }
 
 void
@@ -2025,4 +2055,58 @@ bool
 Peer::remove_destination(const LLDLEP::DlepMac & mac)
 {
     return peer_pdp->removeDestination(mac, true);
+}
+
+std::string
+Peer::find_ip_data_item(const DataItem & ip_data_item) const
+{
+    return peer_pdp->find_ip_data_item(ip_data_item);
+}
+
+
+std::string
+Peer::validate_ip_data_items(const DataItems & new_data_items,
+                             const DataItems & existing_ip_data_items)
+{
+    for (const DataItem & ndi : new_data_items)
+    {
+        if (! dlep->protocfg->is_ipaddr(ndi.id))
+            continue;
+
+        if (ndi.ip_flags() & DataItem::IPFlags::add)
+        {
+            // See if the local node already has this IP address
+            std::string ip_owner = dlep->local_pdp->find_ip_data_item(ndi);
+            if (ip_owner == "")
+            {
+                // See if any peer node already has this IP address
+                for (auto & itp : dlep->peers)
+                {
+                    PeerPtr peer = itp.second;
+
+                    ip_owner = peer->find_ip_data_item(ndi);
+                    if (ip_owner != "")
+                    {
+                        break;
+                    }
+                } // end for each peer
+            } // end IP address not found on local node
+
+            if (ip_owner != "")
+            {
+                return "cannot add "+ ndi.to_string() + ", "
+                       + ip_owner + " already has it";
+            }
+        }
+        else // the IP address/subnet in ndi is being removed
+        {
+            if (ndi.find_ip_data_item(existing_ip_data_items) ==
+                existing_ip_data_items.end() )
+            {
+                return "cannot remove " + ndi.to_string() + ", it is not there";
+            }
+        }
+    } // end for each new_data_item
+
+    return "";
 }

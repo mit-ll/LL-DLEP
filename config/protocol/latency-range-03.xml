@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ * Dynamic Link Exchange Protocol (DLEP)
+ *
+ * Copyright (C) 2018 Massachusetts Institute of Technology
+-->
+
+<!--
+  This file defines an extension module for the Latency Range extension
+  draft 3:
+  https://datatracker.ietf.org/doc/draft-ietf-manet-dlep-latency-extension/
+-->
+
+<module>
+
+  <!--
+      Name and draft are informational only.
+  -->
+    <name>Latency Range</name>
+    <draft>3</draft>
+
+    <!--
+        The next id will be placed in the Extensions Supported
+        data item to indicate support for this extension.
+    -->
+    <extension_id>65521</extension_id>
+
+    <!-- New data items defined by this extension. -->
+
+    <data_item>
+        <name>Latency_Range</name>
+        <type>u64_u64</type>
+        <id>65411</id>
+        <metric>true</metric>
+        <units>microseconds</units>
+    </data_item>
+
+    <!-- Signals/messages to which this extension adds new data items. -->
+
+    <signal>
+        <name>Session_Initialization_Response</name>
+        <data_item>
+            <name>Latency_Range</name>
+            <occurs>0-1</occurs>
+        </data_item>
+    </signal>
+
+    <signal>
+        <name>Session_Update</name>
+        <data_item>
+            <name>Latency_Range</name>
+            <occurs>0-1</occurs>
+        </data_item>
+    </signal>
+
+    <signal>
+        <name>Destination_Up</name>
+        <data_item>
+            <name>Latency_Range</name>
+            <occurs>0-1</occurs>
+        </data_item>
+    </signal>
+
+    <signal>
+        <name>Destination_Update</name>
+        <data_item>
+            <name>Latency_Range</name>
+            <occurs>0-1</occurs>
+        </data_item>
+    </signal>
+
+    <signal>
+        <name>Destination_Announce_Response</name>
+        <data_item>
+            <name>Latency_Range</name>
+            <occurs>0-1</occurs>
+        </data_item>
+    </signal>
+
+    <signal>
+        <name>Link_Characteristics_Request</name>
+        <data_item>
+            <name>Latency_Range</name>
+            <occurs>0-1</occurs>
+        </data_item>
+    </signal>
+
+    <signal>
+        <name>Link_Characteristics_Response</name>
+        <data_item>
+            <name>Latency_Range</name>
+            <occurs>0-1</occurs>
+        </data_item>
+    </signal>
+
+</module>

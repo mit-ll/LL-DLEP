@@ -19,7 +19,7 @@
   you plan to use.
 
   To run Dlep with this do-nothing extension turned on, uncomment the
-  line that includes this file in dlep-draft-24.xml.
+  line that includes this file in dlep-draft-XX.xml.
 -->
 
 <module>

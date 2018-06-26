@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<config>
+	<params>
+		<discovery-mcast-address>this_is_not_a_multicast_addr</discovery-mcast-address>
+	</params>
+</config>

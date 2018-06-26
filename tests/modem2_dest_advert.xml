@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<config>
+	<params>
+		<ack-timeout>3</ack-timeout>
+		<ack-probability>100</ack-probability>
+                <destination-advert-enable>1</destination-advert-enable>
+                <destination-advert-send-interval>1</destination-advert-send-interval>
+                <destination-advert-mcast-address>225.6.7.8</destination-advert-mcast-address>
+                <destination-advert-port>33445</destination-advert-port>
+                <destination-advert-hold-interval>0</destination-advert-hold-interval>
+                <destination-advert-expire-count>0</destination-advert-expire-count>
+                <destination-advert-rf-id>2</destination-advert-rf-id>
+                <destination-advert-iface>lo</destination-advert-iface>
+		<discovery-port>4855</discovery-port>
+		<discovery-mcast-address>224.0.0.117</discovery-mcast-address>
+		<discovery-interval>5</discovery-interval>
+		<discovery-enable>1</discovery-enable>
+		<heartbeat-interval>60</heartbeat-interval>
+		<heartbeat-threshold>2</heartbeat-threshold>
+		<local-type>modem</local-type>
+                <log-file>test-modem2.log</log-file>
+                <log-level>1</log-level>
+                <protocol-config-file>../config/protocol/dlep-rfc-8175.xml</protocol-config-file>
+                <protocol-config-schema>../config/protocol/protocol-config.xsd</protocol-config-schema>
+		<peer-type>test-modem</peer-type>
+		<send-tries>3</send-tries>
+		<session-port>4855</session-port>
+	</params>
+</config>

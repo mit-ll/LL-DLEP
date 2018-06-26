@@ -172,21 +172,77 @@ ProtocolMessage::add_heartbeat_interval(DlepClient & dlep_client)
 void
 ProtocolMessage::add_peer_type(DlepClient & dlep_client)
 {
+    std::string peer_type;
+
     try
     {
-        std::string peer_type;
         dlep_client.get_config_parameter("peer-type", &peer_type);
-        DataItemValue div = peer_type;
-        DataItem di_peer_type {ProtocolStrings::Peer_Type,
-                               div, protocfg
-                              };
-        add_data_item(di_peer_type);
     }
     catch (DlepClient::BadParameterName)
     {
-        // peer_type is optional, so we don't need to do anything
-        // if the peer-type parameter wasn't found.
+        // There was no peer-type config parameter.  If Peer Type is
+        // an optional data item for this signal, don't add it to the
+        // message at all.  Otherwise, it isn't optional, so add it
+        // with an empty string, which is what peer_type is at this
+        // point.
+
+        // XXX29 possibly put this logic in a protocfg method
+        ProtocolConfig::SignalInfo siginfo =
+            protocfg->get_signal_info(get_signal_name());
+        DataItemIdType di_id =
+            protocfg->get_data_item_id(ProtocolStrings::Peer_Type);
+
+        for (const auto & difs : siginfo.data_items)
+        {
+            if (difs.id == di_id)
+            {
+                if (difs.occurs[0] == '0')
+                {
+                    // Peer Type is optional for this signal
+                    return;
+                }
+                else
+                {
+                    // Peer Type is required for this signal
+                    break;
+                }
+            }
+        }
+
+        // If we get here, we'll add a Peer Type data item with an
+        // empty string.
+
+    } // end catch BadParameterName peer-type
+
+    // Depending on the DLEP draft, the Peer Type data item is
+    // either a string, or a uint8 followed by a string.  Check to
+    // see which one to use.
+    DataItemValueType div_type =
+        protocfg->get_data_item_value_type(ProtocolStrings::Peer_Type);
+    DataItemValue div;
+
+    if (div_type == DataItemValueType::div_string)
+    {
+        div = peer_type;
     }
+    else
+    {
+        unsigned int peer_flags = 0;
+        try
+        {
+            dlep_client.get_config_parameter("peer-flags", &peer_flags);
+        }
+        catch (DlepClient::BadParameterName)
+        {
+            // If there was no peer-flags config parameter, use default 0
+        }
+        div = Div_u8_string_t{std::uint8_t(peer_flags), peer_type};
+    }
+
+    DataItem di_peer_type {ProtocolStrings::Peer_Type,
+                           div, protocfg
+                          };
+    add_data_item(di_peer_type);
 }
 
 void
@@ -235,7 +291,8 @@ ProtocolMessage::add_status(std::string status_name,
             {
                 status_name = ProtocolStrings::Invalid_Data;
             }
-            else if (status_name == ProtocolStrings::Invalid_Destination)
+            else if ( (status_name == ProtocolStrings::Invalid_Destination) ||
+                      (status_name == ProtocolStrings::Inconsistent_Data) )
             {
                 status_name = ProtocolStrings::Invalid_Message;
             }
@@ -243,7 +300,7 @@ ProtocolMessage::add_status(std::string status_name,
             {
                 // If the protocol configuration has neither
                 // Invalid_Data nor Invalid_Message, an infinite loop
-                // will result.  For the configurations we currently
+                // will result.  For the protocol configurations we currently
                 // have, this won't happen.
                 status_name = ProtocolStrings::Invalid_Message;
             }
@@ -264,7 +321,6 @@ ProtocolMessage::add_status(std::string status_name,
     // In earlier drafts of DLEP, the status data item is just a
     // uint8.  In later drafts, it's a uint8 followed by an arbitrary
     // string.  We need to handle both.
-
     DataItemValueType div_type =
         protocfg->get_data_item_value_type(ProtocolStrings::Status);
 
@@ -827,8 +883,27 @@ ProtocolMessage::get_mac() const
 std::string
 ProtocolMessage::get_peer_type() const
 {
-    return get_data_item_value<std::string>(
-               ProtocolStrings::Peer_Type);
+    // In earlier drafts of DLEP, the peer type data item is just a
+    // string.  In later drafts, it's a uint8 followed by a string.
+    // We need to handle both.
+
+    std::string peer_type;
+    DataItemValueType div_type =
+        protocfg->get_data_item_value_type(ProtocolStrings::Peer_Type);
+
+    if (div_type == DataItemValueType::div_string)
+    {
+        peer_type =
+            get_data_item_value<std::string>(ProtocolStrings::Peer_Type);
+    }
+    else
+    {
+        Div_u8_string_t peer_val =
+            get_data_item_value<Div_u8_string_t>(ProtocolStrings::Peer_Type);
+        peer_type = peer_val.field2;
+    }
+
+    return peer_type;
 }
 
 std::string

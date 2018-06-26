@@ -219,6 +219,19 @@ struct Div_u8_ipv6_u8_t
     }
 };
 
+/// Latency Range extension
+struct Div_u64_u64_t
+{
+    std::uint64_t field1;
+    std::uint64_t field2;
+
+    bool operator==(const Div_u64_u64_t & other) const
+    {
+        return ((field1 == other.field1) &&
+                (field2 == other.field2));
+    }
+};
+
 /// Holds a data item value of any type.
 ///
 /// If a new data item must be supported that has a value type that is
@@ -259,7 +272,8 @@ typedef boost::variant <
       Div_u8_ipv4_u16_t,
       Div_u8_ipv6_u16_t,
       Div_u8_ipv4_u8_t,
-      Div_u8_ipv6_u8_t
+      Div_u8_ipv6_u8_t,
+      Div_u64_u64_t
       > DataItemValue;
 
 /// DataItemValueType has one enum value for each type of value that
@@ -293,8 +307,9 @@ enum class DataItemValueType
                      ///< followed by unsigned 16 bit integer
     div_u8_ipv4_u8,  ///< unsigned 8 bit integer, followed by IPv4 address,
                      ///< followed by unsigned 8 bit integer
-    div_u8_ipv6_u8   ///< unsigned 8 bit integer, followed by IPv6 address,
+    div_u8_ipv6_u8,  ///< unsigned 8 bit integer, followed by IPv6 address,
                      ///< followed by unsigned 8 bit integer
+    div_u64_u64      ///< two unsigned 64 bit integers
 };
 
 /// @return string representation of the given data item value
@@ -305,6 +320,10 @@ DataItemValueType from_string(const std::string &);
 
 /// internal representation of a data item id
 typedef std::uint32_t DataItemIdType;
+
+/// shorthand for a vector of DataItem
+class DataItem;
+typedef std::vector<DataItem> DataItems;
 
 /// Holds one DLEP Data Item (TLV that goes in a signal/message)
 class DataItem
@@ -441,6 +460,15 @@ public:
     ///         item does not hold an IP address, returns IPFlags::none.
     IPFlags ip_flags() const;
 
+    /// Search for the IP address in this data item.
+    /// @param[in] search_data_items
+    ///            vector of data items to search
+    /// @return an iterator into search_data_items indicating where this
+    ///         IP address data item was found.  If not found, returns
+    ///         std::end(search_data_items)
+    DataItems::const_iterator
+    find_ip_data_item(const DataItems & search_data_items) const;
+
 private:
 
     boost::asio::ip::address_v4
@@ -460,8 +488,7 @@ private:
     const ProtocolConfig * protocfg;
 };
 
-/// shorthand for a vector of DataItem
-typedef std::vector<DataItem> DataItems;
+
 
 } // namespace LLDLEP
 

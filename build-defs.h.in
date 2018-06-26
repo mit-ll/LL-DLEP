@@ -1,0 +1,2 @@
+/* auto-generated file, do not edit */
+#define INSTALL_CONFIG "@ETCDIR@/dlep"

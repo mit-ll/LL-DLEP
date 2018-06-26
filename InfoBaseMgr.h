@@ -61,6 +61,10 @@ public:
     /// @param[out] data_items_out vector to store the data items in
     void get_all_data_items(LLDLEP::DataItems & data_items_out) const;
 
+    /// Get a list of all of this destination's data items containing
+    /// IP addresses.
+    LLDLEP::DataItems get_ip_data_items() const;
+
     /// Log information about this destination.
     /// @param[in] prefix    string to put at the beginning of the log message
     /// @param[in] log_level log level to use for LOG
@@ -68,6 +72,14 @@ public:
 
     void needs_response(const std::string & response_name);
     std::string needs_response() const;
+
+    /// Search for an IP address on this destination.
+    /// @param[in] ip_data_item
+    ///            data item containing an IP address to search for in this
+    ///            destination's IP addresses
+    /// @return "" if not found, else a non-empty string identifying this
+    ///         destination.
+    std::string find_ip_data_item(const DataItem & ip_data_item) const;
 
 private:
     /// MAC address of this destination
@@ -126,9 +138,22 @@ public:
     std::string update_data_items(const LLDLEP::DataItems & updates,
                                   bool tell_peers);
     LLDLEP::DataItems get_data_items();
+
+    /// Get a list of all of this peer's data items containing
+    /// IP addresses.
+    LLDLEP::DataItems get_ip_data_items() const;
+
     void log_data_items();
     void needs_response(const LLDLEP::DlepMac & mac, const std::string & response_name);
     std::string needs_response(const LLDLEP::DlepMac & mac);
+
+    /// Search for an IP address on this peer.
+    /// @param[in] ip_data_item
+    ///            data item containing an IP address to search for in this
+    ///            peer's IP addresses
+    /// @return "" if not found, else a non-empty string identifying where the
+    ///         IP address was found: this peer, or one of its destinations.
+    std::string find_ip_data_item(const DataItem & ip_data_item) const;
 
 private:
     /// peer_id is a combination of the TCP remote IP and port of the session

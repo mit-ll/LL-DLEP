@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<config>
+	<params>
+                <config-file>test_modem_config.xml</config-file>
+                <log-file>test-modem-v6.log</log-file>
+                <discovery-mcast-address>ff02::1:7</discovery-mcast-address>
+	</params>
+</config>

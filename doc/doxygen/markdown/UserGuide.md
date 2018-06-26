@@ -14,8 +14,10 @@ We assume the reader is reasonably familiar with the [DLEP
 draft](https://datatracker.ietf.org/doc/draft-ietf-manet-dlep/).  This
 implementation supports multiple DLEP drafts by using a protocol
 configuration file that captures the main protocol characteristics
-that vary across drafts.  A configuration file is provided for
-[draft 24](https://tools.ietf.org/html/draft-ietf-manet-dlep-24).
+that vary across drafts.  Configuration files are provided for
+[draft 24](https://tools.ietf.org/html/draft-ietf-manet-dlep-24),
+[draft 29](https://tools.ietf.org/html/draft-ietf-manet-dlep-29), and
+[RFC 8175](https://tools.ietf.org/html/rfc8175).
 
 When referring to specifics of our %Dlep implementation, this document
 uses the word %Dlep.  When referring to the DLEP protocol in general,
@@ -66,37 +68,38 @@ parameter will cause %Dlep to exit with a usage message.  For example:
     Usage: ./Dlep [parameters]
     Any of these parameters can appear either on the command line or in the config file:
     Parameter name                   Default                                 Description                                                          
-    ack-probability                  100                                     Probability (%) of sending required ACK signals (for testing)        
-    ack-timeout                      3                                       Seconds to wait for ACK signals                                      
-    config-file                                                              XML config file containing parameter settings                        
-    destination-advert-enable        0                                       Should the modem run the Destination Advertisement protocol?         
-    destination-advert-expire-count  0                                       Time to keep Destination Advertisements                              
-    destination-advert-hold-interval 0                                       Time to wait for Destination Advertisement after destination up      
-    destination-advert-iface         emane0                                  Interface that the destination discovery protocol uses, rf interface 
-    destination-advert-mcast-address 225.6.7.8                               address to send Destination Advertisements to                        
-    destination-advert-port          33445                                   UDP Port to send Destination Advertisements to                       
-    destination-advert-rf-id                                                 RF ID of the local modem                                             
-    destination-advert-send-interval 5                                       Time between sending Destination Advertisements                      
-    discovery-enable                 1                                       Should the router run the PeerDiscovery protocol?                    
-    discovery-iface                  eth0                                    Interface that the router uses for the PeerDiscovery protocol        
-    discovery-interval               5                                       Time between sending PeerDiscovery signals                           
-    discovery-mcast-address          225.0.0.44                              address to send PeerDiscovery signals to                             
-    discovery-port                   30002                                   UDP Port to send PeerDiscovery signals to                            
-    discovery-ttl                    1                                       IP TTL to use on PeerDiscovery signals                               
-    heartbeat-interval               5                                       Time between sending Heartbeat signals                               
-    heartbeat-threshold              2                                       Number of missed Heartbeats to tolerate                              
-    linkchar-autoreply               1                                       Automatically send reply to linkchar requests?                       
-    local-type                       modem                                   Which DLEP role to play, modem or router?                            
-    log-file                         dlep.log                                File to write log messages to                                        
-    log-level                        1                                       1=most logging, 5=least                                              
-    peer-type                                                                Peer Type data item value                                            
-    protocol-config-file             /usr/local/etc/dlep/dlep-draft-24.xml   XML file containing DLEP protocol configuration                      
-    protocol-config-schema           /usr/local/etc/dlep/protocol-config.xsd XML schema file for protocol-config-file                             
-    send-tries                       3                                       Number of times to send a signal before giving up                    
-    session-address                                                          IP address that the modem listens on for session connections         
-    session-iface                                                            Interface that the router uses for session connections               
-    session-port                     30003                                   TCP port number that the modem listens on for session connections    
-    session-ttl                      255                                     IP TTL to use on session connections                                 
+    ack-probability                  100                           Probability (%) of sending required ACK signals (for testing)        
+    ack-timeout                      3                             Seconds to wait for ACK signals                                      
+    config-file                                                    XML config file containing parameter settings                        
+    destination-advert-enable        0                             Should the modem run the Destination Advertisement protocol?         
+    destination-advert-expire-count  0                             Time to keep Destination Advertisements                              
+    destination-advert-hold-interval 0                             Time to wait for Destination Advertisement after destination up      
+    destination-advert-iface         emane0                        Interface that the destination discovery protocol uses, rf interface 
+    destination-advert-mcast-address 225.6.7.8                     address to send Destination Advertisements to                        
+    destination-advert-port          33445                         UDP Port to send Destination Advertisements to                       
+    destination-advert-rf-id                                       RF ID of the local modem                                             
+    destination-advert-send-interval 5                             Time between sending Destination Advertisements                      
+    discovery-enable                 1                             Should the router run the PeerDiscovery protocol?                    
+    discovery-iface                  eth0                          Interface that the router uses for the PeerDiscovery protocol        
+    discovery-interval               60                            Time between sending PeerDiscovery signals                           
+    discovery-mcast-address          224.0.0.117                   address to send PeerDiscovery signals to                             
+    discovery-port                   854                           UDP Port to send PeerDiscovery signals to                            
+    discovery-ttl                    255                           IP TTL to use on PeerDiscovery signals                               
+    heartbeat-interval               60                            Time between sending Heartbeat signals                               
+    heartbeat-threshold              4                             Number of missed Heartbeats to tolerate                              
+    linkchar-autoreply               1                             Automatically send reply to linkchar requests?                       
+    local-type                       modem                         Which DLEP role to play, modem or router?                            
+    log-file                         dlep.log                      File to write log messages to                                        
+    log-level                        3                             1=most logging, 5=least                                              
+    peer-flags                       0                             Flags field value of Peer Type data item                             
+    peer-type                                                      Peer Type data item value                                            
+    protocol-config-file             /etc/dlep/dlep-rfc-8175.xml   XML file containing DLEP protocol configuration                      
+    protocol-config-schema           /etc/dlep/protocol-config.xsd XML schema file for protocol-config-file                             
+    send-tries                       3                             Number of times to send a signal before giving up                    
+    session-address                                                IP address that the modem listens on for session connections         
+    session-iface                                                  Interface that the router uses for session connections               
+    session-port                     854                           TCP port number that the modem listens on for session connections    
+    session-ttl                      255                           IP TTL to use on session connections                                 
 
 Typically you use the config-file parameter on the command line to
 specify a file containing the rest of the parameters, e.g.:
@@ -172,30 +175,28 @@ the protocol configuration file:
 
     modem> show dataitems
     Configured data items:
-    ID Name                           Type        Units        Module           Flags  
-    1  Status                         u8_string                core                    
-    2  IPv4_Connection_Point          u8_ipv4_u16              core                    
-    3  IPv6_Connection_Point          u8_ipv6_u16              core                    
-    4  Peer_Type                      string                   core                    
-    5  Heartbeat_Interval             u32         milliseconds core                    
-    6  Extensions_Supported           v_extid                  core                    
-    7  MAC_Address                    dlepmac                  core                    
-    8  IPv4_Address                   u8_ipv4                  core                    
-    9  IPv6_Address                   u8_ipv6                  core                    
-    10 IPv4_Attached_Subnet           u8_ipv4_u8               core                    
-    11 IPv6_Attached_Subnet           u8_ipv6_u8               core                    
-    12 Maximum_Data_Rate_Receive      u64         bits/second  core             metric 
-    13 Maximum_Data_Rate_Transmit     u64         bits/second  core             metric 
-    14 Current_Data_Rate_Receive      u64         bits/second  core             metric 
-    15 Current_Data_Rate_Transmit     u64         bits/second  core             metric 
-    16 Latency                        u64         microseconds core             metric 
-    17 Resources                      u8          percentage   core             metric 
-    18 Relative_Link_Quality_Receive  u8          percentage   core             metric 
-    19 Relative_Link_Quality_Transmit u8          percentage   core             metric 
-    20 Maximum_Transmission_Unit      u16         octets       core             metric 
-    50 Credit_Grant                   u64         octets       Credit Windowing        
-    51 Credit_Window_Status           a2_u64      octets       Credit Windowing        
-    52 Credit_Request                 blank                    Credit Windowing        
+    ID Name                              Type        Units        Module           Flags  
+    1     Status                         u8_string                core                 
+    2     IPv4_Connection_Point          u8_ipv4_u16              core                 
+    3     IPv6_Connection_Point          u8_ipv6_u16              core                 
+    4     Peer_Type                      u8_string                core                 
+    5     Heartbeat_Interval             u32         milliseconds core                 
+    6     Extensions_Supported           v_extid                  core                 
+    7     MAC_Address                    dlepmac                  core                 
+    8     IPv4_Address                   u8_ipv4                  core                 
+    9     IPv6_Address                   u8_ipv6                  core                 
+    10    IPv4_Attached_Subnet           u8_ipv4_u8               core                 
+    11    IPv6_Attached_Subnet           u8_ipv6_u8               core                 
+    12    Maximum_Data_Rate_Receive      u64         bits/second  core          metric 
+    13    Maximum_Data_Rate_Transmit     u64         bits/second  core          metric 
+    14    Current_Data_Rate_Receive      u64         bits/second  core          metric 
+    15    Current_Data_Rate_Transmit     u64         bits/second  core          metric 
+    16    Latency                        u64         microseconds core          metric 
+    17    Resources                      u8          percentage   core          metric 
+    18    Relative_Link_Quality_Receive  u8          percentage   core          metric 
+    19    Relative_Link_Quality_Transmit u8          percentage   core          metric 
+    20    Maximum_Transmission_Unit      u16         octets       core          metric 
+    65411 Latency_Range                  u64_u64     microseconds Latency Range metric 
 
 To specify one of these data items on a destination command,
 give the data item name from the list above (copy/paste recommended),
@@ -383,12 +384,12 @@ The parameters are:
 
   Interface that the router uses for the %PeerDiscovery protocol.
 
-- discovery-interval <integer seconds\> default: 5
+- discovery-interval <integer seconds\> default: 60
 
   Length of time the router waits between sending successive
   %PeerDiscovery signals (multicast packets).
 
-- discovery-mcast-address <IP address\> default: 225.0.0.44
+- discovery-mcast-address <IP address\> default: 224.0.0.117
 
   Multicast address to which routers send %PeerDiscovery multicast packets.
   The modem joins this group.  If this is an IPv4 multicast address, the
@@ -400,12 +401,12 @@ The parameters are:
   met, the discovery process and subsequent DLEP TCP session will use
   IPv6.
 
-- discovery-port <port number\> default: 30002
+- discovery-port <port number\> default: 854
 
   UDP port to which routers send %PeerDiscovery multicast packets.
   The modem listens on this port.
 
-- discovery-ttl <hops 0-255\> default: 1
+- discovery-ttl <hops 0-255\> default: 255
 
   IP TTL value to put on discovery packets, both multicast and unicast.
   If the value is 0 or not provided, let the system use its default TTL
@@ -420,12 +421,12 @@ The parameters are:
   the modem.  If the session address is an IPv6 address, the
   session-iface configuration parameter must also be set.
 
-- heartbeat-interval <integer seconds\> default: 5
+- heartbeat-interval <integer seconds\> default: 60
 
   Time to wait between sending successive Heartbeat signals to the peer.
   If 0, do not send heartbeats.
 
-- heartbeat-threshold <integer\> default: 2
+- heartbeat-threshold <integer\> default: 4
 
   Number of Heartbeat intervals to wait, during which no signals (Heartbeat
   or otherwise) were received from the peer, before declaring the peer to be
@@ -459,7 +460,12 @@ The parameters are:
   data item.  If no value is supplied, the Peer Type data item is omitted
   from all signals.
 
-- protocol-config-file <filename\> default: /usr/local/etc/dlep/dlep-draft-24.xml
+- peer-flags <integer 0-255\> default: 0
+
+  Value to put in flags field of the %Peer Type data item of the
+  signals that allow this data item.
+
+- protocol-config-file <filename\> default: /usr/local/etc/dlep/dlep-rfc-8175.xml
 
   The protocol configuration file that specifies protocol details such as
   message field widths and code points.  See @ref protoconfig for details.
@@ -487,7 +493,7 @@ The parameters are:
   disabled and session-address is a link-local IPv6 address so that the
   address's scope id (interface index) can be set.
 
-- session-port <port number\> default: 30003
+- session-port <port number\> default: 854
 
   TCP port number that the modem listens on for session connections.
   The modem requires this.  The router only requires it if peer
@@ -521,7 +527,7 @@ this configuration file provides a clean way to incorporate new
 signals/messages, data items, and status codes associated with
 extensions.
 
-You are encouraged to peruse the @ref draft24
+You are encouraged to peruse the @ref rfc8175
 before proceeding.  Those familiar with XML may also wish to look at
 the @ref proto_config_schema.  If you need to write your own protocol
 configuration file, start with a copy of one of the existing ones.  If
@@ -698,7 +704,7 @@ are:
 
 Extension modules should each have their own file so that they can be
 included (with XInclude) in the core module file to compose a complete
-configuration.  @ref draft24 (near the end) and the @ref
+configuration.  @ref rfc8175 (near the end) and the @ref
 credit_windowing_config provide an example of this technique.
 
 The extensive protocol configurability presents many opportunities for

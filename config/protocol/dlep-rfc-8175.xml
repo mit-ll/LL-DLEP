@@ -1,0 +1,936 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ * Dynamic Link Exchange Protocol (DLEP)
+ *
+ * Copyright (C) 2015, 2016 Massachusetts Institute of Technology
+-->
+
+<!--
+This protocol configuration file conforms to DLEP RFC 8175.
+-->
+
+<dlep xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:xi="http://www.w3.org/2001/XInclude">
+
+    <signal_prefix>DLEP</signal_prefix>
+
+    <field_sizes>
+        <signal_length>2</signal_length>
+        <signal_id>2</signal_id>
+        <data_item_length>2</data_item_length>
+        <data_item_id>2</data_item_id>
+        <extension_id>2</extension_id>
+        <status_code>1</status_code>
+    </field_sizes>
+
+    <module>
+        <name>core</name>
+        <draft>RFC8175</draft>
+
+        <!-- Data Items -->
+
+        <data_item>
+            <name>Status</name>
+            <type>u8_string</type>
+            <id>1</id>
+            <metric>false</metric>
+        </data_item>
+
+        <data_item>
+            <name>IPv4_Connection_Point</name>
+            <type>u8_ipv4_u16</type>
+            <id>2</id>
+            <metric>false</metric>
+        </data_item>
+
+        <data_item>
+            <name>IPv6_Connection_Point</name>
+            <type>u8_ipv6_u16</type>
+            <id>3</id>
+            <metric>false</metric>
+        </data_item>
+
+        <data_item>
+            <name>Peer_Type</name>
+            <type>u8_string</type>
+            <id>4</id>
+            <metric>false</metric>
+        </data_item>
+
+        <data_item>
+            <name>Heartbeat_Interval</name>
+            <type>u32</type>
+            <id>5</id>
+            <metric>false</metric>
+            <units>milliseconds</units>
+        </data_item>
+
+        <data_item>
+            <name>Extensions_Supported</name>
+            <type>v_extid</type>
+            <id>6</id>
+            <metric>false</metric>
+        </data_item>
+
+        <data_item>
+            <name>MAC_Address</name>
+            <type>dlepmac</type>
+            <id>7</id>
+            <metric>false</metric>
+        </data_item>
+
+        <data_item>
+            <name>IPv4_Address</name>
+            <type>u8_ipv4</type>
+            <id>8</id>
+            <metric>false</metric>
+        </data_item>
+
+        <data_item>
+            <name>IPv6_Address</name>
+            <type>u8_ipv6</type>
+            <id>9</id>
+            <metric>false</metric>
+        </data_item>
+
+        <data_item>
+            <name>IPv4_Attached_Subnet</name>
+            <type>u8_ipv4_u8</type>
+            <id>10</id>
+            <metric>false</metric>
+        </data_item>
+
+        <data_item>
+            <name>IPv6_Attached_Subnet</name>
+            <type>u8_ipv6_u8</type>
+            <id>11</id>
+            <metric>false</metric>
+        </data_item>
+
+        <data_item>
+            <name>Maximum_Data_Rate_Receive</name>
+            <type>u64</type>
+            <id>12</id>
+            <metric>true</metric>
+            <units>bits/second</units>
+        </data_item>
+
+        <data_item>
+            <name>Maximum_Data_Rate_Transmit</name>
+            <type>u64</type>
+            <id>13</id>
+            <metric>true</metric>
+            <units>bits/second</units>
+        </data_item>
+
+        <data_item>
+            <name>Current_Data_Rate_Receive</name>
+            <type>u64</type>
+            <id>14</id>
+            <metric>true</metric>
+            <units>bits/second</units>
+        </data_item>
+
+        <data_item>
+            <name>Current_Data_Rate_Transmit</name>
+            <type>u64</type>
+            <id>15</id>
+            <metric>true</metric>
+            <units>bits/second</units>
+        </data_item>
+
+        <data_item>
+            <name>Latency</name>
+            <type>u64</type>
+            <id>16</id>
+            <metric>true</metric>
+            <units>microseconds</units>
+        </data_item>
+
+        <data_item>
+            <name>Resources</name>
+            <type>u8</type>
+            <id>17</id>
+            <metric>true</metric>
+            <units>percentage</units>
+        </data_item>
+
+        <data_item>
+            <name>Relative_Link_Quality_Receive</name>
+            <type>u8</type>
+            <id>18</id>
+            <metric>true</metric>
+            <units>percentage</units>
+        </data_item>
+
+        <data_item>
+            <name>Relative_Link_Quality_Transmit</name>
+            <type>u8</type>
+            <id>19</id>
+            <metric>true</metric>
+            <units>percentage</units>
+        </data_item>
+
+        <data_item>
+            <name>Maximum_Transmission_Unit</name>
+            <type>u16</type>
+            <id>20</id>
+            <metric>true</metric>
+            <units>octets</units>
+        </data_item>
+
+        <!-- Signals -->
+
+        <signal>
+            <name>Peer_Discovery</name>
+            <id>1</id>
+            <message>false</message>
+            <sender>router</sender>
+
+            <data_item>
+                <name>Peer_Type</name>
+                <occurs>0-1</occurs>
+            </data_item>
+        </signal>
+
+        <signal>
+            <name>Peer_Offer</name>
+            <id>2</id>
+            <message>false</message>
+            <sender>modem</sender>
+
+            <data_item>
+                <name>Peer_Type</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>IPv4_Connection_Point</name>
+                <occurs>0+</occurs>
+            </data_item>
+
+            <data_item>
+                <name>IPv6_Connection_Point</name>
+                <occurs>0+</occurs>
+            </data_item>
+
+        </signal>
+
+        <signal>
+            <name>Session_Initialization_Response</name> <!-- aka Peer Initialization ACK -->
+            <id>2</id>
+            <message>true</message>
+            <sender>modem</sender>
+
+            <data_item>
+                <name>Status</name>
+                <occurs>1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Peer_Type</name>
+                <occurs>1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Heartbeat_Interval</name>
+                <occurs>1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Maximum_Data_Rate_Receive</name>
+                <occurs>1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Maximum_Data_Rate_Transmit</name>
+                <occurs>1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Current_Data_Rate_Receive</name>
+                <occurs>1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Current_Data_Rate_Transmit</name>
+                <occurs>1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Latency</name>
+                <occurs>1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Resources</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Relative_Link_Quality_Receive</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Relative_Link_Quality_Transmit</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Maximum_Transmission_Unit</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Extensions_Supported</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>IPv4_Address</name>
+                <occurs>0+</occurs>
+            </data_item>
+
+            <data_item>
+                <name>IPv6_Address</name>
+                <occurs>0+</occurs>
+            </data_item>
+
+            <data_item>
+                <name>IPv4_Attached_Subnet</name>
+                <occurs>0+</occurs>
+            </data_item>
+
+            <data_item>
+                <name>IPv6_Attached_Subnet</name>
+                <occurs>0+</occurs>
+            </data_item>
+        </signal>
+
+        <signal>
+            <name>Session_Initialization</name> <!-- aka Peer Initialization -->
+            <id>1</id>
+            <message>true</message>
+            <sender>router</sender>
+            <response>Session_Initialization_Response</response>
+
+            <data_item>
+                <name>Heartbeat_Interval</name>
+                <occurs>1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Peer_Type</name>
+                <occurs>1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Extensions_Supported</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>IPv4_Address</name>
+                <occurs>0+</occurs>
+            </data_item>
+
+            <data_item>
+                <name>IPv6_Address</name>
+                <occurs>0+</occurs>
+            </data_item>
+
+            <data_item>
+                <name>IPv4_Attached_Subnet</name>
+                <occurs>0+</occurs>
+            </data_item>
+
+            <data_item>
+                <name>IPv6_Attached_Subnet</name>
+                <occurs>0+</occurs>
+            </data_item>
+        </signal>
+
+        <signal>
+            <name>Session_Update_Response</name> <!-- aka Peer Update ACK -->
+            <id>4</id>
+            <message>true</message>
+            <sender>both</sender>
+
+            <data_item>
+                <name>Status</name>
+                <occurs>1</occurs>
+            </data_item>
+        </signal>
+
+        <signal>
+            <name>Session_Update</name> <!-- aka Peer Update -->
+            <id>3</id>
+            <message>true</message>
+            <sender>both</sender>
+            <response>Session_Update_Response</response>
+
+            <data_item>
+                <name>IPv4_Address</name>
+                <occurs>0+</occurs>
+            </data_item>
+
+            <data_item>
+                <name>IPv6_Address</name>
+                <occurs>0+</occurs>
+            </data_item>
+
+            <data_item>
+                <name>IPv4_Attached_Subnet</name>
+                <occurs>0+</occurs>
+            </data_item>
+
+            <data_item>
+                <name>IPv6_Attached_Subnet</name>
+                <occurs>0+</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Maximum_Data_Rate_Receive</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Maximum_Data_Rate_Transmit</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Current_Data_Rate_Receive</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Current_Data_Rate_Transmit</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Latency</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Resources</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Relative_Link_Quality_Receive</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Relative_Link_Quality_Transmit</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Maximum_Transmission_Unit</name>
+                <occurs>0-1</occurs>
+            </data_item>
+        </signal>
+
+        <signal>
+            <name>Session_Termination_Response</name> <!-- aka Peer Termination ACK -->
+            <id>6</id>
+            <message>true</message>
+            <sender>both</sender>
+        </signal>
+
+        <signal>
+            <name>Session_Termination</name> <!-- aka Peer Termination -->
+            <id>5</id>
+            <message>true</message>
+            <sender>both</sender>
+            <response>Session_Termination_Response</response>
+
+            <data_item>
+                <name>Status</name>
+                <occurs>1</occurs>
+            </data_item>
+        </signal>
+
+        <signal>
+            <name>Destination_Up_Response</name> <!-- aka Destination Up ACK -->
+            <id>8</id>
+            <message>true</message>
+            <sender>router</sender>
+
+            <data_item>
+                <name>MAC_Address</name>
+                <occurs>1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Status</name>
+                <occurs>1</occurs>
+            </data_item>
+        </signal>
+
+        <signal>
+            <name>Destination_Up</name>
+            <id>7</id>
+            <message>true</message>
+            <sender>modem</sender>
+            <response>Destination_Up_Response</response>
+
+            <data_item>
+                <name>MAC_Address</name>
+                <occurs>1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Maximum_Data_Rate_Receive</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Maximum_Data_Rate_Transmit</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Current_Data_Rate_Receive</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Current_Data_Rate_Transmit</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Latency</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Resources</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Relative_Link_Quality_Receive</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Relative_Link_Quality_Transmit</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Maximum_Transmission_Unit</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>IPv4_Address</name>
+                <occurs>0+</occurs>
+            </data_item>
+
+            <data_item>
+                <name>IPv6_Address</name>
+                <occurs>0+</occurs>
+            </data_item>
+
+            <data_item>
+                <name>IPv4_Attached_Subnet</name>
+                <occurs>0+</occurs>
+            </data_item>
+
+            <data_item>
+                <name>IPv6_Attached_Subnet</name>
+                <occurs>0+</occurs>
+            </data_item>
+        </signal>
+
+        <signal>
+            <name>Destination_Announce_Response</name>
+            <id>10</id>
+            <message>true</message>
+            <sender>modem</sender>
+
+            <data_item>
+                <name>MAC_Address</name>
+                <occurs>1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Maximum_Data_Rate_Receive</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Maximum_Data_Rate_Transmit</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Current_Data_Rate_Receive</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Current_Data_Rate_Transmit</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Latency</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Resources</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Relative_Link_Quality_Receive</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Relative_Link_Quality_Transmit</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Maximum_Transmission_Unit</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>IPv4_Address</name>
+                <occurs>0+</occurs>
+            </data_item>
+
+            <data_item>
+                <name>IPv6_Address</name>
+                <occurs>0+</occurs>
+            </data_item>
+
+            <data_item>
+                <name>IPv4_Attached_Subnet</name>
+                <occurs>0+</occurs>
+            </data_item>
+
+            <data_item>
+                <name>IPv6_Attached_Subnet</name>
+                <occurs>0+</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Status</name>
+                <occurs>1</occurs>
+            </data_item>
+        </signal>
+
+        <signal>
+            <name>Destination_Announce</name>
+            <id>9</id>
+            <message>true</message>
+            <sender>router</sender>
+            <response>Destination_Announce_Response</response>
+            <data_item>
+                <name>MAC_Address</name>
+                <occurs>1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>IPv4_Address</name>
+                <occurs>0+</occurs>
+            </data_item>
+
+            <data_item>
+                <name>IPv6_Address</name>
+                <occurs>0+</occurs>
+            </data_item>
+        </signal>
+
+        <signal>
+            <name>Destination_Down_Response</name> <!-- aka Destination Down ACK -->
+            <id>12</id>
+            <message>true</message>
+            <sender>both</sender>
+
+            <data_item>
+                <name>MAC_Address</name>
+                <occurs>1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Status</name>
+                <occurs>1</occurs>
+            </data_item>
+        </signal>
+
+        <signal>
+            <name>Destination_Down</name>
+            <id>11</id>
+            <message>true</message>
+            <sender>both</sender>
+            <response>Destination_Down_Response</response>
+
+            <data_item>
+                <name>MAC_Address</name>
+                <occurs>1</occurs>
+            </data_item>
+        </signal>
+
+        <signal>
+            <name>Destination_Update</name>
+            <id>13</id>
+            <message>true</message>
+            <sender>modem</sender>
+
+            <data_item>
+                <name>MAC_Address</name>
+                <occurs>1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Maximum_Data_Rate_Receive</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Maximum_Data_Rate_Transmit</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Current_Data_Rate_Receive</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Current_Data_Rate_Transmit</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Latency</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Resources</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Relative_Link_Quality_Receive</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Relative_Link_Quality_Transmit</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Maximum_Transmission_Unit</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>IPv4_Address</name>
+                <occurs>0+</occurs>
+            </data_item>
+
+            <data_item>
+                <name>IPv6_Address</name>
+                <occurs>0+</occurs>
+            </data_item>
+
+            <data_item>
+                <name>IPv4_Attached_Subnet</name>
+                <occurs>0+</occurs>
+            </data_item>
+
+            <data_item>
+                <name>IPv6_Attached_Subnet</name>
+                <occurs>0+</occurs>
+            </data_item>
+        </signal>
+
+        <signal>
+            <name>Link_Characteristics_Response</name> <!-- aka Link Characteristics ACK -->
+            <id>15</id>
+            <message>true</message>
+            <sender>modem</sender>
+
+            <data_item>
+                <name>MAC_Address</name>
+                <occurs>1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Maximum_Data_Rate_Receive</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Maximum_Data_Rate_Transmit</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Current_Data_Rate_Receive</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Current_Data_Rate_Transmit</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Latency</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Resources</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Relative_Link_Quality_Receive</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Relative_Link_Quality_Transmit</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Maximum_Transmission_Unit</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Status</name>
+                <occurs>1</occurs>
+            </data_item>
+        </signal>
+
+        <signal>
+            <name>Link_Characteristics_Request</name>
+            <id>14</id>
+            <message>true</message>
+            <sender>router</sender>
+            <response>Link_Characteristics_Response</response>
+
+            <data_item>
+                <name>MAC_Address</name>
+                <occurs>1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Current_Data_Rate_Receive</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Current_Data_Rate_Transmit</name>
+                <occurs>0-1</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Latency</name>
+                <occurs>0-1</occurs>
+            </data_item>
+        </signal>
+
+        <signal>
+            <name>Heartbeat</name>
+            <id>16</id>
+            <message>true</message>
+            <sender>both</sender>
+        </signal>
+
+        <!-- Status Codes -->
+
+        <status_code>
+            <name>Success</name>
+            <id>0</id>
+            <failure_mode>continue</failure_mode>
+        </status_code>
+
+        <status_code>
+            <name>Not_Interested</name>
+            <id>1</id>
+            <failure_mode>continue</failure_mode>
+        </status_code>
+
+        <status_code>
+            <name>Request_Denied</name>
+            <id>2</id>
+            <failure_mode>continue</failure_mode>
+        </status_code>
+
+        <status_code>
+            <name>Inconsistent_Data</name>
+            <id>3</id>
+            <failure_mode>continue</failure_mode>
+        </status_code>
+
+        <status_code>
+            <name>Unknown_Message</name>
+            <id>128</id>
+            <failure_mode>terminate</failure_mode>
+        </status_code>
+
+        <status_code>
+            <name>Unexpected_Message</name>
+            <id>129</id>
+            <failure_mode>terminate</failure_mode>
+        </status_code>
+
+        <status_code>
+            <name>Invalid_Data</name>
+            <id>130</id>
+            <failure_mode>terminate</failure_mode>
+        </status_code>
+
+        <status_code>
+            <name>Invalid_Destination</name>
+            <id>131</id>
+            <failure_mode>terminate</failure_mode>
+        </status_code>
+
+        <status_code>
+            <name>Timed_Out</name>
+            <id>132</id>
+            <failure_mode>terminate</failure_mode>
+        </status_code>
+
+    </module>
+
+    <!--
+        Include extension modules like this:
+
+        <xi:include href="example-extension-00.xml"/>
+
+        The included XML file *must* be well-formed XML by itself.
+        Arbitrary chunks of XML taken out of context may not be
+        well-formed.  The same chunks of XML can pass validation when
+        present directly in the file, but can fail when moved to an
+        included file.  The recommended approach is for each included
+        file to contain one module, enclosed in <module> ... </module>.
+    -->
+
+    <xi:include href="latency-range-03.xml"/>
+
+</dlep>

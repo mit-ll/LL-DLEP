@@ -7,8 +7,8 @@ cppcheck*xml
 *.pb.h
 lib*.a
 lib*so.*
-tests/*xml
 tests/*.log
 tests/lib_tests
 tests/deps
 deps
+build*/*

@@ -190,6 +190,34 @@ public:
 
     bool remove_destination(const LLDLEP::DlepMac & mac);
 
+    /// Search for an IP address on this peer.
+    /// @param[in] ip_data_item
+    ///            data item containing an IP address to search for in this
+    ///            peer's IP addresses
+    /// @return "" if found, else a non-empty string identifying where the IP
+    ///         address was found: this peer, or one of its destinations.
+    std::string find_ip_data_item(const DataItem & ip_data_item) const;
+
+    /// Validate a set of new data items against the existing data
+    /// items belonging to a peer or destination.  Look for inconsistencies
+    /// in IP data items such as:
+    /// - adding an IP data item that already exists on this or any other
+    ///   peer, or any destination of any peer
+    /// - removing an IP data item that does not exist on this peer/destination
+    ///
+    /// @param[in] new_data_items
+    ///            the set of new data items given for this peer.
+    ///            Each IP data item has its own add/remove flag.
+    ///            Data items that are not IP addresses are ignored.
+    /// @param[in] existing_ip_data_items
+    ///            the set of IP data items already associated with a
+    ///            particular peer or destination.  This is only used
+    ///            to validate IP data item removals.
+    /// @return "" if no inconsistencies were found, else a message
+    ///         describing the inconsistency.
+    std::string validate_ip_data_items(const DataItems & new_data_items,
+                                       const DataItems & existing_ip_data_items);
+
     /// Unique string identifying this peer.
     std::string peer_id;
 
@@ -215,6 +243,7 @@ private:
     bool should_send_response(const std::string & response_name) const;
     void send_simple_response(const std::string & response_name,
                          const std::string & status_name,
+                         const std::string & status_message = "",
                          const LLDLEP::DlepMac * mac = nullptr);
 
     void stop_timers();

@@ -308,7 +308,7 @@ PeerDiscovery::handle_peer_offer(ProtocolMessage & pm,
 
     // Try to get the session connection address (dest_ip) from data
     // items in the Peer Offer.  Look for the following data items in
-    // this order: IPv4_Address, IPv6_Address, IPv4_Connection_Point,
+    // this order: IPv4_Address, IPv4_Connection_Point, IPv6_Address,
     // IPv6_Connection_Point.  The last one that is found wins.
     // Fetching any of these data items may fail either because the
     // data item doesn't exist in the Peer Offer (DataItemNotPresent),
@@ -350,6 +350,21 @@ PeerDiscovery::handle_peer_offer(ProtocolMessage & pm,
         /* no-op */
     }
 
+    try // IPv4_Connection_Point data item
+    {
+        Div_u8_ipv4_u16_t ipv4_connpt = pm.get_ipv4_conn_point();
+        session_port = ipv4_connpt.field3;
+        dest_ip = boost::asio::ip::address(ipv4_connpt.field2);
+    }
+    catch (ProtocolMessage::DataItemNotPresent)
+    {
+        /* no-op */
+    }
+    catch (ProtocolConfig::BadDataItemName)
+    {
+        /* no-op */
+    }
+
     try // IPv6_Address data item
     {
         Div_u8_ipv6_t u8ipv6 = pm.get_ipv6_address();
@@ -364,21 +379,6 @@ PeerDiscovery::handle_peer_offer(ProtocolMessage & pm,
                 <<  " has add/drop=" << u8ipv6.field1 << ", ignoring";
             LOG(DLEP_LOG_ERROR, msg);
         }
-    }
-    catch (ProtocolMessage::DataItemNotPresent)
-    {
-        /* no-op */
-    }
-    catch (ProtocolConfig::BadDataItemName)
-    {
-        /* no-op */
-    }
-
-    try // IPv4_Connection_Point data item
-    {
-        Div_u8_ipv4_u16_t ipv4_connpt = pm.get_ipv4_conn_point();
-        session_port = ipv4_connpt.field3;
-        dest_ip = boost::asio::ip::address(ipv4_connpt.field2);
     }
     catch (ProtocolMessage::DataItemNotPresent)
     {
