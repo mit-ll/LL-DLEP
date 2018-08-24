@@ -488,7 +488,8 @@ private:
     const ProtocolConfig * protocfg;
 };
 
-
+///shorthand for a vector of DataItem
+typedef std::vector<DataItem> DataItems;
 
 } // namespace LLDLEP
 

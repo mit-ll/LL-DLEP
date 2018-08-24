@@ -58,6 +58,16 @@ public:
     /// @param[in] dest  the destination to add
     void add_destination(const LLDLEP::DlepMac & dest);
 
+    /// Add a data item to future dataitems advertisements
+    /// sent by this process.
+    ///
+    /// @param[in] di   the dataitem to add
+    void add_dataitem(const LLDLEP::DataItem & di);
+
+    /// Remove all ipdataitems from future destination advertisements
+    /// sent by this process.
+    void clear_ipdataitems();
+
     /// Remove a destination from future destination advertisements
     /// sent by this process.
     ///
@@ -133,6 +143,22 @@ private:
     /// any local destinations to put in destination advertisements,
     /// including the peer router mac
     LLDLEP::DlepMacAddrs destinations;
+
+    /// any local ipv4 to put in destination advertisments,
+    /// including the peer router ipv4
+    LLDLEP::DataItems localPeerIpv4DataItems;
+
+    /// any local ipv4 subnet to put in destination advertisments,
+    /// including the peer router ipv4 subnet
+    LLDLEP::DataItems localPeerIpv4SnDataItems;
+
+    /// any local ipv6 to put in destination advertisments,
+    /// including the peer router ipv6
+    LLDLEP::DataItems localPeerIpv6DataItems;
+
+    /// any local ipv6 subnet to put in destination advertisments,
+    /// including the peer router ipv6 subnet
+    LLDLEP::DataItems localPeerIpv6SnDataItems;
 
     /// mutex that should be locked whenever dest_advert_db is accessed
     boost::recursive_mutex dest_advert_mutex;

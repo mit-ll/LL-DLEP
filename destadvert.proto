@@ -4,5 +4,9 @@ message DestinationAdvertisement {
     required uint64 uptimeinseconds = 3;    // application up time in seconds
     required bytes  localid         = 4;    // our local modem/radio id
     repeated bytes  destinations    = 5;    // destinations to advertise
+    repeated bytes  ipv4dataitems   = 6;    // ipv4 data items to advertise  
+    repeated bytes  ipv4sndataitems = 7;    // ipv4 subnet data items to advertise  
+    repeated bytes  ipv6dataitems   = 8;    // ipv6 data items to advertise  
+    repeated bytes  ipv6sndataitems = 9;    // ipv6 subnet data items to advertise  
   }
 
