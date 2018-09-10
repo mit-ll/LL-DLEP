@@ -157,7 +157,7 @@ This protocol configuration file conforms to DLEP RFC 8175.
         </data_item>
 
         <data_item>
-            <name>Resources_Receive</name>
+            <name>Relative_Link_Quality_Receive</name>
             <type>u8</type>
             <id>18</id>
             <metric>true</metric>
@@ -165,7 +165,7 @@ This protocol configuration file conforms to DLEP RFC 8175.
         </data_item>
 
         <data_item>
-            <name>Resources_Transmit</name>
+            <name>Relative_Link_Quality_Transmit</name>
             <type>u8</type>
             <id>19</id>
             <metric>true</metric>
@@ -173,25 +173,9 @@ This protocol configuration file conforms to DLEP RFC 8175.
         </data_item>
 
         <data_item>
-            <name>Relative_Link_Quality_Receive</name>
-            <type>u8</type>
-            <id>20</id>
-            <metric>true</metric>
-            <units>percentage</units>
-        </data_item>
-
-        <data_item>
-            <name>Relative_Link_Quality_Transmit</name>
-            <type>u8</type>
-            <id>21</id>
-            <metric>true</metric>
-            <units>percentage</units>
-        </data_item>
-
-        <data_item>
             <name>Maximum_Transmission_Unit</name>
             <type>u16</type>
-            <id>22</id>
+            <id>20</id>
             <metric>true</metric>
             <units>octets</units>
         </data_item>
@@ -281,16 +265,6 @@ This protocol configuration file conforms to DLEP RFC 8175.
 
             <data_item>
                 <name>Resources</name>
-                <occurs>0-1</occurs>
-            </data_item>
-
-            <data_item>
-                <name>Resources_Receive</name>
-                <occurs>0-1</occurs>
-            </data_item>
-
-            <data_item>
-                <name>Resources_Transmit</name>
                 <occurs>0-1</occurs>
             </data_item>
 
@@ -448,16 +422,6 @@ This protocol configuration file conforms to DLEP RFC 8175.
             </data_item>
 
             <data_item>
-                <name>Resources_Receive</name>
-                <occurs>0-1</occurs>
-            </data_item>
-
-            <data_item>
-                <name>Resources_Transmit</name>
-                <occurs>0-1</occurs>
-            </data_item>
-
-            <data_item>
                 <name>Relative_Link_Quality_Receive</name>
                 <occurs>0-1</occurs>
             </data_item>
@@ -553,16 +517,6 @@ This protocol configuration file conforms to DLEP RFC 8175.
             </data_item>
 
             <data_item>
-                <name>Resources_Receive</name>
-                <occurs>0-1</occurs>
-            </data_item>
-
-            <data_item>
-                <name>Resources_Transmit</name>
-                <occurs>0-1</occurs>
-            </data_item>
-
-            <data_item>
                 <name>Relative_Link_Quality_Receive</name>
                 <occurs>0-1</occurs>
             </data_item>
@@ -639,17 +593,7 @@ This protocol configuration file conforms to DLEP RFC 8175.
                 <occurs>0-1</occurs>
             </data_item>
 
-            <data_item>
-                <name>Resources_Receive</name>
-                <occurs>0-1</occurs>
-            </data_item>
-
-            <data_item>
-                <name>Resources_Transmit</name>
-                <occurs>0-1</occurs>
-            </data_item>
-
-            <data_item>
+           <data_item>
                 <name>Relative_Link_Quality_Receive</name>
                 <occurs>0-1</occurs>
             </data_item>
@@ -794,16 +738,6 @@ This protocol configuration file conforms to DLEP RFC 8175.
             </data_item>
 
             <data_item>
-                <name>Resources_Receive</name>
-                <occurs>0-1</occurs>
-            </data_item>
-
-            <data_item>
-                <name>Resources_Transmit</name>
-                <occurs>0-1</occurs>
-            </data_item>
-
-            <data_item>
                 <name>Relative_Link_Quality_Receive</name>
                 <occurs>0-1</occurs>
             </data_item>
@@ -877,16 +811,6 @@ This protocol configuration file conforms to DLEP RFC 8175.
 
             <data_item>
                 <name>Resources</name>
-                <occurs>0-1</occurs>
-            </data_item>
-
-            <data_item>
-                <name>Resources_Receive</name>
-                <occurs>0-1</occurs>
-            </data_item>
-
-            <data_item>
-                <name>Resources_Transmit</name>
                 <occurs>0-1</occurs>
             </data_item>
 
