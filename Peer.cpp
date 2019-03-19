@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2013, 2015, 2016, 2018 Massachusetts Institute of Technology
+ * Copyright (C) 2013, 2015, 2016, 2018, 2019 Massachusetts Institute of Technology
  */
 
 /// @file
@@ -589,7 +589,8 @@ Peer::destination_up(const DlepMac & destination_mac,
 }
 
 void
-Peer::destination_down(const DlepMac & destination_mac)
+Peer::destination_down(const DlepMac & destination_mac,
+                       const DataItems & data_items)
 {
     ostringstream msg;
 
@@ -600,11 +601,15 @@ Peer::destination_down(const DlepMac & destination_mac)
 
     pm.add_header(ProtocolStrings::Destination_Down);
     pm.add_mac(destination_mac);
+    pm.add_data_items(data_items);
 
-    // A freshly built message should be parsable.
+    // A freshly built message should be parsable.  However, this
+    // message contains data items that originated from the client, and
+    // they could be invalid.  So we parse and validate the message before
+    // sending so that problems get logged, but we don't do anything
+    // drastic (assert/throw/exit) if it fails.
 
-    std::string err = pm.parse_and_validate(dlep->is_modem(), __func__);
-    assert(err == "");
+    pm.parse_and_validate(dlep->is_modem(), __func__);
 
     ResponsePendingPtr rp(new ResponsePending(dlep->protocfg, pm));
     send_message_expecting_response(rp);
@@ -1684,7 +1689,8 @@ Peer::handle_destination_down(ProtocolMessage & pm)
         }
     }
 
-    dlep->dlep_client.destination_down(peer_id, destination_mac);
+    DataItems data_items = pm.get_data_items_no_mac();
+    dlep->dlep_client.destination_down(peer_id, destination_mac, data_items);
 
     send_simple_response(ProtocolStrings::Destination_Down_Response,
                          ProtocolStrings::Success, "", &destination_mac);
@@ -2021,9 +2027,10 @@ Peer::get_destination(const DlepMac & mac,
 }
 
 bool
-Peer::remove_destination(const LLDLEP::DlepMac & mac)
+Peer::remove_destination(const LLDLEP::DlepMac & mac,
+                         const DataItems & data_items)
 {
-    return peer_pdp->removeDestination(mac, true);
+    return peer_pdp->removeDestination(mac, true, data_items);
 }
 
 std::string

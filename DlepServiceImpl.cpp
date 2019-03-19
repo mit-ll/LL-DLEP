@@ -182,7 +182,8 @@ DlepServiceImpl::destination_update(const DlepMac & mac_address,
 
 
 DlepServiceImpl::ReturnStatus
-DlepServiceImpl::destination_down(const DlepMac & mac_address)
+DlepServiceImpl::destination_down(const DlepMac & mac_address,
+                                  const DataItems & data_items)
 {
     std::ostringstream msg;
     boost::recursive_mutex::scoped_lock lock(dlep->mutex);
@@ -210,7 +211,8 @@ DlepServiceImpl::destination_down(const DlepMac & mac_address)
             {
                 for (const DlepMac & dest : entry.info.destinations)
                 {
-                    if (! dlep->local_pdp->removeDestination(dest, true))
+                    if (! dlep->local_pdp->removeDestination(dest, true,
+                                                             data_items))
                     {
                         msg << "dest advert destination " << dest
                             << " was not found";
@@ -228,7 +230,7 @@ DlepServiceImpl::destination_down(const DlepMac & mac_address)
     {
         // Did we originate this mac_address (send the initial Up/Announce)?
 
-        if (! dlep->local_pdp->removeDestination(mac_address, true))
+        if (! dlep->local_pdp->removeDestination(mac_address, true, data_items))
         {
             // mac_address isn't ours.  Try to find its originating peer.
 
@@ -243,7 +245,7 @@ DlepServiceImpl::destination_down(const DlepMac & mac_address)
             {
                 // find_peer() above said that mac_address belongs to peer,
                 // so this shouldn't fail.
-                bool ok = peer->remove_destination(mac_address);
+                bool ok = peer->remove_destination(mac_address, data_items);
                 assert(ok);
             }
         }

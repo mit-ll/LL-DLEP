@@ -53,7 +53,8 @@ public:
                             const LLDLEP::DataItems & data_items) override;
 
     void destination_down(const std::string & peer_id,
-                          const LLDLEP::DlepMac & mac_address) override;
+                          const LLDLEP::DlepMac & mac_address,
+                          const LLDLEP::DataItems & data_items) override;
 
     void linkchar_request(const std::string & peer_id,
                           const LLDLEP::DlepMac & mac_address,
@@ -94,6 +95,16 @@ public:
     /// @param[in] param_name
     ///            The parameter name to set.
     void set_loopback_iface(std::string & param_name);
+
+    struct DestinationDownInfo
+    {
+        LLDLEP::DlepMac mac;
+        LLDLEP::DataItems data_items;
+        bool operator==(const DestinationDownInfo & other) const
+        {
+            return (mac == other.mac) && (data_items == other.data_items);
+        }
+    };
 
     /// This class eases the job of waiting for a call by the Dlep library
     /// from a different thread to a DlepClient method.
@@ -178,7 +189,7 @@ public:
     ClientCallWaiter<std::string> peer_update_waiter;
     ClientCallWaiter<LLDLEP::DlepMac> destination_up_waiter;
     ClientCallWaiter<LLDLEP::DlepMac> destination_update_waiter;
-    ClientCallWaiter<LLDLEP::DlepMac> destination_down_waiter;
+    ClientCallWaiter<DestinationDownInfo> destination_down_waiter;
 
 private:
     /// Configuration database.

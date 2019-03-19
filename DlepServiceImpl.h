@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2015, 2016, 2018 Massachusetts Institute of Technology
+ * Copyright (C) 2015, 2016, 2018, 2019 Massachusetts Institute of Technology
  */
 
 /// @file
@@ -37,7 +37,8 @@ public:
     ReturnStatus destination_update(const LLDLEP::DlepMac & mac_address,
                                     const LLDLEP::DataItems & data_items) override;
 
-    ReturnStatus destination_down(const LLDLEP::DlepMac & mac_address) override;
+    ReturnStatus destination_down(const LLDLEP::DlepMac & mac_address,
+                                  const LLDLEP::DataItems & data_items) override;
 
     ReturnStatus peer_update(const LLDLEP::DataItems & data_items) override;
 

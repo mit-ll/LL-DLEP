@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2015, 2016 Massachusetts Institute of Technology
+ * Copyright (C) 2015, 2016, 2019 Massachusetts Institute of Technology
  */
 
 /// @file
@@ -136,9 +136,12 @@ public:
     ///
     /// @param[in] mac_address
     ///            the destination that is down
+    /// @param[in] data_items
+    ///            data items associated with \p mac_address
     ///
     /// @return ok if no error, else as described in DlepService::ReturnStatus
-    virtual ReturnStatus destination_down(const DlepMac & mac_address) = 0;
+    virtual ReturnStatus destination_down(const DlepMac & mac_address,
+                              const DataItems & data_items = DataItems()) = 0;
 
     /// Notify the DLEP service that the local peer's metrics or IP
     /// addresses have changed.

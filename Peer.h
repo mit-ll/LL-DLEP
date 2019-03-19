@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2013, 2014, 2015, 2016 Massachusetts Institute of Technology
+ * Copyright (C) 2013, 2014, 2015, 2016, 2019 Massachusetts Institute of Technology
  */
 
 /// @file
@@ -169,7 +169,8 @@ public:
     // to be sent to peers
     void destination_up(const LLDLEP::DlepMac & destination_mac,
                         const LLDLEP::DataItems & initial_data_items);
-    void destination_down(const LLDLEP::DlepMac & destination_mac);
+    void destination_down(const LLDLEP::DlepMac & destination_mac,
+                          const LLDLEP::DataItems & data_items);
     void destination_update(const LLDLEP::DlepMac & mac,
                             const LLDLEP::DataItems & updates);
 
@@ -188,7 +189,8 @@ public:
     bool get_destination(const LLDLEP::DlepMac & mac,
                          boost::shared_ptr<DestinationData> & destination);
 
-    bool remove_destination(const LLDLEP::DlepMac & mac);
+    bool remove_destination(const LLDLEP::DlepMac & mac,
+                            const DataItems & data_items);
 
     /// Search for an IP address on this peer.
     /// @param[in] ip_data_item

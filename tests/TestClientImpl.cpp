@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2015, 2016 Massachusetts Institute of Technology
+ * Copyright (C) 2015, 2016, 2019 Massachusetts Institute of Technology
  */
 
 /// @file
@@ -534,9 +534,13 @@ TestClientImpl::destination_update(const std::string &  /*peer_id*/,
 
 void
 TestClientImpl::destination_down(const std::string &  /*peer_id*/,
-                                 const LLDLEP::DlepMac & mac_address)
+                                 const LLDLEP::DlepMac & mac_address,
+                                 const LLDLEP::DataItems &  data_items)
 {
-    destination_down_waiter.notify(mac_address);
+    TestClientImpl::DestinationDownInfo ddinfo;
+    ddinfo.mac = mac_address;
+    ddinfo.data_items = data_items;
+    destination_down_waiter.notify(ddinfo);
 }
 
 void

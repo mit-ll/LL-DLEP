@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2015, 2016 Massachusetts Institute of Technology
+ * Copyright (C) 2015, 2016, 2019 Massachusetts Institute of Technology
  */
 
 /// @file
@@ -174,8 +174,11 @@ public:
     ///            the destination that is down.  If this represents a
     ///            multicast address, the modem should cease sending
     ///            traffic for this address to the router.
+    /// @param[in] data_items
+    ///            data_items associated with the destination
     virtual void destination_down(const std::string & peer_id,
-                                  const DlepMac & mac_address) = 0;
+                                  const DlepMac & mac_address,
+                                  const DataItems & data_items) = 0;
 
     /// Request that the client establish specific link characteristics
     /// for a destination.

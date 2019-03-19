@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2015, 2016, 2018 Massachusetts Institute of Technology
+ * Copyright (C) 2015, 2016, 2018, 2019 Massachusetts Institute of Technology
  */
 
 /// @file
@@ -55,7 +55,8 @@ public:
                             const LLDLEP::DataItems & data_items) override;
 
     void destination_down(const std::string & peer_id,
-                          const LLDLEP::DlepMac & mac_address) override;
+                          const LLDLEP::DlepMac & mac_address,
+                          const LLDLEP::DataItems & data_items) override;
 
     void linkchar_request(const std::string & peer_id,
                           const LLDLEP::DlepMac & mac_address,

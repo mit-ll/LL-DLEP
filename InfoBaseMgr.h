@@ -125,7 +125,8 @@ public:
     bool updateDestination(const LLDLEP::DlepMac & mac,
                            const LLDLEP::DataItems & updates,
                            bool tell_peers);
-    bool removeDestination(const LLDLEP::DlepMac & mac, bool tell_peers);
+    bool removeDestination(const LLDLEP::DlepMac & mac, bool tell_peers,
+                           const LLDLEP::DataItems & data_items = LLDLEP::DataItems());
     bool getDestinationData(const LLDLEP::DlepMac & mac, DestinationDataPtr * ddpp);
     void logDestinations(bool include_metrics);
     void getDestinations(std::vector<LLDLEP::DlepMac> & destinations);

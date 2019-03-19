@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<config>
+	<params>
+                <config-file>test_modem_config.xml</config-file>
+                <protocol-config-file>test-protocol-config-8175.xml</protocol-config-file>
+	</params>
+</config>

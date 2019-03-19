@@ -314,13 +314,50 @@ BOOST_AUTO_TEST_CASE(destination_up_down)
 
         // check that the router sees the destination down
         BOOST_REQUIRE(mrf.router_client.destination_down_waiter.wait_for_client_call());
-        BOOST_CHECK(mrf.router_client.destination_down_waiter.check_result(mac));
+        TestClientImpl::DestinationDownInfo ddinfo;
+        ddinfo.mac = mac;
+        BOOST_CHECK(mrf.router_client.destination_down_waiter.check_result(ddinfo));
 
         // Now take the destination down AGAIN, which is an error that should
         // be caught by the library.
         r = mrf.modem_service->destination_down(mac);
         BOOST_REQUIRE(r == DlepService::ReturnStatus::destination_does_not_exist);
     }
+}
+
+// Tests of destination down with additional data items
+BOOST_AUTO_TEST_CASE(destination_down_additional_data_items)
+{
+    DlepModemRouterFixture mrf("test_modem_config_8175.xml",
+                               "test_router_config_8175.xml");
+
+    // Give the modem service a destination_up
+    DlepMac mac = {{1, 2, 3, 4, 5, 6}};
+    DlepService::ReturnStatus r;
+    DataItems data_items; // empty
+
+    mrf.router_client.destination_up_waiter.prepare_to_wait();
+    r = mrf.modem_service->destination_up(mac, data_items);
+    BOOST_REQUIRE(r == DlepService::ReturnStatus::ok);
+
+    // check that the router sees the destination up
+    BOOST_REQUIRE(mrf.router_client.destination_up_waiter.wait_for_client_call());
+    BOOST_CHECK(mrf.router_client.destination_up_waiter.check_result(mac));
+
+    // Now take the destination down, giving an additional Resources data item
+    DataItem di(ProtocolStrings::Resources, std::uint8_t(10),
+                mrf.modem_service->get_protocol_config());
+    data_items.push_back(di);
+    mrf.router_client.destination_down_waiter.prepare_to_wait();
+    r = mrf.modem_service->destination_down(mac, data_items);
+    BOOST_REQUIRE(r == DlepService::ReturnStatus::ok);
+
+    // check that the router sees the destination down with the additional data item
+    BOOST_REQUIRE(mrf.router_client.destination_down_waiter.wait_for_client_call());
+    TestClientImpl::DestinationDownInfo ddinfo;
+    ddinfo.mac = mac;
+    ddinfo.data_items = data_items;
+    BOOST_CHECK(mrf.router_client.destination_down_waiter.check_result(ddinfo));
 }
 
 // Tests of destination update
@@ -426,7 +463,9 @@ destination_update_ip_list(DlepModemRouterFixture & mrf,
 
     // check that the router sees the destination down
     BOOST_REQUIRE(mrf.router_client.destination_down_waiter.wait_for_client_call());
-    BOOST_CHECK(mrf.router_client.destination_down_waiter.check_result(mac));
+    TestClientImpl::DestinationDownInfo ddinfo;
+    ddinfo.mac = mac;
+    BOOST_CHECK(mrf.router_client.destination_down_waiter.check_result(ddinfo));
 }
 
 static std::vector<boost::asio::ip::address_v4> vipv4 =

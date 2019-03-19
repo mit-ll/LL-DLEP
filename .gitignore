@@ -1,4 +1,6 @@
 *.o
+*~
+*.log
 build-defs.h
 Dlep
 Dlep-static

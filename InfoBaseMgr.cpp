@@ -294,7 +294,8 @@ PeerData::updateDestination(const DlepMac & mac,
 }
 
 bool
-PeerData::removeDestination(const DlepMac & mac, bool tell_peers)
+PeerData::removeDestination(const DlepMac & mac, bool tell_peers,
+                            const DataItems & data_items)
 {
     ostringstream msg;
 
@@ -315,7 +316,7 @@ PeerData::removeDestination(const DlepMac & mac, bool tell_peers)
             for (auto & it : dlep->peers)
             {
                 PeerPtr p = it.second;
-                p->destination_down(mac);
+                p->destination_down(mac, data_items);
             }
         }
     }

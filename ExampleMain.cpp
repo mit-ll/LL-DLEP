@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2015, 2016, 2018 Massachusetts Institute of Technology
+ * Copyright (C) 2015, 2016, 2018, 2019 Massachusetts Institute of Technology
  */
 
 /// @file
@@ -499,15 +499,15 @@ private:
 
     void help_destination_down(const std::string & cmd_name)
     {
-        std::cout << cmd_name << " down mac-address" << std::endl;
-        std::cout << "    declare a destination to be down" << std::endl;
+        std::cout << cmd_name << " down mac-address [data-item-name data-item-value]...\n";
+        std::cout << "    declare a destination to be down\n";
     }
 
     void handle_destination_down(const std::string & cmd_name)
     {
         LLDLEP::DlepMac mac_address;
 
-        if (tokens.size() != 3)
+        if (tokens.size() < 3)
         {
             help_destination_down(cmd_name);
             return;
@@ -518,8 +518,14 @@ private:
             return;
         }
 
+        LLDLEP::DataItems data_items;
+        if (! parse_data_items(data_items))
+        {
+            return;
+        }
+
         LLDLEP::DlepService::ReturnStatus r =
-            dlep_service->destination_down(mac_address);
+            dlep_service->destination_down(mac_address, data_items);
         print_dlep_service_return_status(r);
     }
 
