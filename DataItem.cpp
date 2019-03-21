@@ -1561,7 +1561,7 @@ public:
         {
             (void)protocfg->get_status_code_name(status_id);
         }
-        catch (ProtocolConfig::BadStatusCodeId)
+        catch (const ProtocolConfig::BadStatusCodeId &)
         {
             return std::to_string(status_id) + " is invalid";
         }
@@ -1745,11 +1745,11 @@ DataItem::validate_occurrences(const DataItemContainer & data_items,
         {
             di_occurs_actual = di_occurrences.at(di_info.id);
 
-            // remove this data item id from di_occurrences to signfiy that
+            // remove this data item id from di_occurrences to signify that
             // we have already checked it
             di_occurrences.erase(di_info.id);
         }
-        catch (std::out_of_range)
+        catch (const std::out_of_range &)
         {
             /* di_info.id is not in this message */
         }

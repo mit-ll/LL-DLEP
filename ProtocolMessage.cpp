@@ -178,7 +178,7 @@ ProtocolMessage::add_peer_type(DlepClient & dlep_client)
     {
         dlep_client.get_config_parameter("peer-type", &peer_type);
     }
-    catch (DlepClient::BadParameterName)
+    catch (const DlepClient::BadParameterName &)
     {
         // There was no peer-type config parameter.  If Peer Type is
         // an optional data item for this signal, don't add it to the
@@ -232,7 +232,7 @@ ProtocolMessage::add_peer_type(DlepClient & dlep_client)
         {
             dlep_client.get_config_parameter("peer-flags", &peer_flags);
         }
-        catch (DlepClient::BadParameterName)
+        catch (const DlepClient::BadParameterName &)
         {
             // If there was no peer-flags config parameter, use default 0
         }
@@ -276,7 +276,7 @@ ProtocolMessage::add_status(std::string status_name,
             id = protocfg->get_status_code_id(status_name);
             id_found = true;
         }
-        catch (ProtocolConfig::BadStatusCodeName)
+        catch (const ProtocolConfig::BadStatusCodeName &)
         {
             // Different DLEP drafts define different status codes.
             // We try to hide this from the caller by detecting if the
@@ -721,7 +721,7 @@ ProtocolMessage::get_data_item_value(const std::string & data_item_name) const
                 T val = boost::get<T>(di.value);
                 return val;
             }
-            catch (boost::bad_get)
+            catch (const boost::bad_get &)
             {
                 throw DataItemWrongType(data_item_name);
             }
@@ -753,7 +753,7 @@ ProtocolMessage::get_data_item_values(const std::string & data_item_name) const
                 T val = boost::get<T>(di.value);
                 vecT.push_back(val);
             }
-            catch (boost::bad_get)
+            catch (const boost::bad_get &)
             {
                 throw DataItemWrongType(data_item_name);
             }

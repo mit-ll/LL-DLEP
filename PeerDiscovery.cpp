@@ -80,7 +80,7 @@ PeerDiscovery::start()
             start_receive();
         }
     }
-    catch (std::exception & e)
+    catch (const std::exception & e)
     {
         msg << "error initializing peer_offer socket: " << e.what();
         LOG(DLEP_LOG_ERROR, msg);
@@ -297,11 +297,11 @@ PeerDiscovery::handle_peer_offer(ProtocolMessage & pm,
     {
         session_port = pm.get_port();
     }
-    catch (ProtocolMessage::DataItemNotPresent)
+    catch (const ProtocolMessage::DataItemNotPresent &)
     {
         /* no-op */
     }
-    catch (ProtocolConfig::BadDataItemName)
+    catch (const ProtocolConfig::BadDataItemName &)
     {
         /* no-op */
     }
@@ -341,11 +341,11 @@ PeerDiscovery::handle_peer_offer(ProtocolMessage & pm,
             LOG(DLEP_LOG_ERROR, msg);
         }
     }
-    catch (ProtocolMessage::DataItemNotPresent)
+    catch (const ProtocolMessage::DataItemNotPresent &)
     {
         /* no-op */
     }
-    catch (ProtocolConfig::BadDataItemName)
+    catch (const ProtocolConfig::BadDataItemName &)
     {
         /* no-op */
     }
@@ -356,11 +356,11 @@ PeerDiscovery::handle_peer_offer(ProtocolMessage & pm,
         session_port = ipv4_connpt.field3;
         dest_ip = boost::asio::ip::address(ipv4_connpt.field2);
     }
-    catch (ProtocolMessage::DataItemNotPresent)
+    catch (const ProtocolMessage::DataItemNotPresent &)
     {
         /* no-op */
     }
-    catch (ProtocolConfig::BadDataItemName)
+    catch (const ProtocolConfig::BadDataItemName &)
     {
         /* no-op */
     }
@@ -380,11 +380,11 @@ PeerDiscovery::handle_peer_offer(ProtocolMessage & pm,
             LOG(DLEP_LOG_ERROR, msg);
         }
     }
-    catch (ProtocolMessage::DataItemNotPresent)
+    catch (const ProtocolMessage::DataItemNotPresent &)
     {
         /* no-op */
     }
-    catch (ProtocolConfig::BadDataItemName)
+    catch (const ProtocolConfig::BadDataItemName &)
     {
         /* no-op */
     }
@@ -397,11 +397,11 @@ PeerDiscovery::handle_peer_offer(ProtocolMessage & pm,
         dest_ip = boost::asio::ip::address(ipv6_connpt.field2);
         may_need_scope_id = true;
     }
-    catch (ProtocolMessage::DataItemNotPresent)
+    catch (const ProtocolMessage::DataItemNotPresent &)
     {
         /* no-op */
     }
-    catch (ProtocolConfig::BadDataItemName)
+    catch (const ProtocolConfig::BadDataItemName &)
     {
         /* no-op */
     }
@@ -510,7 +510,7 @@ PeerDiscovery::send_peer_offer(boost::asio::ip::udp::endpoint to_endpoint)
                                                &session_address);
         have_session_address = true;
     }
-    catch (DlepClient::BadParameterName)
+    catch (const DlepClient::BadParameterName &)
     {
         // The session_address config paramater is optional, so we
         // don't need to do anything if it wasn't found.
@@ -551,7 +551,7 @@ PeerDiscovery::send_peer_offer(boost::asio::ip::udp::endpoint to_endpoint)
             pm.add_data_item(di_session_address);
         }
     }
-    catch (LLDLEP::ProtocolConfig::BadDataItemName)
+    catch (const LLDLEP::ProtocolConfig::BadDataItemName &)
     {
         // We are using a protocol configuration for a more recent
         // draft that doesn't have the Port data item.  Try again with

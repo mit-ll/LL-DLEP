@@ -90,7 +90,7 @@ public:
         {
             dlep_client->get_config_parameter("peer-type", &prompt);
         }
-        catch (LLDLEP::DlepClient::BadParameterName)
+        catch (const LLDLEP::DlepClient::BadParameterName &)
         {
             dlep_client->get_config_parameter("local-type", &prompt);
         }
@@ -232,7 +232,7 @@ private:
                 LLDLEP::DlepMac mac = boost::get<LLDLEP::DlepMac>(di_mac.value);
                 *dlep_mac = mac;
             }
-            catch (boost::bad_get)
+            catch (const boost::bad_get &)
             {
                 valid = false;
                 std::cerr << dlep_client->error_color
@@ -241,7 +241,7 @@ private:
                           << std::endl;
             }
         }
-        catch (std::invalid_argument)
+        catch (const std::invalid_argument &)
         {
             valid = false;
             std::cerr << dlep_client->error_color
@@ -292,14 +292,14 @@ private:
             }
             while (ss);
         }
-        catch (LLDLEP::ProtocolConfig::BadDataItemName e)
+        catch (const LLDLEP::ProtocolConfig::BadDataItemName & e)
         {
             std::cerr << dlep_client->error_color
                       << e.what() << " is not a valid data item name."
                       << " Try 'show dataitems'" << std::endl;
             return false;
         }
-        catch (std::invalid_argument e)
+        catch (const std::invalid_argument & e)
         {
             std::cerr << dlep_client->error_color << e.what() << std::endl;
             return false;
@@ -558,7 +558,7 @@ private:
         {
             (void)protocfg->get_status_code_id(statusname);
         }
-        catch (LLDLEP::ProtocolConfig::BadStatusCodeName)
+        catch (const LLDLEP::ProtocolConfig::BadStatusCodeName &)
         {
             std::cout << dlep_client->error_color
                       << statusname << " is not a valid status code name."
@@ -1196,7 +1196,7 @@ int main(int argc, char ** argv)
         {
             client.get_config_parameter("log-file", &log_file);
         }
-        catch (LLDLEP::DlepClient::BadParameterName) { }
+        catch (const LLDLEP::DlepClient::BadParameterName &) {}
 
         std::cerr << client.error_color << "DlepInit failed";
         if (log_file.length() > 0)

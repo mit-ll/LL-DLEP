@@ -118,7 +118,7 @@ ResponsePending::ResponsePending(const ProtocolConfig * protocfg,
     {
         destination = pm.get_mac();
     }
-    catch (ProtocolMessage::DataItemNotPresent)
+    catch (const ProtocolMessage::DataItemNotPresent &)
     {
         /* no-op */
     }
@@ -278,7 +278,7 @@ Peer::handle_response(const ProtocolMessage & pm)
         destination = pm.get_mac();
         msg << " destination=" << destination.to_string();
     }
-    catch (ProtocolMessage::DataItemNotPresent)
+    catch (const ProtocolMessage::DataItemNotPresent &)
     {
         /* no-op */
     }
@@ -326,7 +326,7 @@ Peer::handle_response(const ProtocolMessage & pm)
             LOG(DLEP_LOG_ERROR, msg);
         }
     }
-    catch (std::exception)
+    catch (const std::exception &)
     {
         // We come here if there was no queue in the map for the
         // destination, or if the queue was empty.  We don't
@@ -555,7 +555,7 @@ Peer::destination_up(const DlepMac & destination_mac,
                 (void)dlep->protocfg->get_signal_id(m);
                 msg_name = m;
             }
-            catch (ProtocolConfig::BadSignalName)
+            catch (const ProtocolConfig::BadSignalName &)
             {
                 // Destination_Announce is not in the protocol
                 // configuration, so leave msg_name as Destination_Up
@@ -1137,7 +1137,7 @@ Peer::handle_peer_initialization(ProtocolMessage & pm)
     {
         peer_type = pm.get_peer_type();
     }
-    catch (ProtocolMessage::DataItemNotPresent)
+    catch (const ProtocolMessage::DataItemNotPresent &)
     {
         /* no-op */
     }
@@ -1148,11 +1148,11 @@ Peer::handle_peer_initialization(ProtocolMessage & pm)
     {
         experiment_names = pm.get_experiment_names();
     }
-    catch (ProtocolMessage::DataItemNotPresent)
+    catch (const ProtocolMessage::DataItemNotPresent &)
     {
         /* no-op */
     }
-    catch (ProtocolConfig::BadDataItemName)
+    catch (const ProtocolConfig::BadDataItemName &)
     {
         /* no-op */
     }
@@ -1184,7 +1184,7 @@ Peer::handle_peer_initialization(ProtocolMessage & pm)
             }
         }
     }
-    catch (ProtocolMessage::DataItemNotPresent)
+    catch (const ProtocolMessage::DataItemNotPresent &)
     {
         /* no-op */
     }
@@ -1255,7 +1255,7 @@ Peer::handle_peer_initialization_response(ProtocolMessage & pm)
     {
         peer_type = pm.get_peer_type();
     }
-    catch (ProtocolMessage::DataItemNotPresent)
+    catch (const ProtocolMessage::DataItemNotPresent &)
     {
         /* no-op */
     }
@@ -1266,11 +1266,11 @@ Peer::handle_peer_initialization_response(ProtocolMessage & pm)
     {
         experiment_names = pm.get_experiment_names();
     }
-    catch (ProtocolMessage::DataItemNotPresent)
+    catch (const ProtocolMessage::DataItemNotPresent &)
     {
         /* no-op */
     }
-    catch (ProtocolConfig::BadDataItemName)
+    catch (const ProtocolConfig::BadDataItemName &)
     {
         /* no-op */
     }
@@ -1283,7 +1283,7 @@ Peer::handle_peer_initialization_response(ProtocolMessage & pm)
     {
         mutual_extensions = pm.get_extensions();
     }
-    catch (ProtocolMessage::DataItemNotPresent)
+    catch (const ProtocolMessage::DataItemNotPresent &)
     {
         /* no-op */
     }
@@ -1487,7 +1487,7 @@ Peer::handle_destination_up_response(ProtocolMessage & pm)
                 return;
             }
         }
-        catch (ProtocolMessage::DataItemNotPresent)
+        catch (const ProtocolMessage::DataItemNotPresent &)
         {
             /* If there is no status data item, it's a no-op */
         }
@@ -1831,7 +1831,7 @@ Peer::check_status_code_failure(ProtocolMessage & pm)
                 return true;
             }
         }
-        catch (ProtocolMessage::DataItemNotPresent)
+        catch (const ProtocolMessage::DataItemNotPresent &)
         {
             /* if no status data item, this is a no-op */
         }

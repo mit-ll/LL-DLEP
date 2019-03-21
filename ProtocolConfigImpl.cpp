@@ -670,7 +670,7 @@ ProtocolConfigImpl::extract_module_signal(xmlNodePtr node,
             {
                 siginfo.response_id = get_signal_id(response);
             }
-            catch (BadSignalName)
+            catch (const BadSignalName &)
             {
                 // this signal hasn't been defined yet
                 throw BadProtocolConfig(
@@ -745,7 +745,7 @@ ProtocolConfigImpl::extract_module_signal(xmlNodePtr node,
                 id_info_map = &message_info_map;
             }
         }
-        catch (BadSignalName)
+        catch (const BadSignalName &)
         {
             // this signal hasn't been defined yet
             throw BadProtocolConfig("undefined signal/message " + siginfo.name);
@@ -846,7 +846,7 @@ ProtocolConfigImpl::extract_module_data_item_ref(const std::string & parent_name
             {
                 DataItemInfo di_info = get_data_item_info(sdi.name);
             }
-            catch (std::invalid_argument)
+            catch (const std::invalid_argument &)
             {
                 throw BadProtocolConfig("In " + parent_name +
                                         ", undefined reference to data item " +
@@ -860,7 +860,7 @@ ProtocolConfigImpl::extract_module_data_item_ref(const std::string & parent_name
             {
                 sdi.id = get_data_item_id(sdi.name);
             }
-            catch (BadDataItemName)
+            catch (const BadDataItemName &)
             {
                 // id doesn't have to be defined at the top level
             }

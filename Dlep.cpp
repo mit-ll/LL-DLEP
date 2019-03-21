@@ -164,7 +164,7 @@ Dlep::initialize()
                 dlep_client.get_config_parameter("discovery-ttl",
                                                  &discovery_ttl);
             }
-            catch (LLDLEP::DlepClient::BadParameterName)
+            catch (const LLDLEP::DlepClient::BadParameterName &)
             {
             }
         } //  discovery enabled
@@ -311,7 +311,7 @@ Dlep::handle_async_make_peer(boost::asio::ip::tcp::socket * peer_socket,
             dlep_client.get_config_parameter("session-ttl", &ttl);
             peer_socket->set_option(boost::asio::ip::unicast::hops(ttl));
         }
-        catch (LLDLEP::DlepClient::BadParameterName)
+        catch (const LLDLEP::DlepClient::BadParameterName &)
         {
             // Let the default TTL take effect.
         }
@@ -445,7 +445,7 @@ Dlep::start_dlep()
                 }
             }
         }
-        catch (LLDLEP::DlepClient::BadParameterName)
+        catch (const LLDLEP::DlepClient::BadParameterName &)
         {
             // If a specific session address wasn't configured, we'll
             // just use the any address.

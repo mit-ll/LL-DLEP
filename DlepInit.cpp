@@ -45,7 +45,7 @@ DlepInit(DlepClient & dlep_client)
         dlep_client.get_config_parameter("log-level", &log_level);
         logger->set_run_level(log_level);
     }
-    catch (LLDLEP::DlepClient::BadParameterName & bpn)
+    catch (const LLDLEP::DlepClient::BadParameterName & bpn)
     {
         // The log file isn't set up, so print the message to stderr.
         std::cerr << bpn.what() << std::endl;
@@ -62,7 +62,7 @@ DlepInit(DlepClient & dlep_client)
     {
         dlep_client.get_config_parameter("local-type", &local_type);
     }
-    catch (LLDLEP::DlepClient::BadParameterName & bpn)
+    catch (const LLDLEP::DlepClient::BadParameterName & bpn)
     {
         msg << bpn.what();
         LOG(DLEP_LOG_ERROR, msg);
@@ -78,7 +78,7 @@ DlepInit(DlepClient & dlep_client)
                                                       dlep_client, logger));
         dlep_service = new internal::DlepServiceImpl(dlep_ptr, logger);
     }
-    catch (internal::DlepServiceImpl::InitializationError)
+    catch (const internal::DlepServiceImpl::InitializationError &)
     {
         return nullptr;
     }
