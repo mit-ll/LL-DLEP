@@ -237,12 +237,12 @@ BOOST_AUTO_TEST_CASE(dataitem_v_u8)
 {
     const std::string di_name = "Test_v_u8";
     DataItemValueType di_type = DataItemValueType::div_v_u8;
-    std::vector<std::uint8_t> vu8;
+    std::vector<std::uint8_t> myvu8;
 
     for (unsigned int i = 0; i < 10; i++)
     {
-        test_dataitem<std::vector<std::uint8_t>>(di_name, di_type, i, vu8);
-        vu8.push_back(i);
+        test_dataitem<std::vector<std::uint8_t>>(di_name, di_type, i, myvu8);
+        myvu8.push_back(i);
     }
 }
 

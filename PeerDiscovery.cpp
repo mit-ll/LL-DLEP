@@ -523,8 +523,8 @@ PeerDiscovery::send_peer_offer(boost::asio::ip::udp::endpoint to_endpoint)
 
     try
     {
-        DataItemValue div = std::uint16_t(session_port);
-        DataItem di_session_port {LLDLEP::ProtocolStrings::Port, div,
+        DataItemValue div_port = std::uint16_t(session_port);
+        DataItem di_session_port {LLDLEP::ProtocolStrings::Port, div_port,
                                   dlep->protocfg
                                  };
         pm.add_data_item(di_session_port);

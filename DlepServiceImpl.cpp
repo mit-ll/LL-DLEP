@@ -53,7 +53,7 @@ DlepServiceImpl::destination_up(const DlepMac & mac_address,
 
     if (dlep->dest_advert_enabled)
     {
-        auto lock = dlep->dest_advert->advert_db_lock();
+        auto advert_db_lock = dlep->dest_advert->advert_db_lock();
 
         auto result = dlep->dest_advert->find_advert_entry(mac_address);
 
@@ -123,7 +123,7 @@ DlepServiceImpl::destination_update(const DlepMac & mac_address,
 
     if (dlep->dest_advert_enabled)
     {
-        auto lock = dlep->dest_advert->advert_db_lock();
+        auto advert_db_lock = dlep->dest_advert->advert_db_lock();
 
         auto result = dlep->dest_advert->find_advert_entry(mac_address);
 
@@ -196,7 +196,7 @@ DlepServiceImpl::destination_down(const DlepMac & mac_address,
 
     if (dlep->dest_advert_enabled)
     {
-        auto lock = dlep->dest_advert->advert_db_lock();
+        auto advert_db_lock = dlep->dest_advert->advert_db_lock();
 
         auto result = dlep->dest_advert->find_advert_entry(mac_address);
 

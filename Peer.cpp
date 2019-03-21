@@ -795,7 +795,7 @@ Peer::start_peer()
 
         // A freshly built message should be parsable.
 
-        std::string err = pm.parse_and_validate(dlep->is_modem(), __func__);
+        err = pm.parse_and_validate(dlep->is_modem(), __func__);
         assert(err == "");
 
         ResponsePendingPtr rp(new ResponsePending(dlep->protocfg, pm));

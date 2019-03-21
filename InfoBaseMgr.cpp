@@ -250,9 +250,9 @@ PeerData::addDestination(const DlepMac & mac,
     destination_data[mac] = ddp;
     if (tell_peers)
     {
-        for (auto & it : dlep->peers)
+        for (auto & itp : dlep->peers)
         {
-            PeerPtr p = it.second;
+            PeerPtr p = itp.second;
             p->destination_up(mac, initial_data_items);
         }
     }
