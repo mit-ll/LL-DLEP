@@ -164,6 +164,9 @@ public:
             cv.notify_one();
         }
 
+        /// Return the information recorded in notify().
+        T get_result() { return result; }
+
         /// Compare the information recorded in notify() with the expected result.
         /// @return true if they are equal, else false
         bool check_result(const T & expected_result)

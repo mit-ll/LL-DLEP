@@ -181,6 +181,13 @@ with some minor tweaks made for testing.
             <units>octets</units>
         </data_item>
 
+        <data_item>
+            <name>Test_u64</name>
+            <type>u64</type>
+            <id>21</id>
+            <metric>false</metric>
+        </data_item>
+
         <!-- Signals -->
 
         <signal>
@@ -306,6 +313,11 @@ with some minor tweaks made for testing.
 
             <data_item>
                 <name>IPv6_Attached_Subnet</name>
+                <occurs>0+</occurs>
+            </data_item>
+
+            <data_item>
+                <name>Test_u64</name>
                 <occurs>0+</occurs>
             </data_item>
         </signal>

@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2015, 2016, 2018 Massachusetts Institute of Technology
+ * Copyright (C) 2015, 2016, 2018, 2019 Massachusetts Institute of Technology
  */
 
 /// @file
@@ -274,6 +274,15 @@ DlepServiceImpl::peer_update(const LLDLEP::DataItems & data_items)
     {
         return ReturnStatus::invalid_data_item;
     }
+}
+
+DlepServiceImpl::ReturnStatus
+DlepServiceImpl::peer_remove_data_items(const DataItems & data_items)
+{
+    boost::recursive_mutex::scoped_lock lock(dlep->mutex);
+
+    dlep->local_pdp->remove_data_items(data_items);
+    return ReturnStatus::ok;
 }
 
 DlepServiceImpl::ReturnStatus

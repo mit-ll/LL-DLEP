@@ -245,21 +245,99 @@ BOOST_AUTO_TEST_CASE(peer_update_from_modem)
 {
     for (const auto & cf : config_files)
     {
-        DlepModemRouterFixture mrf(cf.modem_config_file,
-                                   cf.router_config_file);
+        {
+            DlepModemRouterFixture mrf(cf.modem_config_file,
+                                       cf.router_config_file);
 
-        // Now update the peer with a new metric
-        mrf.router_client.peer_update_waiter.prepare_to_wait();
-        DataItems data_items;
-        DataItem di(ProtocolStrings::Latency, std::uint64_t(1000),
-                    mrf.modem_service->get_protocol_config());
-        data_items.push_back(di);
-        DlepService::ReturnStatus r =
-           mrf.modem_service->peer_update(data_items);
-        BOOST_REQUIRE(r == DlepService::ReturnStatus::ok);
+            // Now update the peer with a new metric
+            mrf.router_client.peer_update_waiter.prepare_to_wait();
+            DataItems data_items;
+            DataItem di(ProtocolStrings::Latency, std::uint64_t(1000),
+                        mrf.modem_service->get_protocol_config());
+            data_items.push_back(di);
+            DlepService::ReturnStatus r =
+               mrf.modem_service->peer_update(data_items);
+            BOOST_REQUIRE(r == DlepService::ReturnStatus::ok);
 
-        // check that the router sees the peer update
-        BOOST_REQUIRE(mrf.router_client.peer_update_waiter.wait_for_client_call());
+            // check that the router sees the peer update
+            BOOST_REQUIRE(mrf.router_client.peer_update_waiter.wait_for_client_call());
+        }
+    }
+
+    // create modem client/service, do a peer update of a
+    // non-metric data item, then create the router client/service
+    // and see if the router gets the updated data item
+
+    DlepClientAndServiceFixture modem{"test_modem_config_8175.xml"};
+
+    DataItems data_items;
+
+    DataItem di1(ProtocolStrings::Latency, std::uint64_t(1000),
+                modem.dlep_service->get_protocol_config());
+    data_items.push_back(di1);
+
+    // call peer_update on the modem giving an ipv4 address data item
+    Div_u8_ipv4_t div {1, boost::asio::ip::address_v4::from_string("1.2.3.4")};
+    DataItem di2(ProtocolStrings::IPv4_Address, div,
+                     modem.dlep_service->get_protocol_config());
+    data_items.push_back(di2);
+
+    DataItem di3("Test_u64", std::uint64_t(2000),
+                modem.dlep_service->get_protocol_config());
+    data_items.push_back(di3);
+
+    DlepService::ReturnStatus r =
+        modem.dlep_service->peer_update(data_items);
+    BOOST_REQUIRE(r == DlepService::ReturnStatus::ok);
+
+    {
+        // create our router client and service fixture
+        DlepClientAndServiceFixture router{"test_router_config_8175.xml"};
+
+        // check that the modem and router peer up
+        BOOST_CHECK(modem.client.peer_up_waiter.wait_for_client_call());
+        BOOST_CHECK(router.client.peer_up_waiter.wait_for_client_call());
+
+        // check that the router got the ipv4 address data item at peer
+        // up time
+        PeerInfo router_peer_info =
+            router.client.peer_up_waiter.get_result();
+
+        for (const auto & di : data_items)
+        {
+            auto it = std::find(router_peer_info.data_items.begin(),
+                                router_peer_info.data_items.end(),
+                                di);
+            BOOST_REQUIRE(it != router_peer_info.data_items.end());
+        }
+    }
+    
+    DataItems remove_data_items;
+    remove_data_items.push_back(di3);
+    r = modem.dlep_service->peer_remove_data_items(remove_data_items);
+    BOOST_REQUIRE(r == DlepService::ReturnStatus::ok);
+    modem.client.peer_update_waiter.prepare_to_wait();
+
+    {
+        // create our router client and service fixture
+        DlepClientAndServiceFixture router{"test_router_config_8175.xml"};
+
+        // check that the modem and router peer up
+        BOOST_CHECK(modem.client.peer_up_waiter.wait_for_client_call());
+        BOOST_CHECK(router.client.peer_up_waiter.wait_for_client_call());
+
+        //
+        //
+        PeerInfo router_peer_info =
+            router.client.peer_up_waiter.get_result();
+
+        for (const auto & di : remove_data_items)
+        {
+            auto it = std::find(router_peer_info.data_items.begin(),
+                                router_peer_info.data_items.end(),
+                                di);
+            BOOST_REQUIRE(it == router_peer_info.data_items.end());
+        }
     }
 }
 

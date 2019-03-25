@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2013, 2015, 2016 Massachusetts Institute of Technology
+ * Copyright (C) 2013, 2015, 2016, 2019 Massachusetts Institute of Technology
  */
 #ifndef _INFO_BASE_MGR_
 #define _INFO_BASE_MGR_
@@ -18,6 +18,7 @@
 #include <map>
 #include <vector>
 #include <iterator>
+#include <algorithm>
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>
 #include <boost/thread/recursive_mutex.hpp>
@@ -135,6 +136,7 @@ public:
 
     std::string update_data_items(const LLDLEP::DataItems & updates,
                                   bool tell_peers);
+    void remove_data_items(const DataItems & data_items);
     LLDLEP::DataItems get_data_items();
 
     /// Get a list of all of this peer's data items containing
@@ -154,21 +156,31 @@ public:
     std::string find_ip_data_item(const DataItem & ip_data_item) const;
 
 private:
+
+    DataItems update_data_items_helper(const DataItems & data_items,
+                                       DlepPtr dlep);
+
     /// peer_id is a combination of the TCP remote IP and port of the session
     std::string peer_id;
 
     /// Map destination mac to Destination Data
     std::map<LLDLEP::DlepMac, DestinationDataPtr> destination_data;
 
+    /// The combination of the metric_data_items, ip_data_items, and
+    /// other_data_items fields below constitute the set of session
+    /// initialization data items referred to in the DlepService API.
+
     /// Metric data items that this peer supports, and their default
     /// values.  Only one data item per metric type is allowed, so
     /// this is a map.
     DataItemMap metric_data_items;
 
-    /// IP address data items associated with this destination.
-    /// There can be multiple IP addresses of each type, so this
-    /// is a vector.
+    /// IP address data items associated with this peer.  There can be
+    /// multiple IP addresses of each type, so this is a vector.
     DataItems ip_data_items;
+
+    // Other data items associated with this peer.
+    DataItems other_data_items;
 
     /// back-pointer to dlep instance
     DlepPtr dlep;

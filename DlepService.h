@@ -143,13 +143,14 @@ public:
     virtual ReturnStatus destination_down(const DlepMac & mac_address,
                               const DataItems & data_items = DataItems()) = 0;
 
-    /// Notify the DLEP service that the local peer's metrics or IP
-    /// addresses have changed.
+    /// Notify the DLEP service that the local peer's metrics, IP
+    /// addresses, and other data items have changed.
     ///
     /// The DLEP service will issue a Peer Update to the peer with the
     /// new information.  If there is no extant peer session, the DLEP
-    /// protocol remembers the metrics/addresses so that they can be
-    /// sent to a future peer.
+    /// protocol remembers the data items so that they can be
+    /// sent to a future peer.  The set of data items so remembered is
+    /// referred to as the set of session initialization data items.
     ///
     /// @param[in] data_items
     ///            data items (metrics and IP addresses) associated with
@@ -157,6 +158,21 @@ public:
     ///
     /// @return ok if no error, else as described in DlepService::ReturnStatus
     virtual ReturnStatus peer_update(const DataItems & data_items) = 0;
+
+    /// Remove data items that were previously given in a peer_update().
+    ///
+    /// The specified data items are removed from DLEP service's
+    /// session initialization data items.  Future peers will not see
+    /// these data items sent during session initialization.  This
+    /// does not issue a Peer Update to the peer.
+    ///
+    /// @param[in] data_items
+    ///            data items associated with the local peer to be removed
+    ///
+    /// @return ok if no error, else as described in DlepService::ReturnStatus
+    /// It is not an error to specify a data item that is not in the DlepService's
+    /// set of session initialization data items.
+    virtual ReturnStatus peer_remove_data_items(const DataItems & data_items) = 0;
 
     /// Get a list of all existing peer ids.
     ///

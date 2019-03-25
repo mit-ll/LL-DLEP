@@ -1069,10 +1069,13 @@ Peer::send_peer_initialization_response()
 
     pm.add_allowed_data_items(dlep->local_pdp->get_data_items());
 
-    // A freshly built message should be parsable.
+    // A freshly built message should be parsable.  However, this
+    // message contains data items that originated from the client, and
+    // they could be invalid.  So we parse and validate the message before
+    // sending so that problems get logged, but we don't do anything
+    // drastic (assert/throw/exit) if it fails.
 
-    std::string err = pm.parse_and_validate(dlep->is_modem(), __func__);
-    assert(err == "");
+    pm.parse_and_validate(dlep->is_modem(), __func__);
 
     if (should_send_response(ProtocolStrings::Session_Initialization_Response))
     {
@@ -1288,10 +1291,10 @@ Peer::handle_peer_initialization_response(ProtocolMessage & pm)
         /* no-op */
     }
 
-    DataItems metrics_and_ip_items = pm.get_metrics_and_ipaddrs();
+    DataItems data_items = pm.get_data_items();
 
-    peer_pdp = dlep->info_base_manager->addPeer(peer_id,
-                                                metrics_and_ip_items);
+    // filter out Status
+    peer_pdp = dlep->info_base_manager->addPeer(peer_id, data_items);
 
     // Now that we've received a PEER_INITIALIZATION_Response,
     // we consider this session to be up.
@@ -1301,7 +1304,7 @@ Peer::handle_peer_initialization_response(ProtocolMessage & pm)
 
     LLDLEP::PeerInfo peer_info;
     get_info(peer_info);
-    peer_info.data_items = metrics_and_ip_items;
+    peer_info.data_items = data_items;
     dlep->dlep_client.peer_up(peer_info);
 
     // Send the peer all of our destinations

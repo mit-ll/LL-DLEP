@@ -42,6 +42,8 @@ public:
 
     ReturnStatus peer_update(const LLDLEP::DataItems & data_items) override;
 
+    ReturnStatus peer_remove_data_items(const DataItems & data_items) override;
+
     ReturnStatus get_peers(std::vector<std::string> & peers) override;
 
     ReturnStatus get_peer_info(const std::string & peer_id,

@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2013, 2015, 2016, 2018 Massachusetts Institute of Technology
+ * Copyright (C) 2013, 2015, 2016, 2018, 2019 Massachusetts Institute of Technology
  */
 #include "InfoBaseMgr.h"
 
@@ -212,22 +212,49 @@ PeerData::PeerData(const std::string & id, const DataItems & initial_data_items,
     dlep(dlep),
     logger(dlep->logger)
 {
-    for (auto const & di : initial_data_items)
+    (void)update_data_items_helper(initial_data_items, dlep);
+}
+
+PeerData::~PeerData()
+{
+}
+
+DataItems
+PeerData::update_data_items_helper(const DataItems & data_items,
+                                   DlepPtr dlep)
+{
+    // We don't need to remember the Status data item because it is
+    // transient/throwaway state.  We'll remember all the other data
+    // items, though.
+    DataItemIdType status_id =
+        dlep->protocfg->get_data_item_id(ProtocolStrings::Status);
+
+    // Gather up the data items that might need to be sent to all
+    // destinations here.
+    DataItems destination_updates;
+
+    for (auto const & di : data_items)
     {
         if (dlep->protocfg->is_metric(di.id))
         {
             metric_data_items[di.id] = di;
+            destination_updates.push_back(di);
         }
         else if (dlep->protocfg->is_ipaddr(di.id))
         {
             update_ip_data_items("peer=" + peer_id,
                                  ip_data_items, di, logger);
-        }
-    }
-}
 
-PeerData::~PeerData()
-{
+            // IP addresses don't propagate to all destinations,
+            // so don't add this di to destination_updates
+        }
+        else if (di.id != status_id)
+        {
+            other_data_items.push_back(di);
+        }
+    } // for each data item
+
+    return destination_updates;
 }
 
 bool
@@ -416,23 +443,7 @@ PeerData::update_data_items(const DataItems & updates, bool tell_peers)
     // If we get here, the data items are all OK, so we can apply the changes.
 
     // Collect updates to apply to all destinations here
-    DataItems destination_updates;
-
-    for (auto const & di : updates)
-    {
-        if (dlep->protocfg->is_metric(di.id))
-        {
-            metric_data_items[di.id] = di;
-            destination_updates.push_back(di);
-        }
-        else if (dlep->protocfg->is_ipaddr(di.id))
-        {
-            update_ip_data_items("peer=" + peer_id,
-                                 ip_data_items, di, logger);
-
-            // IP addresses don't propagate to all destinations
-        }
-    } // for each data item in updates
+    DataItems destination_updates = update_data_items_helper(updates, dlep);
 
     if (!destination_updates.empty())
     {
@@ -466,6 +477,41 @@ PeerData::update_data_items(const DataItems & updates, bool tell_peers)
     return ProtocolStrings::Success;
 }
 
+void
+PeerData::remove_data_items(const DataItems & data_items)
+{
+    for (const auto & di : data_items)
+    {
+        auto it1 = metric_data_items.find(di.id);
+        if (it1 != metric_data_items.end())
+        {
+            if (it1->second == di)
+            {
+                metric_data_items.erase(it1);
+                continue;
+            }
+        }
+
+        auto it2 = std::find(ip_data_items.begin(),
+                             ip_data_items.end(), di);
+        if (it2 != ip_data_items.end())
+        {
+            ip_data_items.erase(it2);
+            continue;
+        }
+
+
+        auto it3 = std::find(other_data_items.begin(),
+                             other_data_items.end(), di);
+        if (it3 != other_data_items.end())
+        {
+            other_data_items.erase(it3);
+            continue;
+        }
+    }
+}
+
+
 DataItems
 PeerData::get_data_items()
 {
@@ -477,6 +523,11 @@ PeerData::get_data_items()
     }
 
     for (auto const & di : ip_data_items)
+    {
+        return_data_items.push_back(di);
+    }
+
+    for (auto const & di : other_data_items)
     {
         return_data_items.push_back(di);
     }
@@ -503,6 +554,12 @@ PeerData::log_data_items()
     }
 
     for (auto const & di : ip_data_items)
+    {
+        msg << di.to_string();
+        LOG(DLEP_LOG_DEBUG, msg);
+    }
+
+    for (auto const & di : other_data_items)
     {
         msg << di.to_string();
         LOG(DLEP_LOG_DEBUG, msg);
