@@ -262,22 +262,6 @@ BOOST_AUTO_TEST_CASE(dataitem_a2_u16)
     }
 }
 
-BOOST_AUTO_TEST_CASE(dataitem_a2_u64)
-{
-    const std::string di_name = "Credit_Window_Status";
-    DataItemValueType di_type = DataItemValueType::div_a2_u64;
-
-    for (auto i : vu64)
-    {
-        for (auto j : vu64)
-        {
-            std::array<std::uint64_t, 2> a2u64 { {i, j} };
-            test_dataitem<std::array<std::uint64_t, 2>>(di_name, di_type,
-                                                        16, a2u64);
-        }
-    }
-}
-
 BOOST_AUTO_TEST_CASE(dataitem_u8_string)
 {
     const std::string di_name = ProtocolStrings::Status;
@@ -328,22 +312,6 @@ BOOST_AUTO_TEST_CASE(dataitem_u8_ipv4)
     }
 }
 
-BOOST_AUTO_TEST_CASE(dataitem_ipv4_u8)
-{
-    const std::string di_name = ProtocolStrings::IPv4_Attached_Subnet;
-    DataItemValueType di_type = DataItemValueType::div_ipv4_u8;
-
-    for (auto u8 : vu8)
-    {
-        for (auto ip : vipv4)
-        {
-            Div_ipv4_u8_t div {ip, u8};
-            test_dataitem<Div_ipv4_u8_t>(di_name, di_type,
-                                         5, div, (u8 <= 32));
-        }
-    }
-}
-
 BOOST_AUTO_TEST_CASE(dataitem_u8_ipv6)
 {
     const std::string di_name = ProtocolStrings::IPv6_Address;
@@ -356,22 +324,6 @@ BOOST_AUTO_TEST_CASE(dataitem_u8_ipv6)
             Div_u8_ipv6_t div {u8, ip};
             test_dataitem<Div_u8_ipv6_t>(di_name, di_type,
                                          17, div, (u8 < 2));
-        }
-    }
-}
-
-BOOST_AUTO_TEST_CASE(dataitem_ipv6_u8)
-{
-    const std::string di_name = ProtocolStrings::IPv6_Attached_Subnet;
-    DataItemValueType di_type = DataItemValueType::div_ipv6_u8;
-
-    for (auto u8 : vu8)
-    {
-        for (auto ip : vipv6)
-        {
-            Div_ipv6_u8_t div {ip, u8};
-            test_dataitem<Div_ipv6_u8_t>(di_name, di_type,
-                                         17, div, (u8 <= 128));
         }
     }
 }

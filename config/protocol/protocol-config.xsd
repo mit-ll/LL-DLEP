@@ -21,15 +21,11 @@
       <xs:enumeration value="u64"/>         <!-- unsigned 64 bit integer -->
       <xs:enumeration value="v_u8"/>        <!-- variable length list of unsigned 8 bit integer -->
       <xs:enumeration value="a2_u16"/>      <!-- array of 2 unsigned 16 bit integers -->
-      <xs:enumeration value="a2_u64"/>      <!-- array of 2 unsigned 64 bit integers -->
       <xs:enumeration value="string"/>      <!-- string -->
       <xs:enumeration value="dlepmac"/>     <!-- MAC address -->
       <xs:enumeration value="u8_string"/>   <!-- unsigned 8 bit integer followed by string -->
       <xs:enumeration value="u8_ipv4"/>     <!-- unsigned 8 bit integer followed by IPv4 address -->
-      <xs:enumeration value="ipv4_u8"/>     <!-- IPv4 address followed by unsigned 8 bit integer -->
       <xs:enumeration value="u8_ipv6"/>     <!-- unsigned 8 bit integer followed by IPv6 address -->
-      <xs:enumeration value="ipv6_u8"/>     <!-- IPv4 address followed by unsigned 8 bit integer -->
-      <xs:enumeration value="u64_u8"/>      <!-- unsigned 8 bit integer followed by IPv6 address -->
       <xs:enumeration value="u16_vu8"/>     <!-- unsigned 16 bit integer followed by variable length
                                                  list of unsigned 8 bit integer -->
       <xs:enumeration value="v_extid"/>     <!-- variable length list of extension IDs -->

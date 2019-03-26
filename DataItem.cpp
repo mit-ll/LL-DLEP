@@ -73,9 +73,6 @@ DataItem::set_default_value(DataItemValueType di_value_type)
         case DataItemValueType::div_a2_u16:
             value = std::array<std::uint16_t, 2> { {0, 0} };
             break;
-        case DataItemValueType::div_a2_u64:
-            value = std::array<std::uint64_t, 2> { {0, 0} };
-            break;
         case DataItemValueType::div_string:
             value = "";
             break;
@@ -88,17 +85,8 @@ DataItem::set_default_value(DataItemValueType di_value_type)
         case DataItemValueType::div_u8_ipv4:
             value = Div_u8_ipv4_t {0, boost::asio::ip::address_v4()};
             break;
-        case DataItemValueType::div_ipv4_u8:
-            value = Div_ipv4_u8_t {boost::asio::ip::address_v4(), 0};
-            break;
         case DataItemValueType::div_u8_ipv6:
             value = Div_u8_ipv6_t {0, boost::asio::ip::address_v6()};
-            break;
-        case DataItemValueType::div_ipv6_u8:
-            value = Div_ipv6_u8_t {boost::asio::ip::address_v6(), 0};
-            break;
-        case DataItemValueType::div_u64_u8:
-            value = Div_u64_u8_t {0, 0};
             break;
         case DataItemValueType::div_u16_vu8:
             value = Div_u16_vu8_t {0, std::vector<std::uint8_t>()};
@@ -253,21 +241,6 @@ public:
         return buf;
     }
 
-    // serialize Div_ipv4_u8_t
-    std::vector<std::uint8_t> operator()(const Div_ipv4_u8_t & operand) const
-    {
-        std::vector<std::uint8_t> buf;
-
-        // to_bytes() returns the bytes in network byte order
-        boost::asio::ip::address_v4::bytes_type ipv4_bytes =
-            operand.field1.to_bytes();
-        buf.insert(buf.end(), ipv4_bytes.begin(), ipv4_bytes.end());
-
-        buf.push_back(operand.field2);
-
-        return buf;
-    }
-
     // serialize Div_u8_ipv6_t
     std::vector<std::uint8_t> operator()(const Div_u8_ipv6_t & operand) const
     {
@@ -279,32 +252,6 @@ public:
         boost::asio::ip::address_v6::bytes_type ipv6_bytes =
             operand.field2.to_bytes();
         buf.insert(buf.end(), ipv6_bytes.begin(), ipv6_bytes.end());
-
-        return buf;
-    }
-
-    // serialize Div_ipv6_u8_t
-    std::vector<std::uint8_t> operator()(const Div_ipv6_u8_t & operand) const
-    {
-        std::vector<std::uint8_t> buf;
-
-        // to_bytes() returns the bytes in network byte order
-        boost::asio::ip::address_v6::bytes_type ipv6_bytes =
-            operand.field1.to_bytes();
-        buf.insert(buf.end(), ipv6_bytes.begin(), ipv6_bytes.end());
-
-        buf.push_back(operand.field2);
-
-        return buf;
-    }
-
-    // serialize Div_u64_u8_t
-    std::vector<std::uint8_t> operator()(const Div_u64_u8_t & operand) const
-    {
-        std::vector<std::uint8_t> buf;
-
-        LLDLEP::serialize(operand.field1, buf);
-        LLDLEP::serialize(operand.field2, buf);
 
         return buf;
     }
@@ -585,11 +532,6 @@ DataItem::deserialize(std::vector<std::uint8_t>::const_iterator & it,
             value = deserialize_array<std::uint16_t, 2>(it, di_end);
             break;
         }
-        case DataItemValueType::div_a2_u64:
-        {
-            value = deserialize_array<std::uint64_t, 2>(it, di_end);
-            break;
-        }
         case DataItemValueType::div_string:
         {
             std::string val;
@@ -623,35 +565,11 @@ DataItem::deserialize(std::vector<std::uint8_t>::const_iterator & it,
             value = val;
             break;
         }
-        case DataItemValueType::div_ipv4_u8:
-        {
-            Div_ipv4_u8_t val;
-            val.field1 = deserialize_ipv4(it, di_end);
-            LLDLEP::deserialize(val.field2, it, di_end);
-            value = val;
-            break;
-        }
         case DataItemValueType::div_u8_ipv6:
         {
             Div_u8_ipv6_t val;
             LLDLEP::deserialize(val.field1, it, di_end);
             val.field2 = deserialize_ipv6(it, di_end);
-            value = val;
-            break;
-        }
-        case DataItemValueType::div_ipv6_u8:
-        {
-            Div_ipv6_u8_t val;
-            val.field1 = deserialize_ipv6(it, di_end);
-            LLDLEP::deserialize(val.field2, it, di_end);
-            value = val;
-            break;
-        }
-        case DataItemValueType::div_u64_u8:
-        {
-            Div_u64_u8_t val;
-            LLDLEP::deserialize(val.field1, it, di_end);
-            LLDLEP::deserialize(val.field2, it, di_end);
             value = val;
             break;
         }
@@ -884,16 +802,6 @@ public:
         return ss.str();
     }
 
-    // to_string Div_ipv4_u8_t
-    std::string operator()(const Div_ipv4_u8_t & operand) const
-    {
-        std::ostringstream ss;
-
-        ss << operand.field1.to_string() << "/"
-           << std::uint64_t(operand.field2);
-        return ss.str();
-    }
-
     // to_string Div_u8_ipv6_t
     std::string operator()(const Div_u8_ipv6_t & operand) const
     {
@@ -901,25 +809,6 @@ public:
 
         ss << std::uint64_t(operand.field1) << ";"
            << operand.field2.to_string();
-        return ss.str();
-    }
-
-    // to_string Div_ipv6_u8_t
-    std::string operator()(const Div_ipv6_u8_t & operand) const
-    {
-        std::ostringstream ss;
-
-        ss << operand.field1.to_string() << "/"
-           << std::uint64_t(operand.field2);
-        return ss.str();
-    }
-
-    // to_string Div_u64_u8_t
-    std::string operator()(const Div_u64_u8_t & operand) const
-    {
-        std::ostringstream ss;
-
-        ss << operand.field1 << ";" << std::uint64_t(operand.field2);
         return ss.str();
     }
 
@@ -1290,17 +1179,6 @@ public:
         return u8ipv4;
     }
 
-    // from_stringstream to Div_ipv4_u8_t
-    DataItemValue operator()(const Div_ipv4_u8_t &  /*operand*/) const
-    {
-        Div_ipv4_u8_t ipv4u8;
-
-        ipv4u8.field1 = parse_ip_addr<boost::asio::ip::address_v4>();
-        check_field_separator();
-        ipv4u8.field2 = parse_uint<decltype(ipv4u8.field2)>();
-        return ipv4u8;
-    }
-
     // from_stringstream to Div_u8_ipv6_t
     DataItemValue operator()(const Div_u8_ipv6_t &  /*operand*/) const
     {
@@ -1310,28 +1188,6 @@ public:
         check_field_separator();
         u8ipv6.field2 = parse_ip_addr<boost::asio::ip::address_v6>();
         return u8ipv6;
-    }
-
-    // from_stringstream to Div_ipv6_u8_t
-    DataItemValue operator()(const Div_ipv6_u8_t &  /*operand*/) const
-    {
-        Div_ipv6_u8_t ipv6u8;
-
-        ipv6u8.field1 = parse_ip_addr<boost::asio::ip::address_v6>();
-        check_field_separator();
-        ipv6u8.field2 = parse_uint<decltype(ipv6u8.field2)>();
-        return ipv6u8;
-    }
-
-    // from_stringstream to Div_u64_u8_t
-    DataItemValue operator()(const Div_u64_u8_t &  /*operand*/) const
-    {
-        Div_u64_u8_t u64u8;
-
-        u64u8.field1 = parse_uint<decltype(u64u8.field1)>();
-        check_field_separator();
-        u64u8.field2 = parse_uint<decltype(u64u8.field2)>();
-        return u64u8;
     }
 
     // from_stringstream to Div_u16_vu8_t
@@ -1594,28 +1450,6 @@ public:
         return "";
     }
 
-    std::string operator()(const Div_ipv4_u8_t & operand) const
-    {
-        if (operand.field2 > 32)
-        {
-            return "subnet mask is " +
-                   std::to_string(std::uint64_t(operand.field2)) +
-                   ", must be <= 32";
-        }
-        return "";
-    }
-
-    std::string operator()(const Div_ipv6_u8_t & operand) const
-    {
-        if (operand.field2 > 128)
-        {
-            return "subnet mask is " +
-                   std::to_string(std::uint64_t(operand.field2)) +
-                   ", must be <= 128";
-        }
-        return "";
-    }
-
     std::string operator()(const Div_u8_ipv4_u8_t & operand) const
     {
         if (operand.field1 > 1)
@@ -1839,25 +1673,11 @@ public:
         return (operand.field2 == other_val.field2);
     }
 
-    bool operator()(const Div_ipv4_u8_t & operand) const
-    {
-        // extract the other value and compare it
-        Div_ipv4_u8_t other_val = boost::get<Div_ipv4_u8_t>(other_div);
-        return (operand.field1 == other_val.field1);
-    }
-
     bool operator()(const Div_u8_ipv6_t & operand) const
     {
         // extract the other value and compare it
         Div_u8_ipv6_t other_val = boost::get<Div_u8_ipv6_t>(other_div);
         return (operand.field2 == other_val.field2);
-    }
-
-    bool operator()(const Div_ipv6_u8_t & operand) const
-    {
-        // extract the other value and compare it
-        Div_ipv6_u8_t other_val = boost::get<Div_ipv6_u8_t>(other_div);
-        return (operand.field1 == other_val.field1);
     }
 
     bool operator()(const Div_u8_ipv4_u8_t & operand) const
@@ -1914,23 +1734,9 @@ public:
         return static_cast<DataItem::IPFlags>(operand.field1);
     }
 
-    DataItem::IPFlags operator()(const Div_ipv4_u8_t &  /*operand*/) const
-    {
-        // This data item value doesn't have an explicit flags field,
-        // so we'll fake the "add" flag.
-        return DataItem::IPFlags::add;
-    }
-
     DataItem::IPFlags operator()(const Div_u8_ipv6_t & operand) const
     {
         return static_cast<DataItem::IPFlags>(operand.field1);
-    }
-
-    DataItem::IPFlags operator()(const Div_ipv6_u8_t &  /*operand*/) const
-    {
-        // This data item value doesn't have an explicit flags field,
-        // so we'll fake the "add" flag.
-        return DataItem::IPFlags::add;
     }
 
     DataItem::IPFlags operator()(const Div_u8_ipv4_u8_t & operand) const
@@ -1986,15 +1792,11 @@ static std::vector<DataItemValueMap::value_type> mapvals
     { DataItemValueType::div_u64, "u64" },
     { DataItemValueType::div_v_u8, "v_u8" },
     { DataItemValueType::div_a2_u16, "a2_u16" },
-    { DataItemValueType::div_a2_u64, "a2_u64" },
     { DataItemValueType::div_string, "string" },
     { DataItemValueType::div_dlepmac, "dlepmac" },
     { DataItemValueType::div_u8_string, "u8_string" },
     { DataItemValueType::div_u8_ipv4, "u8_ipv4" },
-    { DataItemValueType::div_ipv4_u8, "ipv4_u8" },
     { DataItemValueType::div_u8_ipv6, "u8_ipv6" },
-    { DataItemValueType::div_ipv6_u8, "ipv6_u8" },
-    { DataItemValueType::div_u64_u8, "u64_u8" },
     { DataItemValueType::div_u16_vu8, "u16_vu8" },
     { DataItemValueType::div_v_extid, "v_extid" },
     { DataItemValueType::div_u8_ipv4_u16, "u8_ipv4_u16" },

@@ -86,13 +86,6 @@
         </data_item>
 
         <data_item>
-            <name>Credit_Window_Status</name>
-            <type>a2_u64</type>
-            <id>9</id>
-            <metric>false</metric>
-        </data_item>
-
-        <data_item>
             <name>Credit_Grant</name>
             <type>u64</type>
             <id>10</id>
@@ -103,20 +96,6 @@
             <name>Credit_Request</name>
             <type>blank</type>
             <id>11</id>
-            <metric>false</metric>
-        </data_item>
-
-        <data_item>
-            <name>IPv4_Attached_Subnet</name>
-            <type>ipv4_u8</type>
-            <id>13</id>
-            <metric>false</metric>
-        </data_item>
-
-        <data_item>
-            <name>IPv6_Attached_Subnet</name>
-            <type>ipv6_u8</type>
-            <id>14</id>
             <metric>false</metric>
         </data_item>
 
@@ -632,15 +611,6 @@
                 <occurs>0+</occurs>
             </data_item>
 
-            <data_item>
-                <name>IPv4_Attached_Subnet</name>
-                <occurs>0+</occurs>
-            </data_item>
-
-            <data_item>
-                <name>IPv6_Attached_Subnet</name>
-                <occurs>0+</occurs>
-            </data_item>
         </signal>
 
         <signal>
@@ -752,16 +722,6 @@
 
             <data_item>
                 <name>IPv6_Address</name>
-                <occurs>0+</occurs>
-            </data_item>
-
-            <data_item>
-                <name>IPv4_Attached_Subnet</name>
-                <occurs>0+</occurs>
-            </data_item>
-
-            <data_item>
-                <name>IPv6_Attached_Subnet</name>
                 <occurs>0+</occurs>
             </data_item>
         </signal>

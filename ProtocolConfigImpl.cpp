@@ -1533,8 +1533,6 @@ ProtocolConfigImpl::is_ipaddr(DataItemIdType id,
 
     return ((divt == DataItemValueType::div_u8_ipv4)     ||
             (divt == DataItemValueType::div_u8_ipv6)     ||
-            (divt == DataItemValueType::div_ipv4_u8)     ||
-            (divt == DataItemValueType::div_ipv6_u8)     ||
             (divt == DataItemValueType::div_u8_ipv4_u16) ||
             (divt == DataItemValueType::div_u8_ipv6_u16) ||
             (divt == DataItemValueType::div_u8_ipv4_u8)  ||

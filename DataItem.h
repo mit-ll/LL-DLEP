@@ -87,18 +87,6 @@ struct Div_u8_ipv4_t
     }
 };
 
-/// IPv4 Attached Subnet (draft 8)
-struct Div_ipv4_u8_t
-{
-    boost::asio::ip::address_v4 field1;
-    std::uint8_t field2;
-
-    bool operator==(const Div_ipv4_u8_t & other) const
-    {
-        return (field1 == other.field1) && (field2 == other.field2);
-    }
-};
-
 /// IPv6 Address
 struct Div_u8_ipv6_t
 {
@@ -106,30 +94,6 @@ struct Div_u8_ipv6_t
     boost::asio::ip::address_v6 field2;
 
     bool operator==(const Div_u8_ipv6_t & other) const
-    {
-        return (field1 == other.field1) && (field2 == other.field2);
-    }
-};
-
-/// IPv6 Attached Subnet (draft 8)
-struct Div_ipv6_u8_t
-{
-    boost::asio::ip::address_v6 field1;
-    std::uint8_t field2;
-
-    bool operator==(const Div_ipv6_u8_t & other) const
-    {
-        return (field1 == other.field1) && (field2 == other.field2);
-    }
-};
-
-/// extension metric
-struct Div_u64_u8_t
-{
-    std::uint64_t field1;
-    std::uint8_t  field2;
-
-    bool operator==(const Div_u64_u8_t & other) const
     {
         return (field1 == other.field1) && (field2 == other.field2);
     }
@@ -270,15 +234,11 @@ typedef boost::variant <
       // std::array<std::uint8_t, 2>,
       std::array<std::uint16_t, 2>,
       // std::array<std::uint32_t, 2>,
-      std::array<std::uint64_t, 2>,
       std::string,
       LLDLEP::DlepMac,
       Div_u8_string_t,
       Div_u8_ipv4_t,
-      Div_ipv4_u8_t,
       Div_u8_ipv6_t,
-      Div_ipv6_u8_t,
-      Div_u64_u8_t,
       Div_u16_vu8_t,
       Div_v_extid_t,
       Div_u8_ipv4_u16_t,
@@ -302,15 +262,11 @@ enum class DataItemValueType
     div_u64,         ///< unsigned 64 bit integer
     div_v_u8,        ///< variable length list of unsigned 8 bit integer
     div_a2_u16,      ///< array of 2 unsigned 16 bit integers
-    div_a2_u64,      ///< array of 2 unsigned 64 bit integers
     div_string,      ///< string
     div_dlepmac,     ///< MAC address
     div_u8_string,   ///< unsigned 8 bit integer followed by string
     div_u8_ipv4,     ///< unsigned 8 bit integer followed by IPv4 address
-    div_ipv4_u8,     ///< IPv4 address followed by unsigned 8 bit integer
     div_u8_ipv6,     ///< unsigned 8 bit integer followed by IPv6 address
-    div_ipv6_u8,     ///< IPv6 address followed by unsigned 8 bit integer
-    div_u64_u8,      ///< unsigned 64 bit int followed by unsigned 8 bit int
     div_u16_vu8,     ///< unsigned 16 bit integer followed by variable length
                      ///< list of unsigned 8 bit integer
     div_v_extid,     ///< variable length list of extension IDs
