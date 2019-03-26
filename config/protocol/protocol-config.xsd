@@ -20,6 +20,7 @@
       <xs:enumeration value="u32"/>         <!-- unsigned 32 bit integer -->
       <xs:enumeration value="u64"/>         <!-- unsigned 64 bit integer -->
       <xs:enumeration value="v_u8"/>        <!-- variable length list of unsigned 8 bit integer -->
+      <xs:enumeration value="v_u32"/>       <!-- variable length list of unsigned 32 bit integer -->
       <xs:enumeration value="a2_u16"/>      <!-- array of 2 unsigned 16 bit integers -->
       <xs:enumeration value="string"/>      <!-- string -->
       <xs:enumeration value="dlepmac"/>     <!-- MAC address -->

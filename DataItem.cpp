@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2015, 2016, 2018 Massachusetts Institute of Technology
+ * Copyright (C) 2015, 2016, 2018, 2019 Massachusetts Institute of Technology
  */
 
 #include <sstream>
@@ -69,6 +69,9 @@ DataItem::set_default_value(DataItemValueType di_value_type)
             break;
         case DataItemValueType::div_v_u8:
             value = std::vector<std::uint8_t>();
+            break;
+        case DataItemValueType::div_v_u32:
+            value = std::vector<std::uint32_t>();
             break;
         case DataItemValueType::div_a2_u16:
             value = std::array<std::uint16_t, 2> { {0, 0} };
@@ -521,6 +524,18 @@ DataItem::deserialize(std::vector<std::uint8_t>::const_iterator & it,
             while (it < di_end)
             {
                 std::uint8_t ui;
+                LLDLEP::deserialize(ui, it, di_end);
+                val.push_back(ui);
+            }
+            value = val;
+            break;
+        }
+        case DataItemValueType::div_v_u32:
+        {
+            std::vector<std::uint32_t> val;
+            while (it < di_end)
+            {
+                std::uint32_t ui;
                 LLDLEP::deserialize(ui, it, di_end);
                 val.push_back(ui);
             }
@@ -1791,6 +1806,7 @@ static std::vector<DataItemValueMap::value_type> mapvals
     { DataItemValueType::div_u32, "u32" },
     { DataItemValueType::div_u64, "u64" },
     { DataItemValueType::div_v_u8, "v_u8" },
+    { DataItemValueType::div_v_u32, "v_u32" },
     { DataItemValueType::div_a2_u16, "a2_u16" },
     { DataItemValueType::div_string, "string" },
     { DataItemValueType::div_dlepmac, "dlepmac" },

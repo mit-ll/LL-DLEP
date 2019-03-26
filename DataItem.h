@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2015, 2016, 2018 Massachusetts Institute of Technology
+ * Copyright (C) 2015, 2016, 2018, 2019 Massachusetts Institute of Technology
  */
 
 /// @file
@@ -55,7 +55,12 @@ class ProtocolConfig;
 /// with a built-in type has a structure defined below.  These
 /// structures do NOT represent the exact bits-on-the-wire form of the
 /// data item; they are for internal use only.  DataItem.serialize()
-/// converts these structures to wire format.
+/// converts these structures to wire format.  Reserved fields used
+/// for padding are not represented in these structures; they are
+/// accounted for at serialization/deserialization time.  Similarly,
+/// fields indicating the number of elements in a vector are also not
+/// represented here.  We use a std::vector for such fields, and the
+/// vector's size() is used to fill in the count field.
 ///
 /// The field names in the structures are generic (field1, field2, etc.)
 /// because each value type could be used for more than one data item
@@ -212,12 +217,15 @@ struct Div_sub_data_items_t
 ///
 /// If a new data item must be supported that has a value type that is
 /// different from all of the existing ones, you will have to add a
-/// new type to this variant.  In this case, you must also update:
-/// - enum DataItemValueType below
+/// new type to this boost::variant.  If the value is not a simple type,
+/// you should add a struct Div_xyz_t to hold the value; see examples above.
+/// Then you must update:
+/// - enum DataItemValueType below to add the new type
 /// - to/from_string support for the new DataItemValueType enum value
 /// - any switch statements that use DataItemValueType as the control variable
 /// - boost::variant visitor classes that use this variant (DataItem.cpp)
 /// - DataItemValueType in config/protocol/protocol-config.xsd
+/// - DataItemValueMap in DataItem.cpp
 /// - if the data item contains an IP address field,
 ///   ProtocolConfigImpl::is_ipaddr()
 /// - add a test case to tests/dataitems.cpp
@@ -229,7 +237,7 @@ typedef boost::variant <
       std::uint64_t,
       std::vector<std::uint8_t>,
       // std::vector<std::uint16_t>,
-      // std::vector<std::uint32_t>,
+      std::vector<std::uint32_t>,
       // std::vector<std::uint64_t>,
       // std::array<std::uint8_t, 2>,
       std::array<std::uint16_t, 2>,
@@ -261,6 +269,7 @@ enum class DataItemValueType
     div_u32,         ///< unsigned 32 bit integer
     div_u64,         ///< unsigned 64 bit integer
     div_v_u8,        ///< variable length list of unsigned 8 bit integer
+    div_v_u32,        ///< variable length list of unsigned 32 bit integer
     div_a2_u16,      ///< array of 2 unsigned 16 bit integers
     div_string,      ///< string
     div_dlepmac,     ///< MAC address
