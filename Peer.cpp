@@ -2109,3 +2109,21 @@ Peer::validate_ip_data_items(const DataItems & new_data_items,
 
     return "";
 }
+
+bool
+Peer::extension_is_active(const std::string & extension_name)
+{
+    try
+    {
+        ProtocolConfig::ModuleInfo module =
+            dlep->protocfg->get_module_info(extension_name);
+        auto it = std::find(std::begin(mutual_extensions),
+                            std::end(mutual_extensions),
+                            module.extension_id);
+        return (it != mutual_extensions.end());
+    }
+    catch (const ProtocolConfig::BadModuleName &)
+    {
+        return false;
+    }
+}

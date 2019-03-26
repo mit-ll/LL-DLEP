@@ -280,6 +280,9 @@ private:
     void set_state(PeerState);
     void set_state_terminating();
 
+    // Determine if a named extension is in use for this peer.
+    bool extension_is_active(const std::string & extension_name);
+
     // Destination endpoint to send to peer
     boost::asio::ip::tcp::endpoint peer_endpoint_tcp;
 
