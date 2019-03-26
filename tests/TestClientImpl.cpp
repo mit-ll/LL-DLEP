@@ -497,6 +497,45 @@ TestClientImpl::set_loopback_iface(std::string & param_name)
     freeifaddrs(ifaddr);
 }
 
+bool
+TestClientImpl::peer_init(const std::string & peer_id,
+                          LLDLEP::DataItems & data_items)
+{
+    bool modified = false;
+    if (modify_peer_init_peer_type)
+    {
+        for (auto & di : data_items)
+        {
+            if (di.name() == LLDLEP::ProtocolStrings::Peer_Type)
+            {
+                // In earlier drafts of DLEP, the peer type data item is just a
+                // string.  In later drafts, it's a uint8 followed by a string.
+                // We need to handle both.
+
+                LLDLEP::DataItemValueType div_type = di.get_type();
+                if (div_type == LLDLEP::DataItemValueType::div_string)
+                {
+                    std::string peer_type = boost::get<std::string>(di.value);
+                    peer_type = "modified " + peer_type;
+                    di.value = peer_type;
+                }
+                else
+                {
+                    LLDLEP::Div_u8_string_t peer_val =
+                        boost::get<LLDLEP::Div_u8_string_t>(di.value);
+                    peer_val.field2 = "modified " + peer_val.field2;
+                    di.value = peer_val;
+                }
+
+                modified = true;
+            }
+        }
+    }
+
+    peer_init_waiter.notify(data_items);
+    return modified;
+}
+
 void
 TestClientImpl::peer_up(const LLDLEP::PeerInfo & peer_info)
 {

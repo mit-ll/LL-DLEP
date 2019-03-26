@@ -240,6 +240,48 @@ BOOST_AUTO_TEST_CASE(peering_router_then_modem)
     }
 }
 
+// Test modifying data items at peer init time
+BOOST_AUTO_TEST_CASE(peer_init_modify_data_item)
+{
+    for (const auto & cf : config_files)
+    {
+        BOOST_TEST_MESSAGE(__FILE__ << ":" << __LINE__
+                           << ": modem config file=" << cf.modem_config_file
+                           << " router config file=" << cf.router_config_file);
+
+        // create our modem client
+        TestClientImpl modem_client;
+        BOOST_REQUIRE(modem_client.parse_config_file(
+                          cf.modem_config_file.c_str()));
+        // Tell the modem client to modify peer_type in the session
+        // initialization
+        modem_client.modify_peer_init_peer_type = true;
+
+        // create our router client
+        TestClientImpl router_client;
+        BOOST_REQUIRE(router_client.parse_config_file(
+                          cf.router_config_file.c_str()));
+
+        router_client.peer_up_waiter.prepare_to_wait();
+        DlepServiceFixture router_fixture(router_client);
+
+        // give the router time to start
+        sleep(3);
+
+        DlepServiceFixture modem_fixture(modem_client);
+
+        // check that the modem and router peer up
+        BOOST_CHECK(router_client.peer_up_waiter.wait_for_client_call());
+
+        const LLDLEP::PeerInfo & peer_info =
+            router_client.peer_up_waiter.get_result();
+
+        BOOST_TEST_MESSAGE("peer_type=" << peer_info.peer_type);
+        // peer_type should start with "modified"
+        BOOST_CHECK_EQUAL(peer_info.peer_type.rfind("modified", 0), 0);
+    }
+}
+
 // Tests of peer update sent by modem
 BOOST_AUTO_TEST_CASE(peer_update_from_modem)
 {

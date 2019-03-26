@@ -40,6 +40,11 @@ public:
     void add_mac(const LLDLEP::DlepMac & mac);
     void add_common_data_items(LLDLEP::DlepClient & dlep_client);
 
+    // clear all data items from the message, leaving just the header
+    void clear_data_items();
+    std::string rebuild_from_data_items(bool modem_sender,
+                                        DataItems & rebuild_data_items);
+    
     // low-level buffer manipulation
 
     static const unsigned int MAX_SIGNAL_SIZE = (1024 * 64);

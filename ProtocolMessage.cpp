@@ -399,6 +399,45 @@ ProtocolMessage::add_common_data_items(DlepClient & dlep_client)
     } // for each data item supported by this signal
 }
 
+void
+ProtocolMessage::clear_data_items()
+{
+    assert(header_length > 0);
+
+    // wipe out the previously serialized data items, leaving the
+    // message header in place
+
+    msgbuf.resize(header_length);
+    update_message_length();
+
+    // clear out the message's vector of data items
+
+    data_items.clear();
+}
+
+std::string
+ProtocolMessage::rebuild_from_data_items(bool modem_sender,
+                                         DataItems & rebuild_data_items)
+{
+    // try to ensure that this really is a message rebuild
+
+    if (! signal_id_initialized)
+    {
+        throw SignalIdNotInitialized(std::to_string(signal_id));
+    }
+
+    clear_data_items();
+
+    // re-add all of the current data items
+    
+    add_data_items(rebuild_data_items);
+
+    // re-parse the serialized data items and validate so any problems
+    // get logged
+
+    return parse_and_validate(modem_sender, __func__);
+}
+
 const std::uint8_t *
 ProtocolMessage::get_buffer() const
 {

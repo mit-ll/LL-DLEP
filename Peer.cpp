@@ -798,6 +798,15 @@ Peer::start_peer()
         err = pm.parse_and_validate(dlep->is_modem(), __func__);
         assert(err == "");
 
+        // Give the client a chance to modify the data items in the message.
+        // If modified, rebuild the message with the new data items.
+
+        DataItems data_items = pm.get_data_items();
+        if (dlep->dlep_client.peer_init(peer_id, data_items))
+        {
+            pm.rebuild_from_data_items(dlep->is_modem(), data_items);
+        }
+
         ResponsePendingPtr rp(new ResponsePending(dlep->protocfg, pm));
         send_message_expecting_response(rp);
     }
@@ -1076,6 +1085,15 @@ Peer::send_peer_initialization_response()
     // drastic (assert/throw/exit) if it fails.
 
     pm.parse_and_validate(dlep->is_modem(), __func__);
+
+    // Give the client a chance to modify the data items in the message.
+    // If modified, rebuild the message with the new data items.
+
+    DataItems data_items = pm.get_data_items();
+    if (dlep->dlep_client.peer_init(peer_id, data_items))
+    {
+        pm.rebuild_from_data_items(dlep->is_modem(), data_items);
+    }
 
     if (should_send_response(ProtocolStrings::Session_Initialization_Response))
     {

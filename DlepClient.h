@@ -115,6 +115,24 @@ public:
             parameter_name(pn) {}
     };
 
+    /// Give the client a chance to modify the data items sent during
+    /// session establishment.
+    ///
+    /// @param[in] peer_id
+    ///            uniquely identifies the peer
+    /// @param[in] data_items
+    ///            Proposed data items that will be sent to the peer.
+    ///            If Dlep is configured as a router, these data
+    ///            items are sent in a Session Initialization message.
+    ///            If Dlep is configured as a modem, these data
+    ///            items are sent in a Session Initialization Response
+    ///            message.  The client can add, change, or remove any
+    ///            data items from the list.
+    /// @return
+    ///         true if the data_items were modified, else false
+    virtual bool peer_init(const std::string & peer_id,
+                           DataItems & data_items) {return false;}
+
     /// Notify the client that a new peer session is up.
     /// @param[in] peer_info
     ///            contains detailed information about the peer

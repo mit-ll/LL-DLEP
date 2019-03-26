@@ -37,6 +37,10 @@ public:
     void get_config_parameter(const std::string & parameter_name,
                               std::vector<unsigned int> * value) override;
 
+    bool peer_init(const std::string & peer_id,
+                   LLDLEP::DataItems & data_items) override;
+    bool modify_peer_init_peer_type = false;
+
     void peer_up(const LLDLEP::PeerInfo & peer_info) override;
 
     void peer_update(const std::string & peer_id,
@@ -187,6 +191,7 @@ public:
 
     // Waiters for various DlepClient methods
 
+    ClientCallWaiter<LLDLEP::DataItems> peer_init_waiter;
     ClientCallWaiter<LLDLEP::PeerInfo> peer_up_waiter;
     ClientCallWaiter<std::string> peer_down_waiter;
     ClientCallWaiter<std::string> peer_update_waiter;

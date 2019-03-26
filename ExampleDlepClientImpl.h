@@ -39,6 +39,9 @@ public:
 
     void print_peer_info(const LLDLEP::PeerInfo & peer_info);
 
+    bool peer_init(const std::string & peer_id,
+                   LLDLEP::DataItems & data_items) override;
+
     void peer_up(const LLDLEP::PeerInfo & peer_info) override;
 
     void peer_update(const std::string & peer_id,

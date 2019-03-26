@@ -687,6 +687,15 @@ DlepClientImpl::print_peer_info(const LLDLEP::PeerInfo & peer_info)
     }
 }
 
+bool
+DlepClientImpl::peer_init(const std::string & peer_id,
+                          LLDLEP::DataItems & data_items)
+{
+    std::cout << lib_color << "peer id = " << peer_id  << std::endl;
+    print_data_items("session init data items to send:", data_items);
+    return false; // no change
+}
+
 void
 DlepClientImpl::peer_up(const LLDLEP::PeerInfo & peer_info)
 {
