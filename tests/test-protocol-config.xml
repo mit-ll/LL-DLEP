@@ -284,6 +284,32 @@
             </sub_data_item>
         </data_item>
 
+        <data_item>
+            <name>Test_parent_data_item_u16</name>
+            <type>u16_sub_data_items</type>
+            <id>251</id>
+            <metric>false</metric>
+            <sub_data_item>
+                <name>Test_u64_1</name>
+                <id>1</id>
+                <occurs>1</occurs>
+            </sub_data_item>
+            <sub_data_item>
+                <name>Test_u64_0-1</name>
+                <occurs>0-1</occurs>
+            </sub_data_item>
+            <sub_data_item>
+                <name>Test_u64_0+</name>
+                <id>3</id>
+                <occurs>0+</occurs>
+            </sub_data_item>
+            <sub_data_item>
+                <name>Test_u64_1+</name>
+                <id>4</id>
+                <occurs>1+</occurs>
+            </sub_data_item>
+        </data_item>
+
         <!-- Signals -->
 
         <signal>

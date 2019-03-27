@@ -115,6 +115,9 @@ DataItem::set_default_value(DataItemValueType di_value_type)
         case DataItemValueType::div_sub_data_items:
             value = Div_sub_data_items_t {std::vector<DataItem>()};
             break;
+        case DataItemValueType::div_u16_sub_data_items:
+            value = Div_u16_sub_data_items_t {0, std::vector<DataItem>()};
+            break;
     }
 }
 
@@ -357,18 +360,47 @@ public:
         return buf;
     }
 
-    // serialize Div_sub_data_items_t
-    std::vector<std::uint8_t> operator()(const Div_sub_data_items_t & operand) const
+    // helper function to be used by any data item value that includes
+    // a list of sub data items
+    std::vector<std::uint8_t> serialize_sub_data_items(
+        const std::vector<DataItem> & sub_data_items,
+        std::vector<std::uint8_t> & buf) const
     {
-        std::vector<std::uint8_t> buf;
-
-        for (const DataItem & sdi : operand.sub_data_items)
+        for (const DataItem & sdi : sub_data_items)
         {
             std::vector<std::uint8_t> one_serialized_sdi = sdi.serialize();
             buf.insert(buf.end(), 
                        one_serialized_sdi.begin(), one_serialized_sdi.end());
         }
         return buf;
+    }
+
+    // serialize Div_sub_data_items_t
+    std::vector<std::uint8_t> operator()(const Div_sub_data_items_t & operand) const
+    {
+        std::vector<std::uint8_t> buf;
+        return serialize_sub_data_items(operand.sub_data_items, buf);
+    }
+
+    // serialize Div_u16_sub_data_items_t
+    std::vector<std::uint8_t> operator()(const Div_u16_sub_data_items_t & operand) const
+    {
+        std::vector<std::uint8_t> buf;
+
+        // check number of sub data items
+
+        unsigned int num_sdis = operand.sub_data_items.size();
+        if (num_sdis > 255)
+        {
+            throw std::out_of_range(
+                "number of sub data items is " + std::to_string(num_sdis) +
+                ", must be <= 255");
+        }
+
+        LLDLEP::serialize(operand.field1, buf);
+        buf.push_back(std::uint8_t(num_sdis));
+        buf.push_back(0); // reserved, must be zero
+        return serialize_sub_data_items(operand.sub_data_items, buf);
     }
 
 private:
@@ -454,6 +486,25 @@ DataItem::deserialize_array(std::vector<std::uint8_t>::const_iterator & it,
     }
     return val;
 }
+
+
+DataItems
+DataItem::deserialize_sub_data_items(
+    std::vector<std::uint8_t>::const_iterator & it,
+    std::vector<std::uint8_t>::const_iterator di_end,
+    const DataItemInfo * di_info,
+    const ProtocolConfig * protocfg)
+{
+    DataItems val;
+    while (it < di_end)
+    {
+        DataItem sdi(protocfg);
+        sdi.deserialize(it, di_end, di_info);
+        val.push_back(sdi);
+    }
+    return val;
+}
+
 
 void
 DataItem::deserialize(std::vector<std::uint8_t>::const_iterator & it,
@@ -687,11 +738,33 @@ DataItem::deserialize(std::vector<std::uint8_t>::const_iterator & it,
         case DataItemValueType::div_sub_data_items:
         {
             Div_sub_data_items_t val;
-            while (it < di_end)
+            val.sub_data_items =
+                deserialize_sub_data_items(it, di_end, &di_info, protocfg);
+            value = val;
+            break;
+        }
+
+        case DataItemValueType::div_u16_sub_data_items:
+        {
+            Div_u16_sub_data_items_t val;
+            LLDLEP::deserialize(val.field1, it, di_end);
+            std::uint8_t num_sdis, reserved;
+            LLDLEP::deserialize(num_sdis, it, di_end);
+            LLDLEP::deserialize(reserved, it, di_end);
+            if (reserved != 0)
             {
-                DataItem sdi(protocfg);
-                sdi.deserialize(it, di_end, &di_info);
-                val.sub_data_items.push_back(sdi);
+                throw std::out_of_range(
+                    "reserved byte is " + std::to_string(reserved) +
+                    ", must be 0");
+            }
+            val.sub_data_items =
+                deserialize_sub_data_items(it, di_end, &di_info, protocfg);
+            if (val.sub_data_items.size() != num_sdis)
+            {
+                throw std::length_error(
+                    "number of sub data items is " +
+                    std::to_string(val.sub_data_items.size()) +
+                    ", expected " + std::to_string(num_sdis));
             }
             value = val;
             break;
@@ -906,18 +979,33 @@ public:
         return ss.str();
     }
 
+    void sub_data_items_to_string(const std::vector<DataItem> & sub_data_items,
+                                  std::ostringstream & ss) const
+    {
+        ss << "{ ";
+        for (const DataItem & sdi : sub_data_items)
+        {
+            ss << sdi.to_string(parent_di_info) << " ";
+        }
+        ss << "} ";
+    }
+
     // to_string Div_sub_data_items_t
     std::string operator()(const Div_sub_data_items_t & operand) const
     {
         std::ostringstream ss;
 
-        ss << "{ ";
-        for (const DataItem & sdi : operand.sub_data_items)
-        {
-            ss << sdi.to_string(parent_di_info) << " ";
-        }
-        ss << "} ";
+        sub_data_items_to_string(operand.sub_data_items, ss);
+        return ss.str();
+    }
 
+    // to_string Div_u16_sub_data_items_t
+    std::string operator()(const Div_u16_sub_data_items_t & operand) const
+    {
+        std::ostringstream ss;
+
+        ss << operand.field1 << ";";
+        sub_data_items_to_string(operand.sub_data_items, ss);
         return ss.str();
     }
 
@@ -934,7 +1022,7 @@ DataItem::to_string(const DataItemInfo * parent_di_info) const
 
     ss << di_name << " ";
 
-    if (di_info.value_type == DataItemValueType::div_sub_data_items)
+    if (di_info.sub_data_items.size() > 0)
     {
         parent_di_info = &di_info;
     }
@@ -970,6 +1058,23 @@ skip_whitespace(std::istringstream & ss)
     }
 }
 
+static bool
+is_field_separator(char c)
+{
+    return ((c == ';') || (c == '/'));
+}
+
+// Make sure the next character in ss is a field separator and
+// that there are more characters after it.
+static void
+check_field_separator(std::istringstream & ss)
+{
+    if (! is_field_separator(ss.get()) || ! ss)
+    {
+        throw std::invalid_argument("expected field separator");
+    }
+}
+
 class DataItemValueFromStringStreamVisitor :
     public boost::static_visitor<DataItemValue>
 {
@@ -978,21 +1083,6 @@ public:
     explicit DataItemValueFromStringStreamVisitor(std::istringstream & ss,
                                                   const std::string & value_type_name) :
         ss(ss), value_type_name(value_type_name) {}
-
-    bool is_field_separator(char c) const
-    {
-        return ((c == ';') || (c == '/'));
-    }
-
-    // Make sure the next character in ss is a field separator and
-    // that there are more characters after it.
-    void check_field_separator() const
-    {
-        if (! is_field_separator(ss.get()) || ! ss)
-        {
-            throw std::invalid_argument("expected field separator");
-        }
-    }
 
     template <typename T>
     T parse_uint() const
@@ -1162,7 +1252,7 @@ public:
         Div_u8_string_t u8str;
 
         u8str.field1 = parse_uint<decltype(u8str.field1)>();
-        check_field_separator();
+        check_field_separator(ss);
         // Get the rest of the stream as one string, possibly empty
         ss >> u8str.field2;
         return u8str;
@@ -1200,7 +1290,7 @@ public:
         Div_u8_ipv4_t u8ipv4;
 
         u8ipv4.field1 = parse_uint<decltype(u8ipv4.field1)>();
-        check_field_separator();
+        check_field_separator(ss);
         u8ipv4.field2 = parse_ip_addr<boost::asio::ip::address_v4>();
         return u8ipv4;
     }
@@ -1211,7 +1301,7 @@ public:
         Div_u8_ipv6_t u8ipv6;
 
         u8ipv6.field1 = parse_uint<decltype(u8ipv6.field1)>();
-        check_field_separator();
+        check_field_separator(ss);
         u8ipv6.field2 = parse_ip_addr<boost::asio::ip::address_v6>();
         return u8ipv6;
     }
@@ -1222,7 +1312,7 @@ public:
         Div_u16_vu8_t u16vu8;
 
         u16vu8.field1 = parse_uint<decltype(u16vu8.field1)>();
-        check_field_separator();
+        check_field_separator(ss);
         u16vu8.field2 = parse_vector<std::uint8_t>();
         return u16vu8;
     }
@@ -1243,9 +1333,9 @@ public:
         Div_u8_ipv4_u16_t u8ipv4u16;
 
         u8ipv4u16.field1 = parse_uint<decltype(u8ipv4u16.field1)>();
-        check_field_separator();
+        check_field_separator(ss);
         u8ipv4u16.field2 = parse_ip_addr<boost::asio::ip::address_v4>();
-        check_field_separator();
+        check_field_separator(ss);
         u8ipv4u16.field3 = parse_uint<decltype(u8ipv4u16.field3)>();
         return u8ipv4u16;
     }
@@ -1256,9 +1346,9 @@ public:
         Div_u8_ipv6_u16_t u8ipv6u16;
 
         u8ipv6u16.field1 = parse_uint<decltype(u8ipv6u16.field1)>();
-        check_field_separator();
+        check_field_separator(ss);
         u8ipv6u16.field2 = parse_ip_addr<boost::asio::ip::address_v6>();
-        check_field_separator();
+        check_field_separator(ss);
         u8ipv6u16.field3 = parse_uint<decltype(u8ipv6u16.field3)>();
         return u8ipv6u16;
     }
@@ -1269,9 +1359,9 @@ public:
         Div_u8_ipv4_u8_t u8ipv4u8;
 
         u8ipv4u8.field1 = parse_uint<decltype(u8ipv4u8.field1)>();
-        check_field_separator();
+        check_field_separator(ss);
         u8ipv4u8.field2 = parse_ip_addr<boost::asio::ip::address_v4>();
-        check_field_separator();
+        check_field_separator(ss);
         u8ipv4u8.field3 = parse_uint<decltype(u8ipv4u8.field3)>();
         return u8ipv4u8;
     }
@@ -1282,9 +1372,9 @@ public:
         Div_u8_ipv6_u8_t u8ipv6u8;
 
         u8ipv6u8.field1 = parse_uint<decltype(u8ipv6u8.field1)>();
-        check_field_separator();
+        check_field_separator(ss);
         u8ipv6u8.field2 = parse_ip_addr<boost::asio::ip::address_v6>();
-        check_field_separator();
+        check_field_separator(ss);
         u8ipv6u8.field3 = parse_uint<decltype(u8ipv6u8.field3)>();
         return u8ipv6u8;
     }
@@ -1295,7 +1385,7 @@ public:
         Div_u64_u64_t u64u64;
 
         u64u64.field1 = parse_uint<decltype(u64u64.field1)>();
-        check_field_separator();
+        check_field_separator(ss);
         u64u64.field2 = parse_uint<decltype(u64u64.field2)>();
         return u64u64;
     }
@@ -1306,6 +1396,15 @@ public:
     DataItemValue operator()(const Div_sub_data_items_t &  /*operand*/) const
     {
         Div_sub_data_items_t sdi;
+        return sdi;
+    }
+
+    // from_stringstream to Div_u16_sub_data_items_t
+    // This should never get called because sub data items are handled
+    // directly in from_istringstream()
+    DataItemValue operator()(const Div_u16_sub_data_items_t &  /*operand*/) const
+    {
+        Div_u16_sub_data_items_t sdi;
         return sdi;
     }
 
@@ -1335,6 +1434,37 @@ DataItem::value_from_string(const std::string & str)
     value_from_istringstream(ss);
 }
 
+DataItems
+DataItem::sub_data_items_from_istringstream(std::istringstream & ss,
+                                            const DataItemInfo & di_info)
+{
+    DataItems vsubdi;
+    std::string token;
+
+    ss >> token;
+    if (token != "{" )
+    {
+        if (ss.eof())
+        {
+            token = "end of line";
+        }
+        throw std::invalid_argument("expected {, not " + token);
+    }
+
+    skip_whitespace(ss);
+    while (ss.peek() != '}')
+    {
+        DataItem subdi(protocfg);
+        subdi.from_istringstream(ss, &di_info);
+        vsubdi.push_back(subdi);
+        skip_whitespace(ss);
+    }
+    // skip the closing }
+    ss.ignore();
+
+    return vsubdi;
+}
+
 void
 DataItem::from_istringstream(std::istringstream & ss,
                              const DataItemInfo * parent_di_info)
@@ -1352,28 +1482,22 @@ DataItem::from_istringstream(std::istringstream & ss,
     if (di_info.value_type == DataItemValueType::div_sub_data_items)
     {
         Div_sub_data_items_t div;
-        std::string token;
+        div.sub_data_items = sub_data_items_from_istringstream(ss, di_info);
+        value = div;
+    }
+    else if (di_info.value_type == DataItemValueType::div_u16_sub_data_items)
+    {
+        Div_u16_sub_data_items_t div;
 
-        ss >> token;
-        if (token != "{" )
-        {
-            if (ss.eof())
-            {
-                token = "end of line";
-            }
-            throw std::invalid_argument("expected {, not " + token);
-        }
+        // Extract a u16 value from the ss stream and put it in div.field1
+        
+        DataItem di_u16(protocfg);
+        di_u16.set_default_value(DataItemValueType::div_u16);
+        di_u16.value_from_istringstream(ss);
+        div.field1 = boost::get<std::uint16_t>(di_u16.value);
 
-        skip_whitespace(ss);
-        while (ss.peek() != '}')
-        {
-            DataItem subdi(protocfg);
-            subdi.from_istringstream(ss, &di_info);
-            div.sub_data_items.push_back(subdi);
-            skip_whitespace(ss);
-        }
-        // skip the closing }
-        ss.ignore();
+        check_field_separator(ss);
+        div.sub_data_items = sub_data_items_from_istringstream(ss, di_info);
         value = div;
     }
     else // value does not contain sub data items
@@ -1510,13 +1634,14 @@ public:
         return "";
     }
 
-    std::string operator()(const Div_sub_data_items_t & operand) const
+    std::string validate_sub_data_items(
+        const std::vector<DataItem> & sub_data_items) const
     {
         std::string err;
 
         // validate each of the sub data items
 
-        for (const DataItem & sdi : operand.sub_data_items)
+        for (const DataItem & sdi : sub_data_items)
         {
             err = sdi.validate(di_info);
             if (err != "")
@@ -1525,14 +1650,24 @@ public:
             }
         }
 
-    // If we haven't found an error, check the number and kind of sub data
-    // items in the data item against what is allowed for this data item.
+        // If we haven't found an error, check the number and kind of sub data
+        // items in the data item against what is allowed for this data item.
 
-        err = DataItem::validate_occurrences(operand.sub_data_items,
+        err = DataItem::validate_occurrences(sub_data_items,
                                              di_info->sub_data_items,
                                              protocfg,
                                              di_info);
         return err;
+    }
+
+    std::string operator()(const Div_sub_data_items_t & operand) const
+    {
+        return validate_sub_data_items(operand.sub_data_items);
+    }
+
+    std::string operator()(const Div_u16_sub_data_items_t & operand) const
+    {
+        return validate_sub_data_items(operand.sub_data_items);
     }
 
 private:
@@ -1831,7 +1966,8 @@ static std::vector<DataItemValueMap::value_type> mapvals
     { DataItemValueType::div_u8_ipv4_u8, "u8_ipv4_u8" },
     { DataItemValueType::div_u8_ipv6_u8, "u8_ipv6_u8" },
     { DataItemValueType::div_u64_u64, "u64_u64" },
-    { DataItemValueType::div_sub_data_items, "sub_data_items" }
+    { DataItemValueType::div_sub_data_items, "sub_data_items" },
+    { DataItemValueType::div_u16_sub_data_items, "u16_sub_data_items" }
 };
 
 static DataItemValueMap data_item_value_type_map(mapvals.begin(),

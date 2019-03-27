@@ -472,10 +472,12 @@ BOOST_AUTO_TEST_CASE(dataitem_u16_vu8)
     }
 }
 
-BOOST_AUTO_TEST_CASE(dataitem_with_sub_data_items)
+template <typename Div_SubDataItem_t>
+static void
+test_dataitem_with_sub_data_items(const std::string & di_name,
+                                  unsigned int additional_fields_size,
+                                  DataItemValueType di_type)
 {
-    const std::string di_name = "Test_parent_data_item";
-    DataItemValueType di_type = DataItemValueType::div_sub_data_items;
     ProtocolConfig * protocfg = get_protocol_config();
     DataItemInfo di_info = protocfg->get_data_item_info(di_name);
 
@@ -512,7 +514,8 @@ BOOST_AUTO_TEST_CASE(dataitem_with_sub_data_items)
         { "remfirst", di_u64_1,   false },
     };
 
-    Div_sub_data_items_t div;
+    Div_SubDataItem_t div;
+    // header size of each sub data item
     const std::size_t serialized_value_header_size =
         protocfg->get_data_item_id_size() +
         protocfg->get_data_item_length_size();
@@ -532,13 +535,34 @@ BOOST_AUTO_TEST_CASE(dataitem_with_sub_data_items)
             div.sub_data_items.erase(div.sub_data_items.begin());
         }
 
-        std::size_t s = div.sub_data_items.size() *
-            (serialized_value_header_size + sizeof(std::uint64_t));
+        // we've made each sub data item be a uint64 in
+        // test-protocol-config so the length calculation here is easy
 
-        test_dataitem<Div_sub_data_items_t>(di_name, di_type, s, div, m.valid);
+        std::size_t one_sub_data_item_size =
+            serialized_value_header_size + sizeof(std::uint64_t);
+
+        std::size_t s = additional_fields_size +
+            div.sub_data_items.size() * one_sub_data_item_size;
+
+        test_dataitem<Div_SubDataItem_t>(di_name, di_type, s, div, m.valid);
     }
 
     delete protocfg;
+}
+
+BOOST_AUTO_TEST_CASE(dataitem_with_sub_data_items)
+{
+    test_dataitem_with_sub_data_items<Div_sub_data_items_t>(
+        "Test_parent_data_item", 0,
+        DataItemValueType::div_sub_data_items);
+}
+
+BOOST_AUTO_TEST_CASE(dataitem_with_u16_sub_data_items)
+{
+    test_dataitem_with_sub_data_items<Div_u16_sub_data_items_t>(
+        "Test_parent_data_item_u16",
+        sizeof(std::uint16_t) * 2, // uint16 field1 + 2 reserved bytes
+        DataItemValueType::div_u16_sub_data_items);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -53,7 +53,8 @@ check_header_size(ProtocolMessage & pm, ProtocolConfig * protocfg)
 
 
 static void
-check_serialization(ProtocolMessage & pm, bool modem_sender,
+check_serialization(ProtocolMessage & pm, const DataItems & data_items,
+                    bool modem_sender,
                     ProtocolConfig * protocfg)
 {
     std::uint32_t sender_flag = 0;
@@ -70,6 +71,9 @@ check_serialization(ProtocolMessage & pm, bool modem_sender,
     }
 
     BOOST_TEST_MESSAGE(__func__ << " sent by " << sender_name);
+
+    pm.clear_data_items();
+    pm.add_data_items(data_items);
 
     // Check that the original message can parse
 
@@ -139,8 +143,69 @@ check_serialization(ProtocolMessage & pm, bool modem_sender,
     // individual data items are equal.
 }
 
+template <typename Div_SubDataItem_t>
 static void
-add_data_items(ProtocolMessage & pm, ProtocolConfig * protocfg,
+add_sub_data_items(DataItem & di,
+                   const DataItemInfo & di_info,
+                   ProtocolConfig * protocfg,
+                   const std::string & occurs)
+{
+    for (const auto & subdi_for_di : di_info.sub_data_items)
+    {
+        // We have to add the required data items (1, 1+) else the
+        // parent data item won't validate.
+
+        if ( (subdi_for_di.occurs == occurs) ||
+             (subdi_for_di.occurs == "1") ||
+             (subdi_for_di.occurs == "1+") )
+        {
+            // create the data item
+            DataItem subdi {subdi_for_di.name, protocfg, &di_info};
+
+            // Extract the parent data item value, add the sub data
+            // item to it, and reassign the parent data item value.
+            // This is the only way I've found to change the value of
+            // a boost variant.
+
+            Div_SubDataItem_t val = boost::get<Div_SubDataItem_t>(di.value);
+            val.sub_data_items.push_back(subdi);
+            di.value = val;
+
+            // Sub data items can have sub data items.  If so, call
+            // recursively.
+
+            DataItemInfo subdi_info =
+                protocfg->get_data_item_info(subdi_for_di.name);
+
+            if (subdi_info.sub_data_items.size() > 0)
+            {
+                switch (subdi.get_type())
+                {
+                    case DataItemValueType::div_sub_data_items:
+                        add_sub_data_items<Div_sub_data_items_t>(
+                            subdi, subdi_info, protocfg, occurs);
+                    break;
+
+                    case DataItemValueType::div_u16_sub_data_items:
+                        add_sub_data_items<Div_u16_sub_data_items_t>(
+                            subdi, subdi_info, protocfg, occurs);
+                    break;
+
+                    default:
+                        BOOST_TEST_MESSAGE("Unknown sub data item type");
+                        return;
+                    break;
+                }
+            } // end this sub data item has its own sub data items
+        } // end add this sub data item to the data item
+    } // end for each possible sub data item
+}
+
+
+static void
+add_data_items(ProtocolMessage & pm,
+               DataItems & data_items,
+               ProtocolConfig * protocfg,
                const std::string & occurs)
 {
     std::string signal_name = pm.get_signal_name();
@@ -152,15 +217,43 @@ add_data_items(ProtocolMessage & pm, ProtocolConfig * protocfg,
         if (difs.occurs == occurs)
         {
             std::string di_name = protocfg->get_data_item_name(difs.id);
+            DataItemInfo di_info = protocfg->get_data_item_info(di_name);
 
             // This will give us a default value for the data item,
             // probably all 0's.
             DataItem di {di_name, protocfg};
-            pm.add_data_item(di);
+
+            // If the data item has sub data items, add those too.
+
+            if (di_info.sub_data_items.size() > 0)
+            {
+                switch (di.get_type())
+                {
+                    case DataItemValueType::div_sub_data_items:
+                        add_sub_data_items<Div_sub_data_items_t>(
+                            di, di_info, protocfg, occurs);
+                    break;
+
+                    case DataItemValueType::div_u16_sub_data_items:
+                        add_sub_data_items<Div_u16_sub_data_items_t>(
+                            di, di_info, protocfg, occurs);
+                    break;
+
+                    default:
+                        BOOST_TEST_MESSAGE("Unknown sub data item type");
+                        return;
+                    break;
+                }
+            }
+
+            // Add the data item to the list *after* any sub data
+            // items have been added.
+
+            data_items.push_back(di);
             BOOST_TEST_MESSAGE("add " << di.to_string()
                                << " occurs=" << occurs
                                << " to signal " << signal_name);
-        }
+        } // if data item occurs the desired number of times
     } // for each data item allowed on this signal
 }
 
@@ -187,22 +280,28 @@ test_one_message(const std::string & signal_name)
         pm.add_header(signal_name);
         check_header_size(pm, protocfg);
 
+        DataItems data_items;
+
         // Add all of the required data items ("1" and "1+") before
         // check_serialization because check_serialization will check
         // the message's validity.  To pass the test the message must
         // be valid, which means (among other things) it needs to have
-        // all of the required data items.  After checking with the
-        // required items, we add the optional items ("0-1", "0+")
-        // and check_serialization after each batch of items is added.
-        // The result is that up to three different variations of each
-        // message are tested.
+        // all of the required data items.  After adding the required
+        // items and calling check_serialization, we add the optional
+        // items ("0-1", "0+") and check_serialization after each
+        // batch of items is added.  The result is that multiple
+        // variations of each message are tested.
 
-        add_data_items(pm, protocfg, "1");
-        for (auto occurs : std::vector<std::string> {"1+", "0-1", "0+"})
+        add_data_items(pm, data_items, protocfg, "1");
+        add_data_items(pm, data_items, protocfg, "1+");
+        check_serialization(pm, data_items, false /* router send */, protocfg);
+        check_serialization(pm, data_items, true  /* modem  send */, protocfg);
+
+        for (auto occurs : std::vector<std::string> {"0-1", "0+", "1+", "0+"})
         {
-            add_data_items(pm, protocfg, occurs);
-            check_serialization(pm, false /* router send */, protocfg);
-            check_serialization(pm, true  /* modem send */,  protocfg);
+            add_data_items(pm, data_items, protocfg, occurs);
+            check_serialization(pm, data_items, false /* router send */, protocfg);
+            check_serialization(pm, data_items, true  /* modem  send */, protocfg);
         }
         delete protocfg;
     }

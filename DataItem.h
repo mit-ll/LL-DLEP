@@ -213,6 +213,21 @@ struct Div_sub_data_items_t
     }
 };
 
+/// Traffic Classification extension
+struct Div_u16_sub_data_items_t
+{
+    std::uint16_t field1; // TID
+    // Num SDIs is not explicity represented here; it is added/removed
+    // during serialization/deserialization
+    std::vector<DataItem> sub_data_items;
+
+    bool operator==(const Div_u16_sub_data_items_t & other) const
+    {
+        return ((field1 == other.field1) &&
+                (sub_data_items == other.sub_data_items));
+    }
+};
+
 /// DataItemValue holds a data item value of any type.
 ///
 /// If a new data item must be supported that has a value type that is
@@ -254,7 +269,8 @@ typedef boost::variant <
       Div_u8_ipv4_u8_t,
       Div_u8_ipv6_u8_t,
       Div_u64_u64_t,
-      Div_sub_data_items_t
+      Div_sub_data_items_t,
+      Div_u16_sub_data_items_t
       > DataItemValue;
 
 /// DataItemValueType has one enum value for each type of value that
@@ -288,7 +304,8 @@ enum class DataItemValueType
     div_u8_ipv6_u8,  ///< unsigned 8 bit integer, followed by IPv6 address,
                      ///< followed by unsigned 8 bit integer
     div_u64_u64,     ///< two unsigned 64 bit integers
-    div_sub_data_items ///< sub data items
+    div_sub_data_items, ///< sub data items
+    div_u16_sub_data_items ///< unsigned 16 bit integer followed by sub data items
 };
 
 /// @return string representation of the given data item value type
@@ -642,6 +659,11 @@ public:
     DataItems::const_iterator
     find_ip_data_item(const DataItems & search_data_items) const;
 
+    /// Set a default value for this data item.
+    /// @param[in] di_value_type
+    ///            choose the default value based on this type
+    void set_default_value(DataItemValueType di_value_type);
+
 private:
 
     boost::asio::ip::address_v4
@@ -657,7 +679,16 @@ private:
     deserialize_array(std::vector<std::uint8_t>::const_iterator & it,
                       std::vector<std::uint8_t>::const_iterator di_end);
 
-    void set_default_value(DataItemValueType di_value_type);
+    DataItems
+    deserialize_sub_data_items(
+        std::vector<std::uint8_t>::const_iterator & it,
+        std::vector<std::uint8_t>::const_iterator di_end,
+        const DataItemInfo * di_info,
+        const ProtocolConfig * protocfg);
+
+    DataItems
+    sub_data_items_from_istringstream(std::istringstream & ss,
+                                      const DataItemInfo & di_info);
 
     /// from constructor, we do not own it
     const ProtocolConfig * protocfg;

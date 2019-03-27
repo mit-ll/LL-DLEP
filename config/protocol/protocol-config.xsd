@@ -40,6 +40,7 @@
                                                  followed by unsigned 8 bit integer -->
       <xs:enumeration value="u64_u64"/>     <!-- two unsigned 64 bit integers -->
       <xs:enumeration value="sub_data_items"/>  <!-- sub data items -->
+      <xs:enumeration value="u16_sub_data_items"/>  <!-- unsigned 16 bit integer followed by sub data items -->
     </xs:restriction>
   </xs:simpleType>
 

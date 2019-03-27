@@ -1311,7 +1311,6 @@ Peer::handle_peer_initialization_response(ProtocolMessage & pm)
 
     DataItems data_items = pm.get_data_items();
 
-    // filter out Status
     peer_pdp = dlep->info_base_manager->addPeer(peer_id, data_items);
 
     // Now that we've received a PEER_INITIALIZATION_Response,
@@ -1881,7 +1880,7 @@ Peer::handle_peer_signal(uint8_t * buf, std::size_t buflen)
         return;
     }
 
-    // Handle status codes that might terminate the peer
+    // Handle status codes in the message that might terminate the peer
 
     if (check_status_code_failure(pm))
     {
