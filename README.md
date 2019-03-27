@@ -88,7 +88,7 @@ To build with the clang compiler, replace the cmake line above with:
 
 To build a package for the type of system you're building on:
 
-    $ cmake -DPACKAGE=on
+    $ cmake -DPACKAGE=on ..
     $ make package
 
 To see the build output on the terminal as it is produced:
