@@ -265,6 +265,8 @@ public:
         std::vector<std::uint8_t> buf;
 
         LLDLEP::serialize(operand.field1, buf);
+        unsigned int sz = operand.field2.size();
+        LLDLEP::serialize(sz, 1, buf);
         buf.insert(buf.end(), operand.field2.begin(), operand.field2.end());
 
         return buf;
@@ -592,7 +594,16 @@ DataItem::deserialize(std::vector<std::uint8_t>::const_iterator & it,
         {
             Div_u16_vu8_t val;
             LLDLEP::deserialize(val.field1, it, di_end);
+            std::uint8_t sz;
+            LLDLEP::deserialize(sz, it, di_end);
+            if ((di_end - it) != sz)
+            {
+                throw std::length_error(
+                    "expected vector of length " + std::to_string(int(sz)) +
+                    ", got length " + std::to_string(di_end - it));
+            }
             val.field2.insert(val.field2.end(), it, di_end);
+            it = di_end;
             value = val;
             break;
         }

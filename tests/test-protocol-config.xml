@@ -252,6 +252,13 @@
         </data_item>
 
         <data_item>
+            <name>Test_u16_vu8</name>
+            <type>u16_vu8</type>
+            <id>209</id>
+            <metric>false</metric>
+        </data_item>
+
+        <data_item>
             <name>Test_parent_data_item</name>
             <type>sub_data_items</type>
             <id>250</id>

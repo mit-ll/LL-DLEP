@@ -453,6 +453,25 @@ BOOST_AUTO_TEST_CASE(dataitem_u64_u64)
     }
 }
 
+BOOST_AUTO_TEST_CASE(dataitem_u16_vu8)
+{
+    const std::string di_name = "Test_u16_vu8";
+    DataItemValueType di_type = DataItemValueType::div_u16_vu8;
+
+    for (auto u16: vu16)
+    {
+        std::vector<std::uint8_t> myvu8;
+        for (auto u8 : vu8)
+        {
+            myvu8.push_back(u8);
+            Div_u16_vu8_t div {u16, myvu8};
+            test_dataitem<Div_u16_vu8_t>(di_name, di_type,
+                                         3 + myvu8.size(),
+                                         div);
+        }
+    }
+}
+
 BOOST_AUTO_TEST_CASE(dataitem_with_sub_data_items)
 {
     const std::string di_name = "Test_parent_data_item";
