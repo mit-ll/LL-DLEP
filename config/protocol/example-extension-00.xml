@@ -42,21 +42,21 @@
     <data_item>
         <name>Example_u64_Nonmetric_Data_Item</name>
         <type>u64</type>
-        <id>65408</id>
+        <id>65444</id>
         <metric>false</metric>
     </data_item>
 
     <data_item>
         <name>Example_u32_Metric_Data_Item</name>
         <type>u32</type>
-        <id>65409</id>
+        <id>65445</id>
         <metric>true</metric>
     </data_item>
 
     <data_item>
         <name>Example_u8_Metric_Data_Item_With_Units</name>
         <type>u8</type>
-        <id>65410</id>
+        <id>65446</id>
         <metric>true</metric>
         <units>octets</units>
     </data_item>
