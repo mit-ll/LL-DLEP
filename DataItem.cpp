@@ -1267,7 +1267,7 @@ public:
         // Collect characters up to the field separator or the end of
         // the stream ss.
         std::string ip_str;
-        while (ss && ! is_field_separator(ss.peek()))
+        while (ss && ! is_field_separator(ss.peek()) && ! isspace(ss.peek()))
         {
             char ch = ss.get();
             if (! ss.eof())
