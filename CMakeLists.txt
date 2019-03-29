@@ -7,8 +7,15 @@ SET(SOVERSION 2.1) # The library version (e.g. libdlep.so.1.0 would be SOVERSION
 SET(DLEPLIB_SRCS DestAdvert.cpp DlepInit.cpp DlepLogger.cpp Dlep.cpp Peer.cpp InfoBaseMgr.cpp PeerDiscovery.cpp DlepServiceImpl.cpp DlepMac.cpp PeriodicMcastSendRcv.cpp NetUtils.cpp ProtocolMessage.cpp DataItem.cpp ProtocolConfigImpl.cpp)
 SET(DLEP_PUBLIC_HDRS DlepInit.h DlepClient.h DlepService.h DlepCommon.h DataItem.h ProtocolConfig.h IdTypes.h DlepMac.h Serialize.h LatencyRange.h)
 
-# Enable "all" c++ warnings, and consider them to be errors
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
+# Enable "all" c++ warnings
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+
+# By default, treat all warnings as errors
+# Can be disalbed with -DWARNINGS_AS_ERRORS:OFF
+set(WARNINGS_AS_ERRORS ON CACHE BOOLEAN "Treat all warnings as errors")
+if(WARNINGS_AS_ERRORS)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
+endif()
 
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
