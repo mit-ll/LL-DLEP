@@ -22,7 +22,6 @@ static DlepLoggerPtr logger(new DlepLogger("test-messages-dlep.log",
 // All tests will be run with each of the following protocol config files
 static std::vector<std::string> proto_config_files =
 {
-    "../config/protocol/dlep-draft-24.xml",
     "../config/protocol/dlep-draft-29.xml",
     "../config/protocol/dlep-rfc-8175.xml",
 };
