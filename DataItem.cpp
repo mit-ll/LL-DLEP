@@ -5,6 +5,8 @@
  */
 
 #include <sstream>
+#include <map>
+#include <bitset>
 #include <boost/bimap.hpp>
 #include "DataItem.h"
 #include "ProtocolConfig.h"
