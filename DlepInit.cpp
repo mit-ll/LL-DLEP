@@ -33,22 +33,32 @@ DlepInit(DlepClient & dlep_client)
     // that the logger always be named "logger" everywhere because
     // that's what the LOG macro expects.
 
-    internal::DlepLoggerPtr logger(new internal::DlepLogger());
-
+    std::string logfile;
+    unsigned int log_level;
     try
     {
-        std::string logfile;
         dlep_client.get_config_parameter("log-file", &logfile);
-        logger->set_log_file(logfile.c_str());
-
-        unsigned int log_level;
         dlep_client.get_config_parameter("log-level", &log_level);
-        logger->set_run_level(log_level);
     }
     catch (const LLDLEP::DlepClient::BadParameterName & bpn)
     {
         // The log file isn't set up, so print the message to stderr.
         std::cerr << bpn.what() << std::endl;
+        return nullptr;
+    }
+
+    // Try to create the logger using the log file and log level retrieved
+    // from config parameters above.
+    
+    internal::DlepLoggerPtr logger;
+    try
+    {
+        logger = internal::DlepLoggerPtr(new internal::DlepLogger(logfile, log_level));
+    }
+    catch (const std::invalid_argument & iae)
+    {
+        // The log file isn't set up, so print the message to stderr.
+        std::cerr << iae.what() << std::endl;
         return nullptr;
     }
 

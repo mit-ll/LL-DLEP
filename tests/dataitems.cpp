@@ -20,7 +20,8 @@ BOOST_AUTO_TEST_SUITE(dataitems)
 static ProtocolConfig *
 get_protocol_config()
 {
-    DlepLoggerPtr logger(new DlepLogger());
+    DlepLoggerPtr logger(new DlepLogger("test-dataitems-dlep.log",
+                                        DLEP_LOG_INFO));
     return new ProtocolConfigImpl("../config/protocol/protocol-config.xsd",
                                   "test-protocol-config.xml",
                                   logger);

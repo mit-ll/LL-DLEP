@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2013, 2018 Massachusetts Institute of Technology
+ * Copyright (C) 2013, 2018, 2019 Massachusetts Institute of Technology
  */
 #ifndef _DLEP_LOGGER_
 #define _DLEP_LOGGER_
@@ -43,25 +43,23 @@ namespace internal
 class DlepLogger
 {
 public:
-    DlepLogger();
-    explicit DlepLogger(int run_level);
+    explicit DlepLogger(const std::string & filename, unsigned int level);
     ~DlepLogger();
-    void log(int level, const std::string & str);
-    void log(int level, std::ostringstream & msg);
-    void log_time(int level, const std::string & str);
-    void log_time(int level, std::ostringstream & msg);
-    void set_run_level(int run_level);
-    void set_log_file(const char * name);
-    std::string get_log_file()
-    {
-        return file_name;
-    }
+    void log(unsigned int level, std::ostringstream & msg);
+    void set_log_level(unsigned int level);
+    void set_log_file(const std::string & filename);
 private:
-    std::string file_name;
-    int run_level;
+    unsigned int log_level;
+    unsigned int clamp_log_level(unsigned int level);
     std::ofstream logfile;
     std::string time_string_get();
-    std::map <int, std::string> level_name;
+    std::map <int, std::string> level_name = {
+        { DLEP_LOG_DEBUG,  "DEBUG: " },
+        { DLEP_LOG_INFO,   "INFO:  " },
+        { DLEP_LOG_NOTICE, "NOTICE:" },
+        { DLEP_LOG_ERROR,  "ERROR: " },
+        { DLEP_LOG_FATAL,  "FATAL: " },
+    };
     boost::mutex mutex;
 };
 
@@ -71,7 +69,7 @@ typedef  boost::shared_ptr<DlepLogger> DlepLoggerPtr;
     std::ostringstream m;                                            \
     m << DEBUG_FILE << ":" << DEBUG_LINE << ":" << DEBUG_FUNCTION << \
         "(): " << (_msg).str() ;                                     \
-    logger->log_time(_level, m);                                     \
+    logger->log(_level, m);                                          \
     (_msg).str("");                                                  \
 }
 

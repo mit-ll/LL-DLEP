@@ -16,7 +16,8 @@
 using namespace LLDLEP;
 using namespace LLDLEP::internal;
 
-static DlepLoggerPtr logger(new DlepLogger());
+static DlepLoggerPtr logger(new DlepLogger("test-messages-dlep.log",
+                                           DLEP_LOG_ERROR));
 
 // All tests will be run with each of the following protocol config files
 static std::vector<std::string> proto_config_files =

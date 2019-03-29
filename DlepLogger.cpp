@@ -1,7 +1,7 @@
 /*
  * Dynamic Link Exchange Protocol (DLEP)
  *
- * Copyright (C) 2013, 2018 Massachusetts Institute of Technology
+ * Copyright (C) 2013, 2018, 2019 Massachusetts Institute of Technology
  */
 #include "DlepLogger.h"
 #include <time.h>
@@ -10,100 +10,76 @@
 using namespace std;
 using namespace LLDLEP::internal;
 
-DlepLogger::DlepLogger()
+DlepLogger::DlepLogger(const std::string & filename, unsigned int level)
 {
-    this->run_level = DLEP_LOG_INFO;
-    //this->run_level = DEBUG;
-    level_name[1] = string("DEBUG: ");
-    level_name[2] = string("INFO: ");
-    level_name[3] = string("NOTICE: ");
-    level_name[4] = string("ERROR: ");
-    level_name[5] = string("FATAL: ");
+    set_log_level(level);
 
-    file_name = "/tmp/dlep_log.txt";
-
-    logfile.open("/tmp/dlep_log.txt");
-}
-
-DlepLogger::DlepLogger(int run_level)
-{
-    if (run_level < DLEP_LOG_DEBUG)
+    logfile.open(filename);
+    if (logfile.fail())
     {
-        this->run_level = DLEP_LOG_DEBUG;
+        throw std::invalid_argument("could not open log file " + filename);
     }
-    else if (run_level > DLEP_LOG_FATAL)
-    {
-        this->run_level = DLEP_LOG_FATAL;
-    }
-    else
-    {
-        this->run_level = run_level;
-    }
-    logfile.open("dlep_log.txt");
 }
 
 DlepLogger::~DlepLogger()
 {
-    logfile.close();
+    if (logfile.is_open())
+    {
+        logfile.close();
+    }
 }
 
 void
-DlepLogger::log(int level, const std::string & str)
+DlepLogger::log(unsigned int level, std::ostringstream & msg)
 {
     boost::mutex::scoped_lock lock(mutex);
-    if (level >= run_level)
+
+    level = clamp_log_level(level);
+    if (level >= log_level)
     {
-        logfile << level_name[level] << str << endl;
+        logfile << time_string_get() << level_name[level] << msg.str()
+                << endl;
     }
 }
 
-void
-DlepLogger::log(int level, std::ostringstream & msg)
+unsigned int
+DlepLogger::clamp_log_level(unsigned int level)
 {
-    log(level, msg.str());
-    msg.str("");
-}
-
-void
-DlepLogger::log_time(int level, const std::string & str)
-{
-    boost::mutex::scoped_lock lock(mutex);
-    if (level >= run_level)
+    if (level < DLEP_LOG_DEBUG)
     {
-        logfile << time_string_get() << level_name[level] << str << endl;
+        return DLEP_LOG_DEBUG;
     }
-}
-
-void
-DlepLogger::log_time(int level, std::ostringstream & msg)
-{
-    log_time(level, msg.str());
-    msg.str("");
-}
-
-void
-DlepLogger::set_run_level(int run_level)
-{
-    if (run_level < DLEP_LOG_DEBUG)
+    else if (level > DLEP_LOG_FATAL)
     {
-        this->run_level = DLEP_LOG_DEBUG;
-    }
-    else if (run_level > DLEP_LOG_FATAL)
-    {
-        this->run_level = DLEP_LOG_FATAL;
+        return DLEP_LOG_FATAL;
     }
     else
     {
-        this->run_level = run_level;
+        return level;
     }
 }
 
 void
-DlepLogger::set_log_file(const char * name)
+DlepLogger::set_log_level(unsigned int level)
 {
-    file_name = name;
-    logfile.close();
-    logfile.open(name);
+    boost::mutex::scoped_lock lock(mutex);
+    log_level = clamp_log_level(level);
+}
+
+void
+DlepLogger::set_log_file(const std::string & filename)
+{
+    boost::mutex::scoped_lock lock(mutex);
+    if (logfile.is_open())
+    {
+        logfile.close();
+    }
+
+    logfile.open(filename);
+    if (logfile.fail())
+    {
+        throw std::invalid_argument(filename);
+    }
 }
 
 string
