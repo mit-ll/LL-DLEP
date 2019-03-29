@@ -16,7 +16,8 @@ changed in this release.
 This release was was developed and tested on:
 - Ubuntu Linux version 14.04 LTS
 - Ubuntu Linux version 16.04 LTS
-- CentOS 7.0
+- CentOS 7
+- CentOS 6
 - Mac OS X (10.12.6)
 
 **********************************************************
@@ -38,7 +39,7 @@ package names:
 - graphviz
 - cmake
 
-Fedora/RedHat package names:
+Fedora/Red Hat (EL7) package names (for EL6, see below):
 
 - boost  
 - boost-devel
@@ -55,6 +56,7 @@ Fedora/RedHat package names:
 - cmake
 - rpm-build
 
+
 MacPorts port names:
 
 - protobuf3-cpp
@@ -64,6 +66,25 @@ MacPorts port names:
 - doxygen
 - graphviz
 - cmake
+
+**********************************************************
+
+Red Hat/CentOS 6 specific notes:
+
+The default GCC and Boost on EL6 (GCC 4.4.7 and Boost 1.41) are not new enough to build DLEP. However, EL6 includes a parallel install updated version of Boost (v1.48). The Software Collections project contains a group of packages under the "DevToolSet" umbrella, including newer gcc toolchains. To build DLEP on EL6, use the following steps (tested on CentOS 6.10):
+
+```
+# Add the Software Collections repository
+sudo yum install centos-release-scl
+# Install the standard DLEP dependencies
+sudo yum install cmake libxml2-devel readline-devel protobuf-devel doxygen graphviz rpm-build
+# Install EL6 Boost 1.48 and Software Collections GCC8
+sudo yum install boost148-devel devtoolset-8-toolchain
+# From the build directory in dlep source code directory, run the following cmake command
+CC=/opt/rh/devtoolset-8/root/usr/bin/gcc CXX=/opt/rh/devtoolset-8/root/usr/bin/g++ cmake -DBOOST_INCLUDEDIR=/usr/include/boost148/ -DBOOST_LIBRARYDIR=/usr/lib64/boost148/ -DWARNINGS_AS_ERRORS=OFF ..
+# Build DLEP
+make
+```
 
 **********************************************************
 BUILD
