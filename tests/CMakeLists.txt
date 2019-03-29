@@ -1,7 +1,5 @@
 SET(TEST_SRCS serialize.cpp dataitems.cpp messages.cpp lib_interface.cpp dest_advert.cpp LogFile.cpp TestClientImpl.cpp)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -Wfatal-errors")
-
 find_package(Boost REQUIRED COMPONENTS unit_test_framework)
 add_definitions(${BOOST_INCREASE_VARIANT_TYPES})
 add_definitions(-DBOOST_TEST_DYN_LINK)
