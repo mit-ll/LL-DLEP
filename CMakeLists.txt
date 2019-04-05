@@ -12,7 +12,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 
 # By default, treat all warnings as errors
 # Can be disalbed with -DWARNINGS_AS_ERRORS:OFF
-set(WARNINGS_AS_ERRORS ON CACHE BOOLEAN "Treat all warnings as errors")
+set(WARNINGS_AS_ERRORS ON CACHE BOOL "Treat all warnings as errors")
 if(WARNINGS_AS_ERRORS)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
 endif()
