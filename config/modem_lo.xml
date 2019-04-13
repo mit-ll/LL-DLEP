@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<!--
+Configuration file that allows non-root users to run the example DLEP client
+as a modem.
+-->
+<config>
+	<params>
+		<local-type>modem</local-type>
+		<discovery-enable>1</discovery-enable>
+
+                <!-- change this to reflect your chosen interface -->
+		<discovery-iface>lo</discovery-iface>
+
+                <!-- override default privileged port 854 -->
+		<discovery-port>4854</discovery-port>
+
+                <!-- override default privileged address 224.0.0.117 -->
+		<discovery-mcast-address>225.0.0.117</discovery-mcast-address>
+		<discovery-interval>60</discovery-interval>
+
+                <!-- override default privileged port 854 -->
+		<session-port>4854</session-port>
+		<heartbeat-interval>60</heartbeat-interval>
+		<heartbeat-threshold>2</heartbeat-threshold>
+		<peer-type>emulated-modem</peer-type>
+                <log-file>dlep-modem.log</log-file>
+	</params>
+</config>

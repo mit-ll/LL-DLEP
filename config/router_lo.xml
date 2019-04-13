@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<!--
+Configuration file that allows non-root users to run the example DLEP client
+as a router.
+-->
+<config>
+	<params>
+		<local-type>router</local-type>
+		<discovery-enable>1</discovery-enable>
+
+                <!-- override default privileged port 854 -->
+		<discovery-port>4854</discovery-port>
+
+                <!-- change this to reflect your chosen interface -->
+		<discovery-iface>lo</discovery-iface>
+
+                <!-- override default privileged address 224.0.0.117 -->
+		<discovery-mcast-address>225.0.0.117</discovery-mcast-address>
+		<discovery-interval>60</discovery-interval>
+		<heartbeat-interval>60</heartbeat-interval>
+		<heartbeat-threshold>2</heartbeat-threshold>
+
+                <!-- override default privileged port 854 -->
+		<session-address>127.0.0.1</session-address>
+		<session-port>4855</session-port>
+		<peer-type>emulated-router</peer-type>
+                <log-file>dlep-router.log</log-file>
+	</params>
+</config>
