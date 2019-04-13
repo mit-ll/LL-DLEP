@@ -5,7 +5,7 @@ SET(DLEP_VERSION 2.1) # Release version of the software
 SET(SOVERSION 2.1) # The library version (e.g. libdlep.so.1.0 would be SOVERSION 1.0)
 
 SET(DLEPLIB_SRCS DestAdvert.cpp DlepInit.cpp DlepLogger.cpp Dlep.cpp Peer.cpp InfoBaseMgr.cpp PeerDiscovery.cpp DlepServiceImpl.cpp DlepMac.cpp PeriodicMcastSendRcv.cpp NetUtils.cpp ProtocolMessage.cpp DataItem.cpp ProtocolConfigImpl.cpp)
-SET(DLEP_PUBLIC_HDRS DlepInit.h DlepClient.h DlepService.h DlepCommon.h DataItem.h ProtocolConfig.h IdTypes.h DlepMac.h Serialize.h LatencyRange.h)
+SET(DLEP_PUBLIC_HDRS DlepInit.h DlepClient.h DlepService.h DlepCommon.h DataItem.h ProtocolConfig.h IdTypes.h DlepMac.h Serialize.h LatencyRange.h MultiHop.h)
 
 # Enable "all" c++ warnings
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")

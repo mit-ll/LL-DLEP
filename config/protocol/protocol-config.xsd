@@ -38,6 +38,7 @@
                                                  followed by unsigned 8 bit integer -->
       <xs:enumeration value="u8_ipv6_u8"/>  <!-- unsigned 8 bit integer, followed by IPv6 address,
                                                  followed by unsigned 8 bit integer -->
+      <xs:enumeration value="u8_u8"/>       <!-- two unsigned 8 bit integers -->
       <xs:enumeration value="u64_u64"/>     <!-- two unsigned 64 bit integers -->
       <xs:enumeration value="sub_data_items"/>  <!-- sub data items -->
       <xs:enumeration value="u16_sub_data_items"/>  <!-- unsigned 16 bit integer followed by sub data items -->
@@ -54,6 +55,7 @@
       <xs:enumeration value="bits/second"/>
       <xs:enumeration value="percentage"/>
       <xs:enumeration value="octets"/>  <!-- bytes -->
+      <xs:enumeration value="count"/>  <!-- bytes -->
     </xs:restriction>
   </xs:simpleType>
 
