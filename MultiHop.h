@@ -18,6 +18,9 @@ namespace ProtocolStrings
 
 // data item strings
 
+const std::string Hop_Count   = "Hop_Count";
+const std::string Hop_Control = "Hop_Control";
+
 // extension name string
 //
 // string must match the module name defined in the protocol xml file
