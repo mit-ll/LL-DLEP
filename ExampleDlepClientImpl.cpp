@@ -770,7 +770,19 @@ DlepClientImpl::linkchar_request(const std::string & peer_id,
     get_config_parameter("linkchar-autoreply", &autoreply);
     if (autoreply)
     {
-        dlep_service->linkchar_reply(peer_id, mac_address, data_items);
+        LLDLEP::ProtocolConfig * protocfg = dlep_service->get_protocol_config();
+        LLDLEP::DataItems data_items_with_status = data_items;
+
+        // make the Status data item with status code == Success
+        LLDLEP::Div_u8_string_t div{
+            (uint8_t)protocfg->get_status_code_id(LLDLEP::ProtocolStrings::Success), 
+            "linkchar-autoreply"};
+        LLDLEP::DataItem di_status{LLDLEP::ProtocolStrings::Status, div, protocfg};
+
+        // Add the Status data item to the list we got from the linkchar request
+        data_items_with_status.push_back(di_status);
+        dlep_service->linkchar_reply(peer_id, mac_address,
+                                                  data_items_with_status);
     }
 }
 
