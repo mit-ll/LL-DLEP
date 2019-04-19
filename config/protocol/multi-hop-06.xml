@@ -26,14 +26,14 @@
         The next id will be placed in the Extensions Supported
         data item to indicate support for this extension.
     -->
-    <extension_id>65522</extension_id>
+    <extension_id>65524</extension_id>
 
     <!-- New data items defined by this extension. -->
 
     <data_item>
         <name>Hop_Count</name>
         <type>u8_u8</type>
-        <id>65412</id>
+        <id>65415</id>
         <metric>true</metric>
         <units>count</units>
     </data_item>
@@ -41,7 +41,7 @@
     <data_item>
         <name>Hop_Control</name>
         <type>u16</type>
-        <id>65413</id>
+        <id>65416</id>
         <metric>false</metric>
     </data_item>
 
