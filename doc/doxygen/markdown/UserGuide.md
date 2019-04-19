@@ -15,8 +15,7 @@ RFC 8175](https://tools.ietf.org/html/rfc8175).  This
 implementation supports multiple DLEP drafts by using a protocol
 configuration file that captures the main protocol characteristics
 that vary across drafts.  Configuration files are provided for
-[draft 24](https://tools.ietf.org/html/draft-ietf-manet-dlep-24),
-[draft 29](https://tools.ietf.org/html/draft-ietf-manet-dlep-29), and
+[draft 29](https://tools.ietf.org/html/draft-ietf-manet-dlep-29) and
 [RFC 8175](https://tools.ietf.org/html/rfc8175).
 
 When referring to specifics of our %Dlep implementation, this document
