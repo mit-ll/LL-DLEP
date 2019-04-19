@@ -190,7 +190,9 @@ the protocol configuration file:
     18    Relative_Link_Quality_Receive  u8          percentage   core          metric 
     19    Relative_Link_Quality_Transmit u8          percentage   core          metric 
     20    Maximum_Transmission_Unit      u16         octets       core          metric 
-    65411 Latency_Range                  u64_u64     microseconds Latency Range metric 
+    65411 Latency_Range                  u64_u64     microseconds Latency Range metric
+    65412 Hop_Count                      u8_u8       count        Multi-Hop     metric
+    65413 Hop_Control                    u16                      Multi-Hop
 
 To specify one of these data items on a destination command,
 give the data item name from the list above (copy/paste recommended),

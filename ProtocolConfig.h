@@ -18,6 +18,7 @@
 #include <vector>
 #include "DataItem.h"
 #include "LatencyRange.h"
+#include "MultiHop.h"
 
 namespace LLDLEP
 {

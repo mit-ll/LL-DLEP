@@ -933,4 +933,6 @@ This protocol configuration file conforms to DLEP RFC 8175.
 
     <xi:include href="latency-range-03.xml"/>
 
+    <xi:include href="multi-hop-06.xml"/>
+
 </dlep>

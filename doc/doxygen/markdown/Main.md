@@ -16,3 +16,6 @@
 
 \page latency_range_config Latency Range extension protocol configuration
 \include latency-range-03.xml
+
+\page multi_hop_config Multi-Hop extension protocol configuration
+\include multi-hop-06.xml

@@ -189,6 +189,19 @@ struct Div_u8_ipv6_u8_t
     }
 };
 
+/// Multi-Hop Range extension
+struct Div_u8_u8_t
+{
+    std::uint8_t field1;
+    std::uint8_t field2;
+
+    bool operator==(const Div_u8_u8_t & other) const
+    {
+        return ((field1 == other.field1) &&
+                (field2 == other.field2));
+    }
+};
+
 /// Latency Range extension
 struct Div_u64_u64_t
 {
@@ -268,6 +281,7 @@ typedef boost::variant <
       Div_u8_ipv6_u16_t,
       Div_u8_ipv4_u8_t,
       Div_u8_ipv6_u8_t,
+      Div_u8_u8_t,
       Div_u64_u64_t,
       Div_sub_data_items_t,
       Div_u16_sub_data_items_t
@@ -303,6 +317,7 @@ enum class DataItemValueType
                      ///< followed by unsigned 8 bit integer
     div_u8_ipv6_u8,  ///< unsigned 8 bit integer, followed by IPv6 address,
                      ///< followed by unsigned 8 bit integer
+    div_u8_u8,       ///< two unsigned 8 bit integers
     div_u64_u64,     ///< two unsigned 64 bit integers
     div_sub_data_items, ///< sub data items
     div_u16_sub_data_items ///< unsigned 16 bit integer followed by sub data items

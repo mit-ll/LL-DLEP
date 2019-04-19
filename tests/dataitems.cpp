@@ -437,6 +437,23 @@ BOOST_AUTO_TEST_CASE(dataitem_u8_ipv6_u8)
     }
 }
 
+BOOST_AUTO_TEST_CASE(dataitem_u8_u8)
+{
+    const std::string di_name = "Test_u8_u8";
+    DataItemValueType di_type = DataItemValueType::div_u8_u8;
+    const std::size_t serialized_value_size = sizeof(std::uint8_t) * 2;
+
+    for (auto u8_1 : vu8)
+    {
+        for (auto u8_2 : vu8)
+        {
+            Div_u8_u8_t div {u8_1, u8_2};
+            test_dataitem<Div_u8_u8_t>(di_name, di_type, serialized_value_size,
+                                       div);
+        }
+    }
+}
+
 BOOST_AUTO_TEST_CASE(dataitem_u64_u64)
 {
     const std::string di_name = "Test_u64_u64";

@@ -111,6 +111,9 @@ DataItem::set_default_value(DataItemValueType di_value_type)
         case DataItemValueType::div_u8_ipv6_u8:
             value = Div_u8_ipv6_u8_t {0, boost::asio::ip::address_v6(), 0};
             break;
+        case DataItemValueType::div_u8_u8:
+            value = Div_u8_u8_t {0, 0};
+            break;
         case DataItemValueType::div_u64_u64:
             value = Div_u64_u64_t {0, 0};
             break;
@@ -347,6 +350,17 @@ public:
         buf.insert(buf.end(), ipv6_bytes.begin(), ipv6_bytes.end());
 
         buf.push_back(operand.field3);
+
+        return buf;
+    }
+
+    // serialize Div_u8_u8_t
+    std::vector<std::uint8_t> operator()(const Div_u8_u8_t & operand) const
+    {
+        std::vector<std::uint8_t> buf;
+
+        LLDLEP::serialize(operand.field1, buf);
+        LLDLEP::serialize(operand.field2, buf);
 
         return buf;
     }
@@ -728,6 +742,14 @@ DataItem::deserialize(std::vector<std::uint8_t>::const_iterator & it,
             value = val;
             break;
         }
+        case DataItemValueType::div_u8_u8:
+        {
+            Div_u8_u8_t val;
+            LLDLEP::deserialize(val.field1, it, di_end);
+            LLDLEP::deserialize(val.field2, it, di_end);
+            value = val;
+            break;
+        }
         case DataItemValueType::div_u64_u64:
         {
             Div_u64_u64_t val;
@@ -969,6 +991,16 @@ public:
         ss << std::uint64_t(operand.field1) << ";"
            << operand.field2.to_string()  << ";"
            << std::uint64_t(operand.field3);
+        return ss.str();
+    }
+
+    // to_string Div_u8_u8_t
+    std::string operator()(const Div_u8_u8_t & operand) const
+    {
+        std::ostringstream ss;
+
+        ss << std::uint64_t(operand.field1) << ";"
+           << std::uint64_t(operand.field2);
         return ss.str();
     }
 
@@ -1379,6 +1411,17 @@ public:
         check_field_separator(ss);
         u8ipv6u8.field3 = parse_uint<decltype(u8ipv6u8.field3)>();
         return u8ipv6u8;
+    }
+
+    // from_stringstream to Div_u8_u8_t
+    DataItemValue operator()(const Div_u8_u8_t &  /*operand*/) const
+    {
+        Div_u8_u8_t u8u8;
+
+        u8u8.field1 = parse_uint<decltype(u8u8.field1)>();
+        check_field_separator(ss);
+        u8u8.field2 = parse_uint<decltype(u8u8.field2)>();
+        return u8u8;
     }
 
     // from_stringstream to Div_u64_u64_t
@@ -1967,6 +2010,7 @@ static std::vector<DataItemValueMap::value_type> mapvals
     { DataItemValueType::div_u8_ipv6_u16, "u8_ipv6_u16" },
     { DataItemValueType::div_u8_ipv4_u8, "u8_ipv4_u8" },
     { DataItemValueType::div_u8_ipv6_u8, "u8_ipv6_u8" },
+    { DataItemValueType::div_u8_u8, "u8_u8" },
     { DataItemValueType::div_u64_u64, "u64_u64" },
     { DataItemValueType::div_sub_data_items, "sub_data_items" },
     { DataItemValueType::div_u16_sub_data_items, "u16_sub_data_items" }
