@@ -106,10 +106,9 @@ private:
     // Documentation for override methods is in the base class.
 
     void handle_message(DlepMessageBuffer msg_buffer,
-                        unsigned int msg_buffer_len,
                         boost::asio::ip::udp::endpoint from_endpoint) override;
 
-    DlepMessageBuffer get_message_to_send(unsigned int * msg_len) override;
+    DlepMessageBuffer get_message_to_send() override;
 
     /// Start the destination advertisement database purge timer.
     void start_purge_advert_timer();

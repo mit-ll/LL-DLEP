@@ -107,7 +107,7 @@ PeerDiscovery::stop()
 }
 
 DlepMessageBuffer
-PeerDiscovery::get_message_to_send(unsigned int * msg_len)
+PeerDiscovery::get_message_to_send()
 {
 //    std::ostringstream msg;
     boost::recursive_mutex::scoped_lock lock(dlep->mutex);
@@ -125,9 +125,8 @@ PeerDiscovery::get_message_to_send(unsigned int * msg_len)
     // Copy the protocol message into a DlepMessageBuffer
 
     std::size_t pm_length = pm.get_length();
-    DlepMessageBuffer pm_buffer {new uint8_t[pm_length]};
-    memcpy(pm_buffer.get(), pm.get_buffer(), pm_length);
-    *msg_len = pm_length;
+    DlepMessageBuffer pm_buffer {new std::vector<std::uint8_t>(pm_length)};
+    memcpy(pm_buffer->data(), pm.get_buffer(), pm_length);
 
     return pm_buffer;
 }
@@ -166,10 +165,10 @@ PeerDiscovery::handle_receive(const boost::system::error_code & error,
             << " size=" << bytes_recvd;
         LOG(DLEP_LOG_INFO, msg);
 
-        DlepMessageBuffer msg_buffer(new uint8_t[bytes_recvd]);
-        memcpy(msg_buffer.get(), recv_peer_offer_message, bytes_recvd);
+        DlepMessageBuffer msg_buffer {new std::vector<std::uint8_t>(bytes_recvd)};
+        memcpy(msg_buffer->data(), recv_peer_offer_message, bytes_recvd);
 
-        handle_message(msg_buffer, bytes_recvd, modem_endpoint);
+        handle_message(msg_buffer, modem_endpoint);
     }
 
     start_receive();
@@ -177,21 +176,20 @@ PeerDiscovery::handle_receive(const boost::system::error_code & error,
 
 void
 PeerDiscovery::handle_message(DlepMessageBuffer msg_buffer,
-                              unsigned int msg_buffer_len,
                               boost::asio::ip::udp::endpoint from_endpoint)
 {
     std::ostringstream msg;
     boost::recursive_mutex::scoped_lock lock(dlep->mutex);
 
-    if (msg_buffer_len > 0)
+    if (msg_buffer->size() > 0)
     {
-        msg << "from=" << from_endpoint << " size=" << msg_buffer_len;
+        msg << "from=" << from_endpoint << " size=" << msg_buffer->size();
         LOG(DLEP_LOG_INFO, msg);
 
         ProtocolMessage pm {dlep->protocfg, dlep->logger};
 
         std::string err =
-            pm.parse_and_validate(msg_buffer.get(), msg_buffer_len, true,
+            pm.parse_and_validate(msg_buffer->data(), msg_buffer->size(), true,
                                   ! dlep->is_modem(), __func__);
 
         if (err != "")

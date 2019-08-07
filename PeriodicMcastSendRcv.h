@@ -76,19 +76,15 @@ protected:
     /// Handle the payload of a received multicast packet.
     ///
     /// @param[in] msg_buffer      payload bytes of the multicast packet
-    /// @param[in] msg_buffer_len  number of bytes in msg_buffer
     /// @param[in] from_endpoint   source IP addr/port of this packet
     virtual void handle_message(DlepMessageBuffer msg_buffer,
-                                unsigned int msg_buffer_len,
                                 boost::asio::ip::udp::endpoint from_endpoint) = 0;
 
     /// Called when it is time to send a multicast packet.
     ///
-    /// @param[out] msg_len upon return, this contains the number of bytes
-    ///                     in the returned message buffer
-    ///
-    /// @return the payload bytes of the multicast packet to be sent
-    virtual DlepMessageBuffer get_message_to_send(unsigned int * msg_len) = 0;
+    /// @return a DlepMessageBuffer containing the payload bytes of the
+    /// multicast packet to be sent
+    virtual DlepMessageBuffer get_message_to_send() = 0;
 
     /// UDP port number for multicast packets
     uint16_t udp_port;
@@ -129,7 +125,7 @@ private:
 
     /// boost::asio calls this when the send is complete
     /// param[in] error boost error code, 0 if no error
-    void handle_send(const boost::system::error_code & error);
+    void handle_send(DlepMessageBuffer msg_buffer, const boost::system::error_code & error);
 
     /// boost::asio calls this when the send_timer expires
     /// param[in] error boost error code, 0 if no error

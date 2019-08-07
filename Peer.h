@@ -111,9 +111,6 @@ struct ResponsePending
     /// response is lost.
     DlepMessageBuffer msg_buffer;
 
-    /// Number of bytes in msg_buffer
-    unsigned int msg_buffer_len;
-
     /// Last time at which the message in msg_buffer was sent.
     /// This gets reset to the current time when it is retransmitted.
     std::time_t send_time;

@@ -52,7 +52,9 @@ class Dlep;
 // in this case.
 typedef Dlep * DlepPtr;
 
-typedef boost::shared_array<std::uint8_t> DlepMessageBuffer;
+// DlepMessageBuffer holds a serialized message to be sent to or
+// received from the network.
+typedef boost::shared_ptr<std::vector<std::uint8_t>> DlepMessageBuffer;
 
 } // namespace internal
 } // namespace LLDLEP

@@ -56,7 +56,7 @@ DestAdvert::~DestAdvert()
 
 // methods for implementing the PeriodicMcastSendRcv interface
 
-DlepMessageBuffer DestAdvert::get_message_to_send(unsigned int * msg_len)
+DlepMessageBuffer DestAdvert::get_message_to_send()
 {
     DestAdvertInfo info(send_interval,            // interval in sec
                         time(nullptr) - begin_time,  // uptime
@@ -69,11 +69,9 @@ DlepMessageBuffer DestAdvert::get_message_to_send(unsigned int * msg_len)
     // msg build success
     if (result.first)
     {
-        *msg_len = result.second.size();
+        DlepMessageBuffer msg_buf(new std::vector<std::uint8_t>(result.second.size()));
 
-        DlepMessageBuffer msg_buf(new std::uint8_t[result.second.size()]);
-
-        memcpy(msg_buf.get(), result.second.data(), result.second.size());
+        memcpy(msg_buf->data(), result.second.data(), result.second.size());
 
         LOG(DLEP_LOG_INFO, std::ostringstream(info.to_string()));
 
@@ -81,32 +79,29 @@ DlepMessageBuffer DestAdvert::get_message_to_send(unsigned int * msg_len)
     }
     else
     {
-        *msg_len = 0;
-
         LOG(DLEP_LOG_ERROR, std::ostringstream("msg build error"));
 
-        return DlepMessageBuffer();
+        return DlepMessageBuffer (new std::vector<std::uint8_t>(0));
     }
 }
 
 
 void DestAdvert::handle_message(DlepMessageBuffer msg_buffer,
-                                unsigned int msg_buffer_len,
                                 boost::asio::ip::udp::endpoint from_endpoint)
 {
     std::ostringstream msg;
 
-    msg << "received message length=" << msg_buffer_len
+    msg << "received message length=" << msg_buffer->size()
         << " from=" << from_endpoint;
     LOG(DLEP_LOG_INFO, msg);
 
-    if (msg_buffer_len == 0)
+    if (msg_buffer->size() == 0)
     {
         LOG(DLEP_LOG_ERROR, std::ostringstream("recv empty message"));
         return;
     }
 
-    auto result = unbuild_destination_advert(msg_buffer.get(), msg_buffer_len);
+    auto result = unbuild_destination_advert(msg_buffer->data(), msg_buffer->size());
 
     if (! result.first)
     {

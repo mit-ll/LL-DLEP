@@ -233,7 +233,8 @@ PeriodicMcastSendRcv::setup_send()
 }
 
 void
-PeriodicMcastSendRcv::handle_send(const boost::system::error_code & error)
+PeriodicMcastSendRcv::handle_send(DlepMessageBuffer msg_buffer,
+                                  const boost::system::error_code & error)
 {
     if (error)
     {
@@ -250,6 +251,7 @@ PeriodicMcastSendRcv::handle_send(const boost::system::error_code & error)
                         this,
                         boost::asio::placeholders::error));
     }
+    // XXX verify that this frees the vector in msg_buffer?
 }
 
 void
@@ -273,15 +275,18 @@ PeriodicMcastSendRcv::start_send()
 {
     std::ostringstream msg;
 
-    unsigned int msg_len;
-    DlepMessageBuffer msg_buffer = get_message_to_send(&msg_len);
+    DlepMessageBuffer msg_buffer = get_message_to_send();
 
-    msg << "sending packet with size=" << msg_len << " to " << send_endpoint;
+    msg << "sending packet with size=" << msg_buffer->size() << " to " << send_endpoint;
     LOG(DLEP_LOG_DEBUG, msg);
 
+    // By binding the msg_buffer to the asio async completion function
+    // below, we ensure that the buffer remains allocated until it is
+    // transmitted, and freed when the completion function returns.
+    // XXX verify this!
     send_socket.async_send_to(
-        boost::asio::buffer(msg_buffer.get(), msg_len), send_endpoint,
-        boost::bind(&PeriodicMcastSendRcv::handle_send, this,
+        boost::asio::buffer(*msg_buffer), send_endpoint,
+        boost::bind(&PeriodicMcastSendRcv::handle_send, this, msg_buffer,
                     boost::asio::placeholders::error));
 }
 
@@ -376,7 +381,7 @@ PeriodicMcastSendRcv::handle_receive(const boost::system::error_code & error,
     }
     else
     {
-        // check for self msg since loppback may be enabled
+        // check for self msg since loopback may be enabled
         if (sending and
                 (remote_endpoint.address() == interface_address) and
                 (remote_endpoint.port()    == send_socket.local_endpoint().port()))
@@ -393,10 +398,10 @@ PeriodicMcastSendRcv::handle_receive(const boost::system::error_code & error,
 
             // Copy the received message to a DlepMessageBuffer
 
-            DlepMessageBuffer msg_buffer(new uint8_t[bytes_recvd]);
-            memcpy(msg_buffer.get(), recv_message, bytes_recvd);
+            DlepMessageBuffer msg_buffer {new std::vector<std::uint8_t>(bytes_recvd)};
+            memcpy(msg_buffer->data(), recv_message, bytes_recvd);
 
-            handle_message(msg_buffer, bytes_recvd, remote_endpoint);
+            handle_message(msg_buffer, remote_endpoint);
         }
     }
 

@@ -70,10 +70,8 @@ private:
     /// Handle a received peer discovery or offer message.
     /// Router and modem.
     /// @param[in] msg_buffer      payload bytes of the packet
-    /// @param[in] msg_buffer_len  number of bytes in msg_buffer
     /// @param[in] from_endpoint   source IP addr/port of this packet
     void handle_message(DlepMessageBuffer msg_buffer,
-                        unsigned int msg_buffer_len,
                         boost::asio::ip::udp::endpoint from_endpoint) override;
 
     /// Handle a received peer discovery message.
@@ -91,7 +89,7 @@ private:
                            boost::asio::ip::udp::endpoint from_endpoint);
 
     /// Router only.
-    DlepMessageBuffer get_message_to_send(unsigned int * msg_len) override;
+    DlepMessageBuffer get_message_to_send() override;
 
     /// Build and send a peer offer message.
     /// Modem only.

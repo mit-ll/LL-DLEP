@@ -106,9 +106,8 @@ ResponsePending::ResponsePending(const ProtocolConfig * protocfg,
     // Copy the serialized message to msg_buffer
 
     std::size_t pm_length = pm.get_length();
-    msg_buffer = DlepMessageBuffer(new std::uint8_t[pm_length]);
-    memcpy(msg_buffer.get(), pm.get_buffer(), pm_length);
-    msg_buffer_len = pm_length;
+    msg_buffer = DlepMessageBuffer {new std::vector<std::uint8_t>(pm_length)};
+    memcpy(msg_buffer->data(), pm.get_buffer(), pm_length);
 
     // If the protocol message contains a mac address, use it as the
     // destination.  Otherwise leave destination at its default value
@@ -246,8 +245,8 @@ Peer::send_message_expecting_response(ResponsePendingPtr rp)
 
     if (responses_pending[rp->destination].front() == rp)
     {
-        int plen = rp->msg_buffer_len;
-        uint8_t * pptr = rp->msg_buffer.get();
+        int plen = rp->msg_buffer->size();
+        uint8_t * pptr = rp->msg_buffer->data();
 
         send_session_message(pptr, plen);
         rp->send_time = std::time(nullptr);
