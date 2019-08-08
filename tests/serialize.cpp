@@ -71,7 +71,7 @@ test_serialize()
                BOOST_CHECK(serialize_should_succeed);
                BOOST_CHECK_EQUAL(sz, field_size);
            }
-           catch (std::invalid_argument)
+           catch (const std::invalid_argument &)
            {
                BOOST_CHECK( ! serialize_should_succeed);
 

@@ -301,7 +301,7 @@ TestClientImpl::parse_config_file(const char * config_filename)
             get_config_parameter("discovery-mcast-address", &multicast_addr);
             set_discovery_iface(multicast_addr.is_v4());
         }
-        catch (BadParameterName)
+        catch (const BadParameterName &)
         {
             ok = false;
         }
