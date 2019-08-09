@@ -99,13 +99,21 @@ Do the following (shell commands are prefixed with $):
 
 Some useful build variations are described below.
 
-By default, the DLEP build treats all compiler warnings as errors (-Werror compiler flag). If you are experiencing problems compiling on your system due to this setting, you can disable it with:
+By default, the DLEP build treats all compiler warnings as errors
+(-Werror compiler flag). If you are experiencing problems compiling on
+your system due to this setting, you can disable it with:
 
     $ cmake -DWARNINGS_AS_ERRORS=OFF ..
 
 To build with debugging symbols, replace the cmake line above with:
 
     $ cmake -DCMAKE_BUILD_TYPE=Debug ..
+
+To build with the GNU C++ Lbrary debugging (error checking) enabled
+(see https://gcc.gnu.org/onlinedocs/libstdc++/manual/debug_mode.html),
+replace the cmake line above with:
+
+    $ cmake -DCMAKE_CXX_FLAGS="-D_GLIBCXX_DEBUG" ..
 
 To build with the clang compiler, replace the cmake line above with:
 
