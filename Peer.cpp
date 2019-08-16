@@ -38,6 +38,8 @@ Peer::Peer(boost::asio::ip::tcp::socket * peer_socket, DlepPtr dlep) :
 
     peer_endpoint_tcp = peer_socket->remote_endpoint();
     peer_id = dlep->get_peer_id_from_endpoint(peer_endpoint_tcp);
+    LLDLEP::DataItems empty_data_items;
+    peer_pdp = dlep->info_base_manager->addPeer(peer_id, empty_data_items);
 
     msg << "Peer ID is " << peer_id ;
     LOG(DLEP_LOG_DEBUG, msg);
@@ -1209,8 +1211,6 @@ Peer::handle_peer_initialization(ProtocolMessage & pm)
         /* no-op */
     }
 
-    peer_pdp = dlep->info_base_manager->addPeer(peer_id, empty_data_items);
-
     send_peer_initialization_response();
 
     // Now that we've sent a PEER_INITIALIZATION_Response, we consider
@@ -1310,7 +1310,7 @@ Peer::handle_peer_initialization_response(ProtocolMessage & pm)
 
     DataItems data_items = pm.get_data_items();
 
-    peer_pdp = dlep->info_base_manager->addPeer(peer_id, data_items);
+    peer_pdp->update_data_items(data_items, false);
 
     // Now that we've received a PEER_INITIALIZATION_Response,
     // we consider this session to be up.
