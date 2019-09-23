@@ -255,11 +255,17 @@ Dlep::initialize()
         }
     }
     catch (LLDLEP::DlepClient::BadParameterName & bpn)
-    {
+      {
         msg << bpn.what();
         LOG(DLEP_LOG_FATAL, msg);
         notify_initialization_done(false);
-    }
+      }
+    catch (std::exception & exp)
+      {
+        msg << exp.what();
+        LOG(DLEP_LOG_FATAL, msg);
+        notify_initialization_done(false);
+      }
 }
 
 void
