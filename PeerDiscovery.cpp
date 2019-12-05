@@ -591,7 +591,7 @@ PeerDiscovery::send_peer_offer(boost::asio::ip::udp::endpoint to_endpoint)
     }
 
     boost::asio::ip::udp::endpoint send_endpoint(to_endpoint.address(),
-                                                 udp_port);
+                                                 to_endpoint.port());
     msg << "Sending signal to " << send_endpoint;
     LOG(DLEP_LOG_INFO, msg);
 

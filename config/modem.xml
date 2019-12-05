@@ -8,17 +8,18 @@ as a modem.
 		<local-type>modem</local-type>
 		<discovery-enable>1</discovery-enable>
 
-                <!-- change this to reflect your chosen interface -->
+    <!-- change this to reflect your chosen interface -->
 		<discovery-iface>eth0</discovery-iface>
-
-                <!-- override default privileged port 854 -->
+		<discovery-ttl>255</discovery-ttl>
+		<session-ttl>255</session-ttl>
+    <!-- override default privileged port 854 -->
 		<discovery-port>4854</discovery-port>
 
-                <!-- override default privileged address 224.0.0.117 -->
+    <!-- override default privileged address 224.0.0.117 -->
 		<discovery-mcast-address>225.0.0.117</discovery-mcast-address>
 		<discovery-interval>60</discovery-interval>
 
-                <!-- override default privileged port 854 -->
+    <!-- override default privileged port 854 -->
 		<session-port>4854</session-port>
 		<heartbeat-interval>60</heartbeat-interval>
 		<heartbeat-threshold>2</heartbeat-threshold>
