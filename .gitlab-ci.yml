@@ -21,6 +21,7 @@ build:
 test:
   stage: test
   script:
+    - cd build
     - make test
 
 deploy:
