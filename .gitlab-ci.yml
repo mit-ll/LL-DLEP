@@ -1,0 +1,37 @@
+image: dkr-reg1.mipn:5000/debian_stable_build
+
+stages:
+  - build
+  - test
+  - deploy
+
+build:
+  stage: build
+  script:
+    - cd build
+    - mkdir release
+    - cmake -DCMAKE_INSTALL_PREFIX:PATH=./release ..
+    - make install
+    - tar zcf "../${CI_PROJECT_NAME}.tar.gz" release
+  artifacts:
+    name: "${CI_PROJECT_NAME}-binaries"
+    paths:
+      - "${CI_PROJECT_NAME}.tar.gz"
+
+test:
+  stage: test
+  script:
+    - make test
+
+deploy:
+  stage: deploy
+  dependencies:
+    - build
+    - test
+  only:
+    refs:
+      - master
+    variables:
+      - $CI_PROJECT_NAMESPACE == "laf"
+  script:
+    - curl -vfs -u ${NEXUS_USERNAME}:${NEXUS_PASSWORD} --upload-file "${CI_PROJECT_NAME}.tar.gz" "${NEXUS_STAGING_DIR}/${CI_PROJECT_NAME}-binaries.tar.gz"
