@@ -12,11 +12,10 @@ build:
     - mkdir release
     - cmake -DCMAKE_INSTALL_PREFIX:PATH=./release ..
     - make install
-    - tar zcf "../${CI_PROJECT_NAME}.tar.gz" release
   artifacts:
     name: "${CI_PROJECT_NAME}"
     paths:
-      - "LL_DLEP/build/release"
+      - "build/release"
 
 test:
   stage: test
