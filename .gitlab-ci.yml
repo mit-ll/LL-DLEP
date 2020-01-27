@@ -1,4 +1,4 @@
-image: dkr-reg1.mipn:5000/debian_stable_build
+image: dkr-reg1.mipn:5000/ll_dlep_debian_stable_build
 
 stages:
   - build
