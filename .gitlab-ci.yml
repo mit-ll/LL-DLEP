@@ -23,6 +23,8 @@ test:
     - build
   script:
     - cd build
+    - pwd
+    - ls
 #    - cmake ..
 #    - make
     - make test
