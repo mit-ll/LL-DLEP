@@ -19,10 +19,12 @@ build:
 
 test:
   stage: test
+  dependencies:
+    - build
   script:
     - cd build
-    - cmake ..
-    - make
+#    - cmake ..
+#    - make
     - make test
 
 deploy:
@@ -36,4 +38,6 @@ deploy:
     variables:
       - $CI_PROJECT_NAMESPACE == "laf"
   script:
+    - pwd
+    - ls -al
     - curl -vfs -u ${NEXUS_USERNAME}:${NEXUS_PASSWORD} --upload-file "${CI_PROJECT_NAME}.zip" "${NEXUS_STAGING_DIR}/${CI_PROJECT_NAME}-binaries.zip"
