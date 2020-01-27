@@ -14,9 +14,9 @@ build:
     - make install
     - tar zcf "../${CI_PROJECT_NAME}.tar.gz" release
   artifacts:
-    name: "${CI_PROJECT_NAME}-binaries"
+    name: "${CI_PROJECT_NAME}"
     paths:
-      - "${CI_PROJECT_NAME}.tar.gz"
+      - "LL_DLEP/build/release"
 
 test:
   stage: test
