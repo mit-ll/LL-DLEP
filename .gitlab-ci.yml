@@ -36,4 +36,4 @@ deploy:
     variables:
       - $CI_PROJECT_NAMESPACE == "laf"
   script:
-    - curl -vfs -u ${NEXUS_USERNAME}:${NEXUS_PASSWORD} --upload-file "${CI_PROJECT_NAME}.tar.gz" "${NEXUS_STAGING_DIR}/${CI_PROJECT_NAME}-binaries.tar.gz"
+    - curl -vfs -u ${NEXUS_USERNAME}:${NEXUS_PASSWORD} --upload-file "${CI_PROJECT_NAME}.zip" "${NEXUS_STAGING_DIR}/${CI_PROJECT_NAME}-binaries.zip"
