@@ -22,13 +22,9 @@ test:
   dependencies:
     - build
   script:
-    - pwd
-    - ls -al
     - cd build
-    - pwd
-    - ls -al
-#    - cmake ..
-#    - make
+    - cmake ..
+    - make
     - make test
 
 deploy:
