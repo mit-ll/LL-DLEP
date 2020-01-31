@@ -29,8 +29,7 @@ deploy:
   stage: deploy
   dependencies:
     - build
-  environment:
-    - staging
+  environment: staging
   only:
     refs:
       - master
