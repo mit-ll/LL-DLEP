@@ -19,8 +19,6 @@ build:
 
 test:
   stage: test
-  dependencies:
-    - build
   script:
     - cd build
     - cmake ..
@@ -29,9 +27,6 @@ test:
 
 deploy:
   stage: deploy
-  dependencies:
-    - build
-    - test
   only:
     refs:
       - master
