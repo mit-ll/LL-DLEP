@@ -39,4 +39,6 @@ deploy:
   script:
     - pwd
     - ls -al
+    - ls -al build
+    - ls -al build/release
     - curl -vfs -u ${NEXUS_USERNAME}:${NEXUS_PASSWORD} --upload-file "${CI_PROJECT_NAME}.zip" "${NEXUS_STAGING_DIR}/${CI_PROJECT_NAME}-binaries.zip"
