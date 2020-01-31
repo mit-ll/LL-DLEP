@@ -15,15 +15,17 @@ build:
   artifacts:
     name: "${CI_PROJECT_NAME}"
     paths:
-      - "build/release"
+      - "build"
 
-#test:
-#  stage: test
-#  script:
-#    - cd build
-#    - cmake ..
-#    - make
-#    - make test
+test:
+  stage: test
+  script:
+    - pwd
+    - ls -al
+    - ls -al build
+    - ls -al build/release
+    - cd build    
+    - make test
 
 deploy:
   stage: deploy
