@@ -17,16 +17,20 @@ build:
     paths:
       - "build/release"
 
-test:
-  stage: test
-  script:
-    - cd build
-    - cmake ..
-    - make
-    - make test
+#test:
+#  stage: test
+#  script:
+#    - cd build
+#    - cmake ..
+#    - make
+#    - make test
 
 deploy:
   stage: deploy
+  dependencies:
+    - build
+  environment:
+    - staging
   only:
     refs:
       - master
