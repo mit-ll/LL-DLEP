@@ -20,10 +20,6 @@ build:
 test:
   stage: test
   script:
-    - pwd
-    - ls -al
-    - ls -al build
-    - ls -al build/release
     - cd build    
     - make test
 
@@ -38,8 +34,5 @@ deploy:
     variables:
       - $CI_PROJECT_NAMESPACE == "laf"
   script:
-    - pwd
-    - ls -al
-    - ls -al build
-    - ls -al build/release
-    - curl -vfs -u ${NEXUS_USERNAME}:${NEXUS_PASSWORD} --upload-file "${CI_PROJECT_NAME}.zip" "${NEXUS_STAGING_DIR}/${CI_PROJECT_NAME}-binaries.zip"
+    - tar zcf "${CI_PROJECT_NAME}.tar.gz" ./build/release
+    - curl -vfs -u ${NEXUS_USERNAME}:${NEXUS_PASSWORD} --upload-file "${CI_PROJECT_NAME}.tar.gz" "${NEXUS_THRID_PARTY_DIR}/${CI_PROJECT_NAME}-binaries.tar.gz"
