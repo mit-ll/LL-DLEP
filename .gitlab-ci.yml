@@ -27,12 +27,11 @@ deploy:
   stage: deploy
   dependencies:
     - build
-  environment: staging
   only:
     refs:
       - master
     variables:
-      - $CI_PROJECT_NAMESPACE == "laf"
+      - $CI_PROJECT_NAMESPACE == "plexos/dev/thrid-party"
   script:
     - tar zcf "${CI_PROJECT_NAME}.tar.gz" ./build/release
-    - curl -vfs -u ${NEXUS_USERNAME}:${NEXUS_PASSWORD} --upload-file "${CI_PROJECT_NAME}.tar.gz" "${NEXUS_THRID_PARTY_DIR}/${CI_PROJECT_NAME}-binaries.tar.gz"
+    - curl -vfs -u ${NEXUS_USERNAME}:${NEXUS_PASSWORD} --upload-file "${CI_PROJECT_NAME}.tar.gz" "http://nexus.mipn/build_artefacts/third_party/${CI_PROJECT_NAME}-binaries.tar.gz"
