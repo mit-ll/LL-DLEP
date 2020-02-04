@@ -32,4 +32,4 @@ deploy:
       - $CI_PROJECT_NAMESPACE == "plexos/dev/third-party"
   script:
     - tar zcf "${CI_PROJECT_NAME}.tar.gz" ./build/release
-    - curl -vfs -u ${NEXUS_USERNAME}:${NEXUS_PASSWORD} --upload-file "${CI_PROJECT_NAME}.tar.gz" "http://nexus.mipn/build_artefacts/third_party/${CI_PROJECT_NAME}-binaries.tar.gz"
+    - curl -vfs -u ${NEXUS_USERNAME}:${NEXUS_PASSWORD} --upload-file "${CI_PROJECT_NAME}.tar.gz" "${NEXUS_THIRD_PARTY_DIR}/${CI_PROJECT_NAME}-binaries.tar.gz"
