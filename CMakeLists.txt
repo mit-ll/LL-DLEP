@@ -1,6 +1,9 @@
 cmake_minimum_required (VERSION 2.8)
 project (dlep)
 
+option(BUILD_DOCS "Build Documentation" ON)
+option(BUILD_TESTS "Build Tests" ON)
+
 SET(DLEP_VERSION 2.1) # Release version of the software
 SET(SOVERSION 2.1) # The library version (e.g. libdlep.so.1.0 would be SOVERSION 1.0)
 
@@ -109,8 +112,14 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/package/copyright DESTINATION ${DOCDIR
 
 ENABLE_TESTING()
 add_subdirectory(config)
-add_subdirectory(doc)
-add_subdirectory(tests)
+
+if(BUILD_DOCS)
+  add_subdirectory(doc)
+endif(BUILD_DOCS)
+
+if(BUILD_TESTS)
+  add_subdirectory(tests)
+endif(BUILD_TESTS)
 
 # Linux Packaging
 SET(CPACK_PACKAGE_CONTACT "David P. Wiggins <David.Wiggins@ll.mit.edu>")
