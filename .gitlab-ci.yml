@@ -29,10 +29,10 @@ deploy_binaries:
     refs:
       - master
     variables:
-      - $CI_PROJECT_NAMESPACE == "plexos/dev/third-party"
+      - $CI_PROJECT_NAMESPACE == "netsim/third-party"
   script:
     - tar zcf "${CI_PROJECT_NAME}.tar.gz" ./build/release
-    - curl -vfs -u ${NEXUS_USERNAME}:${NEXUS_PASSWORD} --upload-file "${CI_PROJECT_NAME}.tar.gz" "${NEXUS_THIRD_PARTY_DIR}/${CI_PROJECT_NAME}-binaries.tar.gz"
+    - curl -vfs -u ${NEXUS_USERNAME}:${NEXUS_PASSWORD} --upload-file "${CI_PROJECT_NAME}.tar.gz" "${NEXUS_SIMULATION_THIRD_PARTY_DIR}/${CI_PROJECT_NAME}/${CI_PROJECT_NAME}-binaries.tar.gz"
 
 deploy_sources:
   stage: deploy
@@ -41,10 +41,10 @@ deploy_sources:
     refs:
       - master
     variables:
-      - $CI_PROJECT_NAMESPACE == "plexos/dev/third-party"
+      - $CI_PROJECT_NAMESPACE == "netsim/third-party"
   variables:
     ARCHIVE_NAME: "${CI_PROJECT_NAME}_${CI_COMMIT_REF_NAME}_src.tar.gz"
   script:
     - touch "${ARCHIVE_NAME}"
     - tar --exclude-vcs --exclude="${ARCHIVE_NAME}" -zcf "${ARCHIVE_NAME}" .
-    - curl -vfs -u ${NEXUS_USERNAME}:${NEXUS_PASSWORD} --upload-file "${ARCHIVE_NAME}" "${NEXUS_THIRD_PARTY_DIR}/${ARCHIVE_NAME}"
+    - curl -vfs -u ${NEXUS_USERNAME}:${NEXUS_PASSWORD} --upload-file "${ARCHIVE_NAME}" "${NEXUS_SIMULATION_THIRD_PARTY_DIR}/${CI_PROJECT_NAME}/${ARCHIVE_NAME}"
