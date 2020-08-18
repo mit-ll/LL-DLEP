@@ -29,7 +29,7 @@ deploy_binaries:
     refs:
       - master
     variables:
-      - $CI_PROJECT_NAMESPACE == "netsim/third-party"
+      - $CI_PROJECT_NAMESPACE == "netsim/third_party"
   script:
     - tar zcf "${CI_PROJECT_NAME}.tar.gz" ./build/release
     - curl -vfs -u ${NEXUS_USERNAME}:${NEXUS_PASSWORD} --upload-file "${CI_PROJECT_NAME}.tar.gz" "${NEXUS_SIMULATION_THIRD_PARTY_DIR}/${CI_PROJECT_NAME}/${CI_PROJECT_NAME}-binaries.tar.gz"
@@ -41,7 +41,7 @@ deploy_sources:
     refs:
       - master
     variables:
-      - $CI_PROJECT_NAMESPACE == "netsim/third-party"
+      - $CI_PROJECT_NAMESPACE == "netsim/third_party"
   variables:
     ARCHIVE_NAME: "${CI_PROJECT_NAME}_${CI_COMMIT_REF_NAME}_src.tar.gz"
   script:
