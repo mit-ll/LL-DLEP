@@ -33,7 +33,7 @@ deploy_binaries:
   variables:
     ARCHIVE_NAME: "${CI_PROJECT_NAME}_binaries_${CI_COMMIT_REF_NAME}.tar.gz"
   script:
-    - tar zcf ${CI_PROJECT_NAME} ./build/release
+    - tar zcf ${ARCHIVE_NAME} ./build/release
     - curl -vfs -u ${NEXUS_USERNAME}:${NEXUS_PASSWORD} --upload-file "${ARCHIVE_NAME}" "${NEXUS_SIMULATION_THIRD_PARTY_DIR}/${CI_PROJECT_NAME}/${ARCHIVE_NAME}"
 
 deploy_sources:
