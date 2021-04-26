@@ -464,7 +464,6 @@ Dlep::start_dlep()
             new boost::asio::ip::tcp::acceptor(io_service_,
                                                boost::asio::ip::tcp::endpoint(session_address, session_port));
 
-<<<<<<< HEAD
         // Set the socket's TTL to the session-ttl config parameter
         // if it exists.
         try
@@ -477,21 +476,6 @@ Dlep::start_dlep()
         {
           // Let the default TTL take effect.
         }
-=======
-		  // Set the socket's TTL to the session-ttl config parameter
-		  // if it exists.
-
-        try
-		  {
-			  unsigned int ttl;
-			  dlep_client.get_config_parameter("session-ttl", &ttl);
-			  session_acceptor->set_option(boost::asio::ip::unicast::hops(ttl));
-		  }
-		  catch (LLDLEP::DlepClient::BadParameterName)
-	  	  {
-	  		  // Let the default TTL take effect.
-		  }
->>>>>>> 5a91c308210309362233e5e24d950e9c21d8657a
 
         start_async_accept();
     }
