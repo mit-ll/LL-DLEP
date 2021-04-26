@@ -590,9 +590,7 @@ PeerDiscovery::send_peer_offer(boost::asio::ip::udp::endpoint to_endpoint)
         pm.add_data_item(di_conn_pt);
     }
 
-    boost::asio::ip::udp::endpoint send_endpoint(to_endpoint.address(),
-                                                 udp_port);
-    msg << "Sending signal to " << send_endpoint;
+    msg << "Sending signal to " << to_endpoint;
     LOG(DLEP_LOG_INFO, msg);
 
     // A freshly built message should be parseable.
@@ -601,7 +599,7 @@ PeerDiscovery::send_peer_offer(boost::asio::ip::udp::endpoint to_endpoint)
     assert(err == "");
 
     peer_offer_socket.async_send_to(
-        boost::asio::buffer(pm.get_buffer(), pm.get_length()), send_endpoint,
+        boost::asio::buffer(pm.get_buffer(), pm.get_length()), to_endpoint,
         boost::bind(&PeerDiscovery::handle_send_peer_offer, this,
                     boost::asio::placeholders::error));
 }
