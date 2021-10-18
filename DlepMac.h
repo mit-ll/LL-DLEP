@@ -51,12 +51,12 @@ inline void getDifference(const DlepMacAddrs & A, const DlepMacAddrs & B,
                           DlepMacAddrs & C)
 {
     // whats in here
-    for (const auto a : A)
+    for (const auto& a : A)
     {
         bool found = false;
 
         // and not in here
-        for (const auto b : B)
+        for (const auto& b : B)
         {
             if (a == b)
             {
