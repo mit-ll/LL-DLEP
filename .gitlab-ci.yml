@@ -1,0 +1,52 @@
+image: dkr-reg1.mipn:5000/ll_dlep_build:master
+
+stages:
+  - build
+  - test
+  - deploy
+
+build:
+  stage: build
+  script:
+    - cd build
+    - mkdir release
+    - cmake -DCMAKE_INSTALL_PREFIX:PATH=./release ..
+    - make install
+  artifacts:
+    name: "${CI_PROJECT_NAME}"
+    paths:
+      - "build"
+
+test:
+  stage: test
+  script:
+    - cd build    
+    - make test
+
+deploy_binaries:
+  stage: deploy
+  only:
+    refs:
+      - master
+    variables:
+      - $CI_PROJECT_NAMESPACE == "netsim/third_party"
+  variables:
+    ARCHIVE_NAME: "${CI_PROJECT_NAME}_binaries_${CI_COMMIT_REF_NAME}.tar.gz"
+  script:
+    - tar zcf ${ARCHIVE_NAME} ./build/release
+    - curl -vfs -u ${NEXUS_USERNAME}:${NEXUS_PASSWORD} --upload-file "${ARCHIVE_NAME}" "${NEXUS_SIMULATION_THIRD_PARTY_DIR}/${CI_PROJECT_NAME}/${ARCHIVE_NAME}"
+
+deploy_sources:
+  stage: deploy
+  dependencies: []
+  only:
+    refs:
+      - master
+    variables:
+      - $CI_PROJECT_NAMESPACE == "netsim/third_party"
+  variables:
+    ARCHIVE_NAME: "${CI_PROJECT_NAME}_src_${CI_COMMIT_REF_NAME}.tar.gz"
+  script:
+    - touch "${ARCHIVE_NAME}"
+    - tar --exclude-vcs --exclude="${ARCHIVE_NAME}" -zcf "${ARCHIVE_NAME}" .
+    - curl -vfs -u ${NEXUS_USERNAME}:${NEXUS_PASSWORD} --upload-file "${ARCHIVE_NAME}" "${NEXUS_SIMULATION_THIRD_PARTY_DIR}/${CI_PROJECT_NAME}/${ARCHIVE_NAME}"
